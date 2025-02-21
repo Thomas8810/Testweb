@@ -5,12 +5,4 @@
     "password": "admin123",
     "role": "admin"
   }
-  {
-    "name": "Hai",
-    "email": "N/A",
-    "password": "hai123",
-    "role": "user"
-  }
-
-  
 ]
