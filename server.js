@@ -11,7 +11,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Cấu hình session (phiên làm việc lưu trữ trong bộ nhớ)
+// Cấu hình session (lưu trong bộ nhớ – in-memory store)
 app.use(session({
   secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật riêng của bạn
   resave: false,
@@ -73,7 +73,7 @@ function isAuthenticated(req, res, next) {
 
 // ----------------------- API ĐĂNG NHẬP -----------------------
 
-// Endpoint đăng nhập: sử dụng trường "identifier" để nhập Tên hoặc Email
+// Endpoint đăng nhập: sử dụng trường "identifier" để nhập Tên hoặc Email và password dạng plain text
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -109,7 +109,7 @@ app.post('/login', (req, res) => {
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
-      console.error("Lỗi khi xóa session:", err);
+      console.error("Lỗi xóa session:", err);
     }
     res.redirect('/login.html');
   });
@@ -117,8 +117,13 @@ app.get('/logout', (req, res) => {
 
 // ----------------------- ROUTE BẢO VỆ TRANG HOME -----------------------
 
-// Giả sử file home.html được di chuyển sang thư mục "views"
+// Route bảo vệ cho trang Home, file home.html nằm trong thư mục "views"
 app.get('/home', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'home.html'));
+});
+
+// Cũng cho phép truy cập qua đường dẫn /home.html nếu cần
+app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 
@@ -165,7 +170,7 @@ app.get('/filters', (req, res) => {
   });
 });
 
-// API tìm kiếm dữ liệu với phân trang
+// API tìm kiếm dữ liệu có phân trang
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -219,7 +224,7 @@ app.get('/export', (req, res) => {
   res.send(buf);
 });
 
-// Ví dụ route được bảo vệ (dashboard)
+// Ví dụ route được bảo vệ (Dashboard)
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
