@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,11 +12,18 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Cấu hình session (lưu trong bộ nhớ – in-memory store)
+// Cấu hình session với MongoStore để lưu thông tin đăng nhập bền vững
 app.use(session({
   secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật riêng của bạn
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI, // Đặt biến môi trường MONGO_URI với chuỗi kết nối MongoDB của bạn
+    ttl: 14 * 24 * 60 * 60, // Thời gian sống của session: 14 ngày (tính bằng giây)
+  }),
+  cookie: {
+    maxAge: 14 * 24 * 60 * 60 * 1000, // Thời gian tồn tại cookie: 14 ngày (tính bằng miligiây)
+  }
 }));
 
 // Serve file tĩnh từ thư mục "public"
@@ -73,7 +81,7 @@ function isAuthenticated(req, res, next) {
 
 // ----------------------- API ĐĂNG NHẬP -----------------------
 
-// Endpoint đăng nhập: sử dụng trường "identifier" để nhập Tên hoặc Email và password dạng plain text
+// Endpoint đăng nhập: sử dụng trường "identifier" để nhập Tên hoặc Email, so sánh mật khẩu dạng plain text
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
