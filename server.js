@@ -3,13 +3,12 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
-const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware xử lý JSON và form data
+// Middleware xử lý JSON và dữ liệu form
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,7 +23,7 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Cấu hình nodemailer (ví dụ sử dụng Gmail)
-// Bạn cần thiết lập biến môi trường: EMAIL_USER, EMAIL_PASS
+// Cần thiết lập biến môi trường: EMAIL_USER, EMAIL_PASS
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -77,19 +76,19 @@ function saveUsersData() {
 // ------------------- API ĐĂNG KÝ - ĐĂNG NHẬP - QUÊN MẬT KHẨU -------------------
 
 // Đăng ký: Gửi thông tin đăng ký qua email cho admin
-app.post('/register', async (req, res) => {
+app.post('/register', (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
-    return res.json({ success: false, message: "Vui lòng nhập đủ name, email, password." });
+    return res.json({ success: false, message: "Vui lòng nhập đủ name, email và password." });
   }
 
-  // Kiểm tra nếu email đã tồn tại
+  // Kiểm tra nếu email đã tồn tại trong hệ thống
   const existingUser = usersData.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (existingUser) {
     return res.json({ success: false, message: "Email đã được đăng ký." });
   }
 
-  // Lấy email của admin từ usersData (nếu có tài khoản admin) hoặc dùng biến môi trường ADMIN_EMAIL
+  // Lấy email của admin từ usersData (nếu có tài khoản admin) hoặc biến môi trường ADMIN_EMAIL
   const adminUser = usersData.find(u => u.role === 'admin');
   const adminEmail = adminUser ? adminUser.email : (process.env.ADMIN_EMAIL || 'admin@example.com');
 
@@ -97,7 +96,7 @@ app.post('/register', async (req, res) => {
     from: process.env.EMAIL_USER,
     to: adminEmail,
     subject: 'Yêu cầu đăng ký tài khoản mới',
-    text: `Yêu cầu đăng ký từ:\nHọ tên: ${name}\nEmail: ${email}\nMật khẩu: ${password}\n\nThông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h sau khi admin cập nhật.`
+    text: `Yêu cầu đăng ký từ:\nHọ tên: ${name}\nEmail: ${email}\nPassword: ${password}\n\nThông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h.`
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -110,11 +109,11 @@ app.post('/register', async (req, res) => {
   });
 });
 
-// Đăng nhập: Sử dụng trường "identifier" để nhận Tên hoặc Email
-app.post('/login', async (req, res) => {
+// Đăng nhập: Sử dụng trường "identifier" để nhận Tên hoặc Email (không mã hóa)
+app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
-    return res.json({ success: false, message: "Vui lòng nhập đủ tên/email và mật khẩu." });
+    return res.json({ success: false, message: "Vui lòng nhập đủ tên/email và password." });
   }
 
   // Tìm user theo email hoặc tên (không phân biệt chữ hoa chữ thường)
@@ -126,11 +125,12 @@ app.post('/login', async (req, res) => {
     return res.json({ success: false, message: "Người dùng không tồn tại." });
   }
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) {
+  // So sánh mật khẩu ở dạng plain text
+  if (user.password !== password) {
     return res.json({ success: false, message: "Sai mật khẩu." });
   }
 
+  // Đăng nhập thành công, lưu thông tin vào session
   req.session.user = {
     name: user.name,
     email: user.email,
@@ -140,7 +140,7 @@ app.post('/login', async (req, res) => {
 });
 
 // Quên mật khẩu: Gửi yêu cầu đổi mật khẩu qua email cho admin
-app.post('/forgot-password', async (req, res) => {
+app.post('/forgot-password', (req, res) => {
   const { email, newPassword } = req.body;
   if (!email || !newPassword) {
     return res.json({ success: false, message: "Vui lòng nhập đủ email và mật khẩu mới." });
@@ -159,7 +159,7 @@ app.post('/forgot-password', async (req, res) => {
     from: process.env.EMAIL_USER,
     to: adminEmail,
     subject: 'Yêu cầu đặt lại mật khẩu',
-    text: `Yêu cầu đặt lại mật khẩu từ:\nEmail: ${email}\nMật khẩu mới: ${newPassword}\n\nThông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h sau khi admin cập nhật.`
+    text: `Yêu cầu đặt lại mật khẩu từ:\nEmail: ${email}\nMật khẩu mới: ${newPassword}\n\nThông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h.`
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -224,7 +224,7 @@ app.get('/filters', (req, res) => {
   });
 });
 
-// Tìm kiếm dữ liệu với phân trang
+// Tìm kiếm dữ liệu có phân trang
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -278,7 +278,7 @@ app.get('/export', (req, res) => {
   res.send(buf);
 });
 
-// Ví dụ route được bảo vệ (để mở rộng sau này)
+// Ví dụ route được bảo vệ (cho các trang mở rộng sau này)
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
