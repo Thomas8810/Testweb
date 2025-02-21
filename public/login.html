@@ -14,10 +14,6 @@
       background-color: #1e1e1e;
       border: none;
     }
-    .nav-tabs .nav-link.active {
-      background-color: #343a40;
-      color: #fff;
-    }
     .form-control {
       background-color: #2c2c2c;
       border: 1px solid #444;
@@ -39,80 +35,25 @@
     <div class="row justify-content-center">
       <div class="col-md-6">
         <div class="card shadow">
-          <div class="card-header">
-            <ul class="nav nav-tabs card-header-tabs" id="authTab" role="tablist">
-              <li class="nav-item">
-                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Đăng Nhập</button>
-              </li>
-              <li class="nav-item">
-                <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Đăng Ký</button>
-              </li>
-              <li class="nav-item">
-                <button class="nav-link" id="forgot-tab" data-bs-toggle="tab" data-bs-target="#forgot" type="button" role="tab">Quên Mật Khẩu</button>
-              </li>
-            </ul>
+          <div class="card-header text-center">
+            <h4>Đăng Nhập</h4>
           </div>
           <div class="card-body">
-            <div class="tab-content" id="authTabContent">
-              <!-- Đăng nhập -->
-              <div class="tab-pane fade show active" id="login" role="tabpanel">
-                <form id="loginForm">
-                  <div class="mb-3">
-                    <label for="loginIdentifier" class="form-label">Tên hoặc Email</label>
-                    <input type="text" class="form-control" id="loginIdentifier" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="loginPassword" class="form-label">Mật Khẩu</label>
-                    <input type="password" class="form-control" id="loginPassword" required>
-                    <div class="form-check mt-1">
-                      <input class="form-check-input" type="checkbox" id="showLoginPassword" onclick="togglePassword('loginPassword')">
-                      <label class="form-check-label" for="showLoginPassword">Hiển thị mật khẩu</label>
-                    </div>
-                  </div>
-                  <button type="submit" class="btn btn-primary w-100">Đăng Nhập</button>
-                </form>
+            <form id="loginForm">
+              <div class="mb-3">
+                <label for="loginIdentifier" class="form-label">Tên hoặc Email</label>
+                <input type="text" class="form-control" id="loginIdentifier" required>
               </div>
-              <!-- Đăng ký -->
-              <div class="tab-pane fade" id="register" role="tabpanel">
-                <form id="registerForm">
-                  <div class="mb-3">
-                    <label for="registerName" class="form-label">Họ Tên</label>
-                    <input type="text" class="form-control" id="registerName" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="registerEmail" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="registerEmail" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="registerPassword" class="form-label">Mật Khẩu</label>
-                    <input type="password" class="form-control" id="registerPassword" required>
-                    <div class="form-check mt-1">
-                      <input class="form-check-input" type="checkbox" id="showRegisterPassword" onclick="togglePassword('registerPassword')">
-                      <label class="form-check-label" for="showRegisterPassword">Hiển thị mật khẩu</label>
-                    </div>
-                  </div>
-                  <button type="submit" class="btn btn-success w-100">Đăng Ký</button>
-                </form>
+              <div class="mb-3">
+                <label for="loginPassword" class="form-label">Mật Khẩu</label>
+                <input type="password" class="form-control" id="loginPassword" required>
+                <div class="form-check mt-1">
+                  <input class="form-check-input" type="checkbox" id="showLoginPassword" onclick="togglePassword('loginPassword')">
+                  <label class="form-check-label" for="showLoginPassword">Hiển thị mật khẩu</label>
+                </div>
               </div>
-              <!-- Quên mật khẩu -->
-              <div class="tab-pane fade" id="forgot" role="tabpanel">
-                <form id="forgotForm">
-                  <div class="mb-3">
-                    <label for="forgotEmail" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="forgotEmail" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="forgotNewPassword" class="form-label">Mật Khẩu Mới</label>
-                    <input type="password" class="form-control" id="forgotNewPassword" required>
-                    <div class="form-check mt-1">
-                      <input class="form-check-input" type="checkbox" id="showForgotPassword" onclick="togglePassword('forgotNewPassword')">
-                      <label class="form-check-label" for="showForgotPassword">Hiển thị mật khẩu</label>
-                    </div>
-                  </div>
-                  <button type="submit" class="btn btn-warning w-100">Đổi Mật Khẩu</button>
-                </form>
-              </div>
-            </div>
+              <button type="submit" class="btn btn-primary w-100">Đăng Nhập</button>
+            </form>
             <div id="alertMessage" class="mt-3"></div>
           </div>
         </div>
@@ -128,14 +69,10 @@
       alertDiv.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
     }
 
-    // Toggle hiển thị/ẩn mật khẩu
+    // Hàm toggle hiển thị/ẩn mật khẩu
     function togglePassword(fieldId) {
       const input = document.getElementById(fieldId);
-      if (input.type === 'password') {
-        input.type = 'text';
-      } else {
-        input.type = 'password';
-      }
+      input.type = (input.type === 'password') ? 'text' : 'password';
     }
 
     // Xử lý form Đăng Nhập
@@ -153,57 +90,10 @@
         const result = await response.json();
         if (result.success) {
           showAlert(result.message, 'success');
-          // Chuyển hướng đến home.html sau 1s
+          // Chuyển hướng đến home.html sau 1 giây
           setTimeout(() => {
             window.location.href = 'home.html';
           }, 1000);
-        } else {
-          showAlert(result.message, 'danger');
-        }
-      } catch (error) {
-        showAlert('Có lỗi xảy ra.', 'danger');
-      }
-    });
-
-    // Xử lý form Đăng Ký
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const name = document.getElementById('registerName').value;
-      const email = document.getElementById('registerEmail').value;
-      const password = document.getElementById('registerPassword').value;
-
-      try {
-        const response = await fetch('/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
-        });
-        const result = await response.json();
-        if (result.success) {
-          showAlert(result.message, 'success');
-        } else {
-          showAlert(result.message, 'danger');
-        }
-      } catch (error) {
-        showAlert('Có lỗi xảy ra.', 'danger');
-      }
-    });
-
-    // Xử lý form Quên Mật Khẩu
-    document.getElementById('forgotForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const email = document.getElementById('forgotEmail').value;
-      const newPassword = document.getElementById('forgotNewPassword').value;
-
-      try {
-        const response = await fetch('/forgot-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, newPassword })
-        });
-        const result = await response.json();
-        if (result.success) {
-          showAlert(result.message, 'success');
         } else {
           showAlert(result.message, 'danger');
         }
