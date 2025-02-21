@@ -100,6 +100,10 @@ function isAuthenticated(req, res, next) {
     res.redirect('/login.html');
   }
 }
+app.get('/home', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'home.html'));
+});
+
 
 // ------------------- CÁC API TRA CỨU & XUẤT EXCEL (GIỮ NGUYÊN) -------------------
 
