@@ -51,19 +51,20 @@
           <div class="card-body">
             <div class="tab-content" id="authTabContent">
               <!-- Đăng nhập -->
-              <div class="tab-pane fade show active" id="login" role="tabpanel">
-                <form id="loginForm">
-                  <div class="mb-3">
-                    <label for="loginEmail" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="loginEmail" name="email" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="loginPassword" class="form-label">Mật Khẩu</label>
-                    <input type="password" class="form-control" id="loginPassword" name="password" required>
-                  </div>
-                  <button type="submit" class="btn btn-primary w-100">Đăng Nhập</button>
-                </form>
-              </div>
+<div class="tab-pane fade show active" id="login" role="tabpanel">
+  <form id="loginForm">
+    <div class="mb-3">
+      <label for="loginName" class="form-label">Tên</label>
+      <input type="text" class="form-control" id="loginName" name="name" required>
+    </div>
+    <div class="mb-3">
+      <label for="loginPassword" class="form-label">Mật Khẩu</label>
+      <input type="password" class="form-control" id="loginPassword" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Đăng Nhập</button>
+  </form>
+</div>
+
               <!-- Đăng ký -->
               <div class="tab-pane fade" id="register" role="tabpanel">
                 <form id="registerForm">
@@ -110,25 +111,26 @@
 
     // Xử lý form đăng nhập
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const result = await response.json();
-      if (result.success) {
-        showAlert(result.message, 'success');
-        // Chuyển hướng đến trang home sau khi đăng nhập thành công
-        setTimeout(() => {
-          window.location.href = 'home.html';
-        }, 1000);
-      } else {
-        showAlert(result.message, 'danger');
-      }
-    });
+  e.preventDefault();
+  const name = document.getElementById('loginName').value;
+  const password = document.getElementById('loginPassword').value;
+  const response = await fetch('/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, password })
+  });
+  const result = await response.json();
+  if (result.success) {
+    showAlert(result.message, 'success');
+    // Chuyển hướng đến trang home sau khi đăng nhập thành công
+    setTimeout(() => {
+      window.location.href = 'home.html';
+    }, 1000);
+  } else {
+    showAlert(result.message, 'danger');
+  }
+});
+
 
     // Xử lý form đăng ký
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
