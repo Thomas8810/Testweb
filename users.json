@@ -2,7 +2,7 @@
   {
     "name": "Admin",
     "email": "thomasjessehill8@gmail.com",
-    "password": "$2b$10$Q.VkYbJ..v/F0FQAXbMzLuZWMyLS72QHZY10FZxgyvbbM5rL2PPE2",
+    "password": "admin123",
     "role": "admin"
   }
 ]
