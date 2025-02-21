@@ -3,32 +3,36 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
-const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Setup middleware xử lý dữ liệu POST
+// 1) Middleware đọc JSON, xử lý form
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Setup session
+// 2) Cấu hình session
 app.use(session({
-  secret: 'your-secret-key', // thay đổi secret cho phù hợp
+  secret: 'your-secret-key', // Đổi thành chuỗi bí mật riêng
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: false
 }));
 
-// Thiết lập thư mục tĩnh cho frontend (các file HTML, CSS, JS trong folder public)
+// 3) Cấu hình serve file tĩnh từ thư mục "public"
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Load dữ liệu từ file data.json (cho chức năng tìm kiếm, lọc,...)
+// 4) Đọc dữ liệu cho chức năng tra cứu (data.json)
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
 function loadDataFromFile() {
   try {
-    const fileData = fs.readFileSync(dataFilePath, 'utf8');
-    cachedData = JSON.parse(fileData);
+    if (fs.existsSync(dataFilePath)) {
+      const fileData = fs.readFileSync(dataFilePath, 'utf8');
+      cachedData = JSON.parse(fileData);
+    } else {
+      cachedData = [];
+    }
     console.log("Dữ liệu được tải và cache thành công.");
   } catch (err) {
     console.error("Lỗi khi đọc file data.json:", err);
@@ -36,7 +40,7 @@ function loadDataFromFile() {
 }
 loadDataFromFile();
 
-// Load dữ liệu người dùng từ file users.json (chứa thông tin đăng nhập, phân quyền)
+// 5) Đọc & ghi dữ liệu người dùng (users.json)
 const usersFilePath = path.join(__dirname, 'users.json');
 let usersData = [];
 function loadUsersData() {
@@ -45,101 +49,102 @@ function loadUsersData() {
       const fileData = fs.readFileSync(usersFilePath, 'utf8');
       usersData = JSON.parse(fileData);
     } else {
-      usersData = []; // Nếu file chưa tồn tại thì khởi tạo mảng rỗng
+      usersData = [];
     }
+    console.log("Dữ liệu users.json được tải thành công.");
   } catch (err) {
     console.error("Lỗi khi đọc file users.json:", err);
+    usersData = [];
   }
 }
 loadUsersData();
 
-// Hàm lưu lại dữ liệu người dùng
 function saveUsersData() {
   fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), 'utf8');
 }
 
-// Cấu hình nodemailer (ví dụ sử dụng Gmail)
-// Hãy thiết lập các biến môi trường: EMAIL_USER, EMAIL_PASS, ADMIN_EMAIL
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER, // email của bạn
-    pass: process.env.EMAIL_PASS  // mật khẩu hoặc app password
-  }
-});
+// ------------------- API ĐĂNG KÝ - ĐĂNG NHẬP - QUÊN MẬT KHẨU -------------------
 
-// Endpoint đăng nhập
-app.post('/login', (req, res) => {
-  const { name, password } = req.body;
-  // Xác thực theo tên (không phân biệt chữ hoa chữ thường)
-  const user = usersData.find(u => u.name.toLowerCase() === name.toLowerCase() && u.password === password);
-  if (user) {
-    req.session.user = {
-      name: user.name,
-      email: user.email,
-      role: user.role || 'user'
-    };
-    res.json({ success: true, message: "Đăng nhập thành công." });
-  } else {
-    res.json({ success: false, message: "Tên hoặc mật khẩu không đúng." });
-  }
-});
-
-
-// Endpoint đăng ký (chỉ gửi yêu cầu về cho admin để kiểm duyệt)
-app.post('/register', (req, res) => {
+// Đăng ký: Thêm user mới vào users.json (mã hóa mật khẩu)
+app.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
-  // Kiểm tra nếu email đã tồn tại
-  if (usersData.find(u => u.email === email)) {
+  if (!name || !email || !password) {
+    return res.json({ success: false, message: "Vui lòng nhập đủ name, email, password." });
+  }
+
+  // Kiểm tra email đã tồn tại?
+  const existingUser = usersData.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (existingUser) {
     return res.json({ success: false, message: "Email đã được đăng ký." });
   }
-  // Gửi email thông báo yêu cầu đăng ký cho admin
-  const adminEmail = process.env.ADMIN_EMAIL || 'thomasjessehill8@gmail.com';
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: adminEmail,
-    subject: 'Yêu cầu đăng ký tài khoản mới',
-    text: `Yêu cầu đăng ký từ:\nHọ tên: ${name}\nEmail: ${email}\nMật khẩu: ${password}\n\nVui lòng kiểm duyệt và thêm tài khoản nếu hợp lệ.`
-  };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Lỗi gửi email đăng ký:", error);
-      res.json({ success: false, message: "Gửi yêu cầu đăng ký không thành công." });
-    } else {
-      res.json({ success: true, message: "Yêu cầu đăng ký đã được gửi. Vui lòng chờ xác nhận." });
-    }
-  });
+  // Mã hóa mật khẩu
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+  // Tạo user mới
+  const newUser = {
+    name: name,
+    email: email.toLowerCase(),
+    password: hashedPassword,
+    role: "user"
+  };
+  usersData.push(newUser);
+  saveUsersData();
+
+  return res.json({ success: true, message: "Đăng ký thành công! Bạn có thể đăng nhập ngay." });
 });
 
-// Endpoint quên mật khẩu (gửi yêu cầu về cho admin)
-app.post('/forgot-password', (req, res) => {
-  const { email } = req.body;
-  // Kiểm tra nếu email tồn tại
-  const user = usersData.find(u => u.email === email);
+// Đăng nhập: So sánh mật khẩu (đã mã hóa)
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.json({ success: false, message: "Vui lòng nhập đủ email và password." });
+  }
+
+  const user = usersData.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (!user) {
+    return res.json({ success: false, message: "Email không tồn tại." });
+  }
+
+  // Kiểm tra mật khẩu bằng bcrypt
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) {
+    return res.json({ success: false, message: "Sai mật khẩu." });
+  }
+
+  // Đăng nhập thành công -> lưu session
+  req.session.user = {
+    name: user.name,
+    email: user.email,
+    role: user.role
+  };
+  return res.json({ success: true, message: "Đăng nhập thành công." });
+});
+
+// Quên mật khẩu: Người dùng nhập email & mật khẩu mới -> cập nhật luôn
+app.post('/forgot-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+  if (!email || !newPassword) {
+    return res.json({ success: false, message: "Vui lòng nhập đủ email và mật khẩu mới." });
+  }
+
+  const user = usersData.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (!user) {
     return res.json({ success: false, message: "Email không tồn tại trong hệ thống." });
   }
-  // Gửi email thông báo yêu cầu đặt lại mật khẩu cho admin
-  const adminEmail = process.env.ADMIN_EMAIL || 'thomasjessehill8@gmail.com';
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: adminEmail,
-    subject: 'Yêu cầu đặt lại mật khẩu',
-    text: `Yêu cầu đặt lại mật khẩu từ:\nEmail: ${email}\n\nVui lòng kiểm duyệt và cập nhật mật khẩu nếu hợp lệ.`
-  };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Lỗi gửi email quên mật khẩu:", error);
-      res.json({ success: false, message: "Gửi yêu cầu quên mật khẩu không thành công." });
-    } else {
-      res.json({ success: true, message: "Yêu cầu quên mật khẩu đã được gửi. Vui lòng chờ xác nhận." });
-    }
-  });
+  // Mã hóa mật khẩu mới
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+  user.password = hashedPassword;
+  saveUsersData();
+
+  return res.json({ success: true, message: "Cập nhật mật khẩu mới thành công! Hãy đăng nhập lại." });
 });
 
-// Middleware bảo vệ các route cần đăng nhập
+// Middleware kiểm tra đăng nhập
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) {
     next();
@@ -148,8 +153,9 @@ function isAuthenticated(req, res, next) {
   }
 }
 
-// --- Các API hiện có ---
-// API lấy danh sách giá trị lọc (filters)
+// ------------------- CÁC API TÌM KIẾM - XUẤT EXCEL (GIỮ NGUYÊN) -------------------
+
+// Lấy danh sách giá trị lọc (filters)
 app.get('/filters', (req, res) => {
   const getDistinct = (col) => {
     const values = cachedData.map(row => row[col]).filter(v => v != null);
@@ -190,7 +196,7 @@ app.get('/filters', (req, res) => {
   });
 });
 
-// API tìm kiếm dữ liệu với phân trang
+// Tìm kiếm dữ liệu có phân trang
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -216,7 +222,7 @@ app.get('/search', (req, res) => {
   res.json({ total, data: paginatedData });
 });
 
-// API xuất dữ liệu đã lọc sang file Excel
+// Xuất Excel
 app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -244,7 +250,7 @@ app.get('/export', (req, res) => {
   res.send(buf);
 });
 
-// Ví dụ route được bảo vệ (cho các trang mở rộng sau này)
+// Ví dụ route được bảo vệ
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
