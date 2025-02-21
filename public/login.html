@@ -58,8 +58,8 @@
               <div class="tab-pane fade show active" id="login" role="tabpanel">
                 <form id="loginForm">
                   <div class="mb-3">
-                    <label for="loginEmail" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="loginEmail" required>
+                    <label for="loginIdentifier" class="form-label">Tên hoặc Email</label>
+                    <input type="text" class="form-control" id="loginIdentifier" required>
                   </div>
                   <div class="mb-3">
                     <label for="loginPassword" class="form-label">Mật Khẩu</label>
@@ -122,13 +122,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Hiển thị thông báo
+    // Hàm hiển thị thông báo
     function showAlert(message, type = 'info') {
       const alertDiv = document.getElementById('alertMessage');
       alertDiv.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
     }
 
-    // Toggle password hiển thị/ẩn
+    // Toggle hiển thị/ẩn mật khẩu
     function togglePassword(fieldId) {
       const input = document.getElementById(fieldId);
       if (input.type === 'password') {
@@ -141,19 +141,19 @@
     // Xử lý form Đăng Nhập
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
+      const identifier = document.getElementById('loginIdentifier').value;
       const password = document.getElementById('loginPassword').value;
 
       try {
         const response = await fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ identifier, password })
         });
         const result = await response.json();
         if (result.success) {
           showAlert(result.message, 'success');
-          // Chuyển hướng đến home.html sau khi đăng nhập
+          // Chuyển hướng đến home.html sau khi đăng nhập thành công
           setTimeout(() => {
             window.location.href = 'home.html';
           }, 1000);
