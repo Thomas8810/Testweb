@@ -70,20 +70,21 @@ const transporter = nodemailer.createTransport({
 
 // Endpoint đăng nhập
 app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  // Xác thực đơn giản: tìm user theo email và kiểm tra mật khẩu (lưu ý: nên mã hóa mật khẩu trong dự án thật)
-  const user = usersData.find(u => u.email === email && u.password === password);
+  const { name, password } = req.body;
+  // Xác thực theo tên (không phân biệt chữ hoa chữ thường)
+  const user = usersData.find(u => u.name.toLowerCase() === name.toLowerCase() && u.password === password);
   if (user) {
     req.session.user = {
+      name: user.name,
       email: user.email,
-      role: user.role || 'user',
-      name: user.name || ''
+      role: user.role || 'user'
     };
     res.json({ success: true, message: "Đăng nhập thành công." });
   } else {
-    res.json({ success: false, message: "Email hoặc mật khẩu không đúng." });
+    res.json({ success: false, message: "Tên hoặc mật khẩu không đúng." });
   }
 });
+
 
 // Endpoint đăng ký (chỉ gửi yêu cầu về cho admin để kiểm duyệt)
 app.post('/register', (req, res) => {
@@ -93,7 +94,7 @@ app.post('/register', (req, res) => {
     return res.json({ success: false, message: "Email đã được đăng ký." });
   }
   // Gửi email thông báo yêu cầu đăng ký cho admin
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'thomasjessehill8@gmail.com';
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: adminEmail,
@@ -120,7 +121,7 @@ app.post('/forgot-password', (req, res) => {
     return res.json({ success: false, message: "Email không tồn tại trong hệ thống." });
   }
   // Gửi email thông báo yêu cầu đặt lại mật khẩu cho admin
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'thomasjessehill8@gmail.com';
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: adminEmail,
