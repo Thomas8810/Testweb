@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,16 +20,6 @@ app.use(session({
 
 // Serve file tĩnh từ thư mục "public"
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Cấu hình nodemailer (ví dụ sử dụng Gmail)
-// Cần thiết lập biến môi trường: EMAIL_USER, EMAIL_PASS
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER, // Email gửi đi
-    pass: process.env.EMAIL_PASS  // Mật khẩu hoặc app password
-  }
-});
 
 // Đọc dữ liệu tra cứu từ file data.json
 const dataFilePath = path.join(__dirname, 'data.json');
@@ -69,47 +58,11 @@ function loadUsersData() {
 }
 loadUsersData();
 
-function saveUsersData() {
-  fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), 'utf8');
-}
+// Không cần hàm saveUsersData vì không cập nhật dữ liệu người dùng tại runtime
 
-// ------------------- API ĐĂNG KÝ - ĐĂNG NHẬP - QUÊN MẬT KHẨU -------------------
+// ------------------- API ĐĂNG NHẬP -------------------
 
-// Đăng ký: Gửi thông tin đăng ký qua email cho admin
-app.post('/register', (req, res) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) {
-    return res.json({ success: false, message: "Vui lòng nhập đủ name, email và password." });
-  }
-
-  // Kiểm tra nếu email đã tồn tại trong hệ thống
-  const existingUser = usersData.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (existingUser) {
-    return res.json({ success: false, message: "Email đã được đăng ký." });
-  }
-
-  // Lấy email của admin từ usersData (nếu có tài khoản admin) hoặc biến môi trường ADMIN_EMAIL
-  const adminUser = usersData.find(u => u.role === 'admin');
-  const adminEmail = adminUser ? adminUser.email : (process.env.ADMIN_EMAIL || 'admin@example.com');
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: adminEmail,
-    subject: 'Yêu cầu đăng ký tài khoản mới',
-    text: `Yêu cầu đăng ký từ:\nHọ tên: ${name}\nEmail: ${email}\nPassword: ${password}\n\nThông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h.`
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Lỗi gửi email đăng ký:", error);
-      return res.json({ success: false, message: "Gửi yêu cầu đăng ký không thành công." });
-    } else {
-      return res.json({ success: true, message: "Thông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h." });
-    }
-  });
-});
-
-// Đăng nhập: Sử dụng trường "identifier" để nhận Tên hoặc Email (không mã hóa)
+// Đăng nhập: Sử dụng trường "identifier" để nhận Tên hoặc Email (so sánh mật khẩu dạng plain text)
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -125,7 +78,7 @@ app.post('/login', (req, res) => {
     return res.json({ success: false, message: "Người dùng không tồn tại." });
   }
 
-  // So sánh mật khẩu ở dạng plain text
+  // So sánh mật khẩu dạng plain text
   if (user.password !== password) {
     return res.json({ success: false, message: "Sai mật khẩu." });
   }
@@ -139,39 +92,6 @@ app.post('/login', (req, res) => {
   return res.json({ success: true, message: "Đăng nhập thành công." });
 });
 
-// Quên mật khẩu: Gửi yêu cầu đổi mật khẩu qua email cho admin
-app.post('/forgot-password', (req, res) => {
-  const { email, newPassword } = req.body;
-  if (!email || !newPassword) {
-    return res.json({ success: false, message: "Vui lòng nhập đủ email và mật khẩu mới." });
-  }
-
-  // Kiểm tra email có tồn tại trong hệ thống không
-  const user = usersData.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (!user) {
-    return res.json({ success: false, message: "Email không tồn tại trong hệ thống." });
-  }
-
-  const adminUser = usersData.find(u => u.role === 'admin');
-  const adminEmail = adminUser ? adminUser.email : (process.env.ADMIN_EMAIL || 'admin@example.com');
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: adminEmail,
-    subject: 'Yêu cầu đặt lại mật khẩu',
-    text: `Yêu cầu đặt lại mật khẩu từ:\nEmail: ${email}\nMật khẩu mới: ${newPassword}\n\nThông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h.`
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Lỗi gửi email quên mật khẩu:", error);
-      return res.json({ success: false, message: "Gửi yêu cầu quên mật khẩu không thành công." });
-    } else {
-      return res.json({ success: true, message: "Thông tin đã được gửi cho admin. Vui lòng liên hệ với admin hoặc đăng nhập lại sau 1h." });
-    }
-  });
-});
-
 // Middleware kiểm tra đăng nhập
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) {
@@ -181,7 +101,7 @@ function isAuthenticated(req, res, next) {
   }
 }
 
-// ------------------- Các API TÌM KIẾM - XUẤT EXCEL (GIỮ NGUYÊN) -------------------
+// ------------------- CÁC API TRA CỨU & XUẤT EXCEL (GIỮ NGUYÊN) -------------------
 
 // Lấy danh sách giá trị lọc (filters)
 app.get('/filters', (req, res) => {
