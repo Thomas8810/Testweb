@@ -1,14 +1,8 @@
 [
   {
     "name": "Admin",
-    "email": "thomasjessehill8@gmail.com",
-    "password": "admin123",
+    "email": "thomasjessehill8.com",
+    "password": "$2b$10$Q.VkYbJ..v/F0FQAXbMzLuZWMyLS72QHZY10FZxgyvbbM5rL2PPE2",
     "role": "admin"
-  },
-  {
-    "name": "user",
-    "email": "user@example.com",
-    "password": "123",
-    "role": "user"
   }
 ]
