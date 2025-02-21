@@ -153,7 +153,7 @@
         const result = await response.json();
         if (result.success) {
           showAlert(result.message, 'success');
-          // Chuyển hướng đến home.html sau khi đăng nhập thành công
+          // Chuyển hướng đến home.html sau 1s
           setTimeout(() => {
             window.location.href = 'home.html';
           }, 1000);
