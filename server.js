@@ -8,7 +8,7 @@ const compression = require('compression');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware để parse JSON và dữ liệu form
+// Middleware parse JSON và form data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -21,8 +21,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
 }));
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
-
-// Đọc dữ liệu tra cứu từ file data.json
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
 function loadDataFromFile() {
@@ -40,7 +38,6 @@ function loadDataFromFile() {
 }
 loadDataFromFile();
 
-// Đọc dữ liệu người dùng từ file users.json
 const usersFilePath = path.join(__dirname, 'users.json');
 let usersData = [];
 function loadUsersData() {
@@ -61,7 +58,7 @@ loadUsersData();
 
 // ----------------------- SESSION -----------------------
 app.use(session({
-  secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật riêng của bạn
+  secret: 'your-secret-key', // Thay đổi chuỗi bí mật riêng của bạn
   resave: false,
   saveUninitialized: false
 }));
@@ -111,20 +108,10 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// ----------------------- PHÂN TRANG DỮ LIỆU -----------------------
-// Endpoint này trả về dữ liệu theo từng trang; bảo vệ bằng middleware isAuthenticated
+// ----------------------- API TRA CỨU DỮ LIỆU -----------------------
+// Giữ nguyên chức năng cũ: trả về toàn bộ dữ liệu tra cứu
 app.get('/api/data', isAuthenticated, (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-
-  const slicedData = cachedData.slice(startIndex, endIndex);
-
-  res.json({
-    total: cachedData.length,
-    data: slicedData
-  });
+  res.json(cachedData);
 });
 
 // ----------------------- SERVE CÁC TRANG HTML -----------------------
