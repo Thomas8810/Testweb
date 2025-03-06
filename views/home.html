@@ -812,6 +812,7 @@ function updateTable(data, reset) {
     $('#results-count').text(`Tổng số dòng: ${tbody.children().length} / ${totalData}`);
     $('#results-table').colResizable({ liveDrag: true });
 }
+
     
     function downloadExcel() {
       var wb = XLSX.utils.table_to_book(document.getElementById('results-table'), {sheet:"Sheet1"});
