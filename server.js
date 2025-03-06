@@ -1,7 +1,7 @@
+// server.js
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const XLSX = require('xlsx');
 const session = require('express-session');
 
 const app = express();
@@ -18,17 +18,19 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Serve file tĩnh từ thư mục "public"
-// (Bạn có thể đặt các file tĩnh như hình ảnh, CSS, JS vào thư mục public)
+// Serve file tĩnh từ thư mục "public" (cho các file CSS, JS, hình ảnh,…)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
 
-// Đường dẫn file dữ liệu
+// Biến lưu trữ dữ liệu tra cứu và người dùng
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
 
-// Hàm load dữ liệu từ file một cách bất đồng bộ
+const usersFilePath = path.join(__dirname, 'users.json');
+let usersData = [];
+
+// Hàm load dữ liệu từ file data.json một cách bất đồng bộ
 async function loadDataFromFile() {
   try {
     if (fs.existsSync(dataFilePath)) {
@@ -44,7 +46,7 @@ async function loadDataFromFile() {
 }
 loadDataFromFile();
 
-// Tự động reload khi file data.json thay đổi
+// Theo dõi thay đổi của file data.json để tự động reload
 fs.watch(dataFilePath, (eventType) => {
   if (eventType === 'change') {
     console.log("data.json đã thay đổi, tải lại dữ liệu.");
@@ -52,11 +54,7 @@ fs.watch(dataFilePath, (eventType) => {
   }
 });
 
-// Đường dẫn file dữ liệu người dùng
-const usersFilePath = path.join(__dirname, 'users.json');
-let usersData = [];
-
-// Hàm load dữ liệu người dùng bất đồng bộ
+// Hàm load dữ liệu người dùng từ file users.json một cách bất đồng bộ
 async function loadUsersData() {
   try {
     if (fs.existsSync(usersFilePath)) {
@@ -73,7 +71,7 @@ async function loadUsersData() {
 }
 loadUsersData();
 
-// Tự động reload khi file users.json thay đổi
+// Theo dõi thay đổi của file users.json để tự động reload
 fs.watch(usersFilePath, (eventType) => {
   if (eventType === 'change') {
     console.log("users.json đã thay đổi, tải lại dữ liệu người dùng.");
@@ -81,14 +79,43 @@ fs.watch(usersFilePath, (eventType) => {
   }
 });
 
-// ----------------------- API & ROUTE -----------------------
+// ----------------------- ENDPOINTS & ROUTES -----------------------
 
-// API trả về dữ liệu cho trang home (dùng cho phân trang/lazy load)
+// Endpoint /api/data: trả về toàn bộ dữ liệu (nếu cần)
 app.get('/api/data', (req, res) => {
   res.json(cachedData);
 });
 
-// Middleware bảo vệ route (chỉ cho phép người đã đăng nhập)
+// Endpoint /search: xử lý lọc và phân trang dữ liệu
+app.get('/search', (req, res) => {
+  let { limit, offset, ...filters } = req.query;
+  limit = parseInt(limit) || 50;
+  offset = parseInt(offset) || 0;
+
+  // Lọc dữ liệu theo các tham số
+  let results = cachedData.filter(row => {
+    return Object.keys(filters).every(key => {
+      // Nếu giá trị filter không có, bỏ qua
+      if (!filters[key]) return true;
+      // Nếu giá trị filter có dạng chuỗi các giá trị cách nhau bằng dấu phẩy
+      let filterValues = filters[key].split(',').map(v => v.trim().toLowerCase());
+      let cellVal = row[key] ? row[key].toString().toLowerCase() : "";
+      // Chọn nếu cellVal chứa ít nhất 1 trong các giá trị filter
+      return filterValues.some(v => cellVal.includes(v));
+    });
+  });
+  const total = results.length;
+  results = results.slice(offset, offset + limit);
+  res.json({ total, data: results });
+});
+
+// Endpoint /filters: trả về danh sách các giá trị distinct cho cột "Sheet"
+app.get('/filters', (req, res) => {
+  const sheets = Array.from(new Set(cachedData.map(row => row['Sheet']).filter(Boolean)));
+  res.json({ 'Sheet': sheets });
+});
+
+// Middleware bảo vệ route: chỉ cho phép người dùng đã đăng nhập truy cập
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) {
     next();
@@ -99,14 +126,14 @@ function isAuthenticated(req, res, next) {
 
 // ----------------------- API ĐĂNG NHẬP -----------------------
 
-// API đăng nhập sử dụng trường "identifier" (tên hoặc email) và password dạng plain text
+// Endpoint đăng nhập: sử dụng trường "identifier" (tên hoặc email) và mật khẩu dạng plain text
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
     return res.json({ success: false, message: "Vui lòng nhập đủ tên/email và mật khẩu." });
   }
 
-  // Tìm người dùng (không phân biệt chữ hoa/chữ thường)
+  // Tìm người dùng không phân biệt chữ hoa/chữ thường
   const user = usersData.find(u =>
     u.email.toLowerCase() === identifier.toLowerCase() ||
     u.name.toLowerCase() === identifier.toLowerCase()
@@ -115,7 +142,6 @@ app.post('/login', (req, res) => {
   if (!user) {
     return res.json({ success: false, message: "Người dùng không tồn tại." });
   }
-
   if (user.password !== password) {
     return res.json({ success: false, message: "Sai mật khẩu." });
   }
@@ -126,19 +152,16 @@ app.post('/login', (req, res) => {
     email: user.email,
     role: user.role
   };
-
   return res.json({ success: true, message: "Đăng nhập thành công." });
 });
 
-// API đăng xuất: xóa session và chuyển hướng về trang đăng nhập
+// Endpoint đăng xuất: hủy session và chuyển hướng về trang đăng nhập
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) console.error("Lỗi xóa session:", err);
     res.redirect('/login.html');
   });
 });
-
-// ----------------------- ROUTE TRANG HOME -----------------------
 
 // Route bảo vệ cho trang home (file home.html nằm trong thư mục "views")
 app.get(['/home', '/home.html'], isAuthenticated, (req, res) => {
