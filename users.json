@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Thomas",
+    "email": "thomasjessehill8@gmail.com",
+    "password": "12",
+    "role": "admin"
+  },
+    {
+    "name": "Thiet",
+    "email": "thiet@gmail.com",
+    "password": "thiet123",
+    "role": "user"
+  },
+    {
+    "name": "Son",
+    "email": "Son@gmail.com",
+    "password": "son123",
+    "role": "user"
+  },
+  {
+    "name": "Hai",
+    "email": "Hai@gmail.com",
+    "password": "hai123",
+    "role": "user"
+  },
+  {
+    "name": "Duc",
+    "email": "Duc@gmail.com",
+    "password": "duc123",
+    "role": "user"
+  },
+    {
+    "name": "Long",
+    "email": "Long@gmail.com",
+    "password": "long123",
+    "role": "user"
+  },
+      {
+    "name": "SongJisub",
+    "email": "SongJisub@gmail.com",
+    "password": "123",
+    "role": "user"
+  },
+  {
+    "name": "Ha",
+    "email": "Ha@gmail.com",
+    "password": "Ha123",
+    "role": "user"
+  }
+]
