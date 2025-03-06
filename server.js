@@ -140,102 +140,21 @@ app.get('/filters', (req, res) => {
     "Sheet": getDistinct("Sheet"),
     "PO Number": getDistinct("PO Number"),
     "Project": getDistinct("Project"),
-    "Part Number": getDistinct("Part Number"),
-    "REV": getDistinct("REV"),
-    "Description": getDistinct("Description"),
-    "Note Number": getDistinct("Note Number"),
-    "Critical": getDistinct("Critical"),
-    "CE": getDistinct("CE"),
-    "Material": getDistinct("Material"),
-    "Plating": getDistinct("Plating"),
-    "Painting": getDistinct("Painting"),
-    "Tiêu chuẩn mạ sơn": getDistinct("Tiêu chuẩn mạ sơn"),
-    "Ngày Nhận PO": getDistinct("Ngày Nhận PO"),
-    "Cover sheet": getDistinct("Cover sheet"),
-    "Drawing": getDistinct("Drawing"),
-    "Datasheet form": getDistinct("Datasheet form"),
-    "Data": getDistinct("Data"),
-    "COC": getDistinct("COC"),
-    "BOM": getDistinct("BOM"),
-    "Mill": getDistinct("Mill"),
-    "Part Pictures": getDistinct("Part Pictures"),
-    "Packaging Pictures": getDistinct("Packaging Pictures"),
-    "Submit date": getDistinct("Submit date"),
-    "Đã lên PO LAM": getDistinct("Đã lên PO LAM"),
-    "OK": getDistinct("OK"),
-    "Remark": getDistinct("Remark"),
-    "Remark 2": getDistinct("Remark 2"),
-    "Status": getDistinct("Status"),
-    "Note": getDistinct("Note")
+    "Part Number": getDistinct("Part Number")
   });
 });
 
-// API tìm kiếm dữ liệu có phân trang
-app.get('/search', (req, res) => {
-  let filtered = cachedData;
-  const { limit, offset, ...filters } = req.query;
-
-  for (let key in filters) {
-    if (filters[key]) {
-      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
-      filtered = filtered.filter(row => {
-        if (row[key]) {
-          const cellValue = row[key].toString().toLowerCase();
-          return filterValues.some(val => cellValue.includes(val));
-        }
-        return false;
-      });
-    }
-  }
-
-  const total = filtered.length;
-  const pageLimit = parseInt(limit, 10) || 50;
-  const pageOffset = parseInt(offset, 10) || 0;
-  const paginatedData = filtered.slice(pageOffset, pageOffset + pageLimit);
-
-  res.json({ total, data: paginatedData });
-});
-
-// API xuất dữ liệu sang file Excel
+// API xuất file Excel
 app.get('/export', (req, res) => {
-  let filtered = cachedData;
-  const { limit, offset, ...filters } = req.query;
-
-  for (let key in filters) {
-    if (filters[key]) {
-      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
-      filtered = filtered.filter(row => {
-        if (row[key]) {
-          const cellValue = row[key].toString().toLowerCase();
-          return filterValues.some(val => cellValue.includes(val));
-        }
-        return false;
-      });
-    }
-  }
-
   const wb = XLSX.utils.book_new();
-  const headerOrder = [
-  "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
-  "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
-  "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
-  "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
-  "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
-];
-const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
-
+  const ws = XLSX.utils.json_to_sheet(cachedData);
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-
-  res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
-  res.setHeader('Content-Type', 'application/octet-stream');
-  res.send(buf);
+  const filePath = path.join(__dirname, 'public', 'export.xlsx');
+  XLSX.writeFile(wb, filePath);
+  res.download(filePath);
 });
 
-// Ví dụ route được bảo vệ (Dashboard)
-app.get('/dashboard', isAuthenticated, (req, res) => {
-  res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
-});
+// ----------------------- START SERVER -----------------------
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
