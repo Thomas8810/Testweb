@@ -490,12 +490,15 @@
     // Biến toàn cục chứa toàn bộ dữ liệu
     let allData = null;
     
-    // Hàm load toàn bộ dữ liệu khi trang được load
-    function loadAllData() {
-      $.getJSON('/search?limit=1000000', function(response) {
+    // Hàm load dữ liệu ban đầu với phân trang
+function loadAllData() {
+    $.getJSON('/search?limit=' + pageSize + '&offset=0', function(response) {
         allData = response.data;
-      });
-    }
+        totalData = response.total;
+        currentOffset = pageSize;
+        updateTable(response.data, true);
+    });
+}
     
     // Khởi tạo các dropdown với Select2
     $(document).ready(function() {
@@ -590,11 +593,12 @@
           scrollTop: $('.table-container').offset().top
         }, 500);
       });
-      $('#clear-filters').on('click', function() {
-        $('.value-select').val(null).trigger('change');
-        $('#filter-value-2').val(null).trigger('change');
-        applyFilters(true);
-      });
+$('#clear-filters').on('click', function() {
+    $('.value-select').val(null).trigger('change');
+    currentFilters = {};
+    currentOffset = 0;
+    loadAllData();
+});
       $('#load-more').on('click', function() {
         if (currentOffset < totalData) {
           let queryString = $.param(currentFilters);
@@ -765,10 +769,12 @@ distinctValues.sort((a, b) => a.localeCompare(b));
       });
     }
     
-    function updateTable(data, reset) {
-      const tbody = $('#results-table tbody');
-      if (reset) tbody.empty();
-      data.forEach(function(row) {
+function updateTable(data, reset) {
+    const tbody = $('#results-table tbody');
+    if (reset) tbody.empty();
+
+    const fragment = document.createDocumentFragment();
+    data.forEach(function(row) {
         const tr = $('<tr>');
         tr.append(`<td class="sticky-col-1">${tbody.children().length + 1}</td>`);
         tr.append(`<td class="sticky-col-2">${row['Part Number'] || ''}</td>`);
@@ -800,11 +806,12 @@ distinctValues.sort((a, b) => a.localeCompare(b));
         tr.append(`<td>${row['Remark 2'] || ''}</td>`);
         tr.append(`<td>${row['Status'] || ''}</td>`);
         tr.append(`<td>${row['Note'] || ''}</td>`);
-        tbody.append(tr);
-      });
-      $('#results-count').text(`Tổng số dòng: ${tbody.children().length} / ${totalData}`);
-      $('#results-table').colResizable({ liveDrag: true });
-    }
+        fragment.appendChild(tr[0]);
+    });
+    tbody.append(fragment);
+    $('#results-count').text(`Tổng số dòng: ${tbody.children().length} / ${totalData}`);
+    $('#results-table').colResizable({ liveDrag: true });
+}
     
     function downloadExcel() {
       var wb = XLSX.utils.table_to_book(document.getElementById('results-table'), {sheet:"Sheet1"});
