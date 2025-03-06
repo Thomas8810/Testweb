@@ -63,19 +63,16 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Hàm hiển thị thông báo
     function showAlert(message, type = 'info') {
       const alertDiv = document.getElementById('alertMessage');
       alertDiv.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
     }
 
-    // Hàm toggle hiển thị/ẩn mật khẩu
     function togglePassword(fieldId) {
       const input = document.getElementById(fieldId);
       input.type = (input.type === 'password') ? 'text' : 'password';
     }
 
-    // Xử lý form Đăng Nhập
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const identifier = document.getElementById('loginIdentifier').value;
@@ -90,7 +87,6 @@
         const result = await response.json();
         if (result.success) {
           showAlert(result.message, 'success');
-          // Chuyển hướng đến home.html sau 1 giây
           setTimeout(() => {
             window.location.href = 'home.html';
           }, 1000);
