@@ -315,80 +315,7 @@
           <label for="filter-value-3">Chọn giá trị:</label>
           <select id="filter-value-3" class="value-select" multiple="multiple"></select>
         </div>
-        <!-- Filter Block 4 -->
-        <div class="filter-block" id="filter-block-4">
-          <label for="filter-column-4">Chọn tiêu chí số 4:</label>
-          <select id="filter-column-4">
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-4">Chọn giá trị:</label>
-          <select id="filter-value-4" class="value-select" multiple="multiple"></select>
-        </div>
-        <!-- Filter Block 5 -->
-        <div class="filter-block" id="filter-block-5">
-          <label for="filter-column-5">Chọn tiêu chí số 5:</label>
-          <select id="filter-column-5">
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-5">Chọn giá trị:</label>
-          <select id="filter-value-5" class="value-select" multiple="multiple"></select>
-        </div>
+        
       </div>
       
       <div class="filter-actions">
@@ -562,25 +489,10 @@
         updateCascade(3);
       });
       
+      
+      // Đối với block 3, khi thay đổi tiêu chí thì cập nhật giá trị của block 3 (không có cascade)
       $('#filter-column-3').on('change', function() {
         updateFilterValuesForBlock(3);
-        updateCascade(4);
-      });
-      $('#filter-value-3').on('change', function() {
-        updateCascade(4);
-      });
-      
-      $('#filter-column-4').on('change', function() {
-        updateFilterValuesForBlock(4);
-        updateCascade(5);
-      });
-      $('#filter-value-4').on('change', function() {
-        updateCascade(5);
-      });
-      
-      // Đối với block 5, khi thay đổi tiêu chí thì cập nhật giá trị của block 5 (không có cascade)
-      $('#filter-column-5').on('change', function() {
-        updateFilterValuesForBlock(5);
       });
       
       // Các sự kiện xử lý lọc, tải dữ liệu, zoom, xuất Excel…
@@ -612,7 +524,7 @@
         if (sheetValues && sheetValues.length > 0) {
           queryParams["Sheet"] = sheetValues.join(',');
         }
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 3; i++) {
           const col = $(`#filter-column-${i}`).val();
           const values = $(`#filter-value-${i}`).val();
           if (values && values.length > 0) {
@@ -634,7 +546,7 @@
         if (sheetValues && sheetValues.length > 0) {
           queryParams["Sheet"] = sheetValues.join(',');
         }
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 3; i++) {
           const col = $(`#filter-column-${i}`).val();
           const values = $(`#filter-value-${i}`).val();
           if (values && values.length > 0) {
@@ -719,7 +631,7 @@ distinctValues.sort((a, b) => a.localeCompare(b));
     
     // Hàm cập nhật cascade: từ block startBlock đến block 5
     function updateCascade(startBlock) {
-      for (let i = startBlock; i <= 5; i++) {
+      for (let i = startBlock; i <= 3; i++) {
         updateFilterValuesForBlock(i);
       }
     }
@@ -749,7 +661,7 @@ distinctValues.sort((a, b) => a.localeCompare(b));
       if (sheetValues && sheetValues.length > 0) {
         queryParams["Sheet"] = sheetValues.join(',');
       }
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 3; i++) {
         const col = $(`#filter-column-${i}`).val();
         const values = $(`#filter-value-${i}`).val();
         if (values && values.length > 0) {
