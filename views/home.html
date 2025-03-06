@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
-  <!-- CSS Select2 -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
   <style>
     /* Cài đặt CSS cơ bản */
@@ -315,80 +314,6 @@
           <label for="filter-value-3">Chọn giá trị:</label>
           <select id="filter-value-3" class="value-select" multiple="multiple"></select>
         </div>
-        <!-- Filter Block 4 -->
-        <div class="filter-block" id="filter-block-4">
-          <label for="filter-column-4">Chọn tiêu chí số 4:</label>
-          <select id="filter-column-4">
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-4">Chọn giá trị:</label>
-          <select id="filter-value-4" class="value-select" multiple="multiple"></select>
-        </div>
-        <!-- Filter Block 5 -->
-        <div class="filter-block" id="filter-block-5">
-          <label for="filter-column-5">Chọn tiêu chí số 5:</label>
-          <select id="filter-column-5">
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-5">Chọn giá trị:</label>
-          <select id="filter-value-5" class="value-select" multiple="multiple"></select>
-        </div>
       </div>
       
       <div class="filter-actions">
@@ -455,7 +380,6 @@
     <div class="footer">Người phát triển: Nguyễn Văn Đạo</div>
   </div>
   
-  <!-- JS thư viện -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -487,19 +411,16 @@
     const pageSize = 50;
     let totalData = 0;
     let currentZoom = 1;
-    // Biến toàn cục chứa toàn bộ dữ liệu
     let allData = null;
     
-    // Hàm load toàn bộ dữ liệu khi trang được load
     function loadAllData() {
       $.getJSON('/search?limit=1000000', function(response) {
         allData = response.data;
       });
     }
     
-    // Khởi tạo các dropdown với Select2
     $(document).ready(function() {
-      loadAllData(); // load dữ liệu toàn bộ một lần
+      loadAllData();
       
       $('.value-select').not('#filter-value-2').select2({
         placeholder: 'Chọn giá trị...',
@@ -513,14 +434,12 @@
         width: '100%',
         closeOnSelect: false
       });
-      // Đối với filter-value-2 dùng mặc định (closeOnSelect: true)
       $('#filter-value-2').select2({
         placeholder: 'Chọn giá trị...',
         allowClear: true,
         width: '100%'
       });
       
-      // Xử lý sự kiện paste cho filter-value-2
       $(document).on('paste', '#filter-value-2 ~ .select2 .select2-search__field', function(e) {
         e.preventDefault();
         var clipboardData = e.originalEvent.clipboardData.getData('text/plain');
@@ -536,16 +455,13 @@
         $select.val(newValues).trigger('change');
       });
       
-      // Khi chọn dự án, cập nhật lại dropdown ở block 1 và cascade các block còn lại
       $('#filter-sheet').on('change', function(){
         updateFilterValuesForBlock(1);
         updateCascade(2);
       });
       
-      // Ban đầu, cập nhật dropdown cho block 1 (sử dụng bộ lọc dự án nếu có)
       updateFilterValuesForBlock(1);
       
-      // Gắn sự kiện cho từng block: khi thay đổi tiêu chí (column) cập nhật giá trị của block đó, đồng thời cascade update các block sau
       $('#filter-column-1').on('change', function() {
         updateFilterValuesForBlock(1);
         updateCascade(2);
@@ -570,20 +486,6 @@
         updateCascade(4);
       });
       
-      $('#filter-column-4').on('change', function() {
-        updateFilterValuesForBlock(4);
-        updateCascade(5);
-      });
-      $('#filter-value-4').on('change', function() {
-        updateCascade(5);
-      });
-      
-      // Đối với block 5, khi thay đổi tiêu chí thì cập nhật giá trị của block 5 (không có cascade)
-      $('#filter-column-5').on('change', function() {
-        updateFilterValuesForBlock(5);
-      });
-      
-      // Các sự kiện xử lý lọc, tải dữ liệu, zoom, xuất Excel…
       $('#apply-filters').on('click', function() {
         applyFilters(true);
         $('html, body').animate({
@@ -595,6 +497,7 @@
         $('#filter-value-2').val(null).trigger('change');
         applyFilters(true);
       });
+      
       $('#load-more').on('click', function() {
         if (currentOffset < totalData) {
           let queryString = $.param(currentFilters);
@@ -612,7 +515,7 @@
         if (sheetValues && sheetValues.length > 0) {
           queryParams["Sheet"] = sheetValues.join(',');
         }
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 3; i++) {
           const col = $(`#filter-column-${i}`).val();
           const values = $(`#filter-value-${i}`).val();
           if (values && values.length > 0) {
@@ -627,118 +530,8 @@
           updateTable(response.data, true);
         });
       });
-      $('#download-excel').on('click', function() { downloadExcel(); });
-      $('#export-all').on('click', function() {
-        let queryParams = {};
-        const sheetValues = $('#filter-sheet').val();
-        if (sheetValues && sheetValues.length > 0) {
-          queryParams["Sheet"] = sheetValues.join(',');
-        }
-        for (let i = 1; i <= 5; i++) {
-          const col = $(`#filter-column-${i}`).val();
-          const values = $(`#filter-value-${i}`).val();
-          if (values && values.length > 0) {
-            queryParams[col] = values.join(',');
-          }
-        }
-        const queryString = $.param(queryParams);
-        window.location.href = `/export?${queryString}`;
-      });
-      $('#zoom-in').on('click', function() {
-        currentZoom += 0.1;
-        $('#results-table').css('zoom', currentZoom);
-      });
-      $('#zoom-out').on('click', function() {
-        if (currentZoom > 0.5) {
-          currentZoom -= 0.1;
-          $('#results-table').css('zoom', currentZoom);
-        }
-      });
-      
-      loadDistinctValuesForSheet();
-      applyFilters(true);
-      $('#results-table').colResizable({ liveDrag: true });
     });
     
-    // Hàm cập nhật dropdown cho từng block dựa trên dữ liệu đã lọc từ các block trước đó (và điều kiện dự án)
-    function updateFilterValuesForBlock(blockIndex) {
-      if (!allData) {
-        // Nếu dữ liệu chưa được load, gọi lại sau
-        setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
-        return;
-      }
-      let filteredData = allData.slice(); // sao chép dữ liệu toàn bộ
-      
-      // Áp dụng điều kiện bộ lọc dự án (Sheet) nếu có
-      const sheetValues = $('#filter-sheet').val();
-      if (sheetValues && sheetValues.length > 0) {
-        filteredData = filteredData.filter(function(row) {
-          return sheetValues.some(function(s) {
-            return row['Sheet'] && row['Sheet'].toString().toLowerCase().includes(s.toLowerCase());
-          });
-        });
-      }
-      
-      // Áp dụng điều kiện từ các block trước đó (block 1 đến blockIndex-1)
-      for (let i = 1; i < blockIndex; i++) {
-        let col = $('#filter-column-' + i).val();
-        let values = $('#filter-value-' + i).val();
-        if (col && values && values.length > 0) {
-          filteredData = filteredData.filter(function(row) {
-            return values.some(function(v) {
-              return row[col] && row[col].toString().toLowerCase().includes(v.toLowerCase());
-            });
-          });
-        }
-      }
-      
-      // Lấy cột của block hiện tại để tính giá trị distinct
-      let dependentColumn = $('#filter-column-' + blockIndex).val();
-let values = filteredData.map(function(row) {
-  let cellVal = row[dependentColumn];
-  if (cellVal == null) return "";
-  if (typeof cellVal === 'string') {
-    return cellVal.trim().toUpperCase();  // chuẩn hóa nếu là chuỗi
-  }
-  return cellVal.toString(); // nếu không phải chuỗi, chuyển về string
-}).filter(function(v) {
-  return v !== "";
-});
-let distinctValues = Array.from(new Set(values));
-distinctValues.sort((a, b) => a.localeCompare(b));
-
-      
-      const selectElem = $('#filter-value-' + blockIndex);
-      selectElem.empty();
-      distinctValues.forEach(function(val) {
-        const option = new Option(val, val, false, false);
-        selectElem.append(option);
-      });
-      selectElem.trigger('change');
-    }
-    
-    // Hàm cập nhật cascade: từ block startBlock đến block 5
-    function updateCascade(startBlock) {
-      for (let i = startBlock; i <= 5; i++) {
-        updateFilterValuesForBlock(i);
-      }
-    }
-    
-    function loadDistinctValuesForSheet() {
-      const selectElem = $('#filter-sheet');
-      selectElem.empty();
-      $.getJSON('/filters', function(data) {
-        if (data['Sheet']) {
-          data['Sheet'].forEach(function(val) {
-            const option = new Option(val, val, false, false);
-            selectElem.append(option);
-          });
-        }
-        selectElem.trigger('change');
-      });
-    }
-    
-    // Hàm áp dụng bộ lọc và gọi API /search (vẫn gọi API để load dữ liệu hiển thị bảng)
     function applyFilters(reset = true) {
       if (reset) {
         currentOffset = 0;
@@ -749,7 +542,7 @@ distinctValues.sort((a, b) => a.localeCompare(b));
       if (sheetValues && sheetValues.length > 0) {
         queryParams["Sheet"] = sheetValues.join(',');
       }
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 3; i++) {
         const col = $(`#filter-column-${i}`).val();
         const values = $(`#filter-value-${i}`).val();
         if (values && values.length > 0) {
@@ -764,7 +557,7 @@ distinctValues.sort((a, b) => a.localeCompare(b));
         updateTable(response.data, true);
       });
     }
-    
+
     function updateTable(data, reset) {
       const tbody = $('#results-table tbody');
       if (reset) tbody.empty();
@@ -810,38 +603,6 @@ distinctValues.sort((a, b) => a.localeCompare(b));
       var wb = XLSX.utils.table_to_book(document.getElementById('results-table'), {sheet:"Sheet1"});
       XLSX.writeFile(wb, 'ketqua.xlsx');
     }
-    
-    function getColumnIndex(columnName) {
-      let index = -1;
-      $('#results-table th').each(function(i) {
-        if ($(this).data('column') === columnName) {
-          index = i;
-          return false;
-        }
-      });
-      return index;
-    }
-    function sortTable(column, order) {
-      let rows = $('#results-table tbody tr').get();
-      let colIndex = getColumnIndex(column);
-      if (colIndex === -1) return;
-      rows.sort(function(a, b) {
-        let A = $(a).children('td').eq(colIndex).text().toUpperCase();
-        let B = $(b).children('td').eq(colIndex).text().toUpperCase();
-        return order === 'asc' ? A.localeCompare(B) : B.localeCompare(A);
-      });
-      $.each(rows, function(index, row) {
-        $('#results-table tbody').append(row);
-      });
-    }
-    $(document).on('click', '#results-table th', function() {
-      const col = $(this).data('column');
-      if (!col) return;
-      const currentOrder = $(this).data('order') || 'asc';
-      const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-      $(this).data('order', newOrder);
-      sortTable(col, newOrder);
-    });
   </script>
 </body>
 </html>
