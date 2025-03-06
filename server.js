@@ -175,12 +175,16 @@ app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
 
-  for (let key in filters) {
-    if (filters[key]) {
-      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
+  // Chỉ lọc theo 3 tiêu chí đầu tiên (filter-block-1, filter-block-2, filter-block-3)
+  for (let i = 1; i <= 3; i++) {
+    const col = req.query[`filter-column-${i}`];
+    const values = req.query[`filter-value-${i}`];
+
+    if (col && values) {
+      const filterValues = values.split(',').map(val => val.trim().toLowerCase());
       filtered = filtered.filter(row => {
-        if (row[key]) {
-          const cellValue = row[key].toString().toLowerCase();
+        if (row[col]) {
+          const cellValue = row[col].toString().toLowerCase();
           return filterValues.some(val => cellValue.includes(val));
         }
         return false;
@@ -201,12 +205,16 @@ app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
 
-  for (let key in filters) {
-    if (filters[key]) {
-      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
+  // Chỉ lọc theo 3 tiêu chí đầu tiên (filter-block-1, filter-block-2, filter-block-3)
+  for (let i = 1; i <= 3; i++) {
+    const col = req.query[`filter-column-${i}`];
+    const values = req.query[`filter-value-${i}`];
+
+    if (col && values) {
+      const filterValues = values.split(',').map(val => val.trim().toLowerCase());
       filtered = filtered.filter(row => {
-        if (row[key]) {
-          const cellValue = row[key].toString().toLowerCase();
+        if (row[col]) {
+          const cellValue = row[col].toString().toLowerCase();
           return filterValues.some(val => cellValue.includes(val));
         }
         return false;
@@ -216,13 +224,13 @@ app.get('/export', (req, res) => {
 
   const wb = XLSX.utils.book_new();
   const headerOrder = [
-  "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
-  "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
-  "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
-  "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
-  "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
-];
-const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
+    "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
+    "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
+    "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
+    "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
+    "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
+  ];
+  const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
 
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
@@ -230,11 +238,6 @@ const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
   res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
   res.setHeader('Content-Type', 'application/octet-stream');
   res.send(buf);
-});
-
-// Ví dụ route được bảo vệ (Dashboard)
-app.get('/dashboard', isAuthenticated, (req, res) => {
-  res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
 
 app.listen(port, () => {
