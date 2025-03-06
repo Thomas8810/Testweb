@@ -3,181 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
+  <title>Web Tra Cứu - Chào mừng</title>
   <style>
     body {
       background: url('background.jpg') no-repeat center center/cover;
       color: white;
       font-family: Arial, sans-serif;
       text-align: center;
-      overflow: hidden;
+      margin: 0;
+      padding: 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
     }
-
-    /* Hiệu ứng gõ chữ */
-    @keyframes typing {
-      from { width: 0; }
-      to { width: 60%; }
+    h1 {
+      font-size: 3rem;
+      text-shadow: 0 0 10px rgba(0,0,0,0.7);
     }
-
-    /* Hiệu ứng làm mờ dần */
-    @keyframes fadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
-    }
-
-    /* Hiệu ứng hiện dần */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* Hiệu ứng phát sáng */
-    @keyframes glow {
-      0% { text-shadow: 0 0 5px white; }
-      50% { text-shadow: 0 0 20px white; }
-      100% { text-shadow: 0 0 5px white; }
-    }
-
-    /* Hiệu ứng mờ dần khi chuyển trang */
-    @keyframes fadePage {
-      from { opacity: 1; }
-      to { opacity: 0; }
-    }
-
-    .fade-out {
-      animation: fadePage 1s ease-in-out forwards;
-    }
-
-    .text-wrapper {
-      height: auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      white-space: nowrap;
-    }
-
-    .typing-container {
-      position: absolute;
-      overflow: hidden;
-      border-right: 3px solid white;
-      font-size: 60px;
-      animation: typing 3s steps(29, end) forwards;
-      white-space: nowrap;
-    }
-
-    .glow-text {
-      position: absolute;
-      font-size: 60px;
-      opacity: 0;
-      white-space: nowrap;
-    }
-
-    .btn-container {
-      margin-top: 80px;
-    }
-
     .btn {
       background: linear-gradient(45deg, #ff8c00, #ff4500);
       color: white;
-      padding: 18px 36px;
+      padding: 15px 30px;
       border: none;
-      border-radius: 12px;
-      font-size: 26px;
+      border-radius: 8px;
+      font-size: 1.5rem;
       cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 8px 20px rgba(255, 69, 0, 0.6);
+      transition: transform 0.3s;
     }
     .btn:hover {
-      background: linear-gradient(45deg, #ff6500, #ff0000);
-      box-shadow: 0 10px 30px rgba(255, 0, 0, 0.8);
-      transform: scale(1.1);
-    }
-
-    .footer {
-      position: absolute;
-      bottom: 10px;
-      font-size: 18px;
-      opacity: 0.7;
-      transition: opacity 0.3s;
-    }
-    .footer:hover {
-      opacity: 1;
-    }
-
-    /* Các điều chỉnh responsive */
-    @media only screen and (max-width: 768px) {
-      .typing-container,
-      .glow-text {
-        font-size: 40px; /* Giảm kích thước chữ chạy cho màn hình trung bình */
-      }
-      .btn {
-        font-size: 20px;
-        padding: 14px 28px;
-      }
-      .btn-container {
-        margin-top: 60px;
-      }
-    }
-
-    @media only screen and (max-width: 480px) {
-      .typing-container,
-      .glow-text {
-        font-size: 30px; /* Giảm thêm kích thước cho màn hình nhỏ */
-      }
-      .btn {
-        font-size: 18px;
-        padding: 12px 24px;
-      }
-      .btn-container {
-        margin-top: 40px;
-      }
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="text-wrapper">
-      <!-- Nội dung ban đầu là "Chào mừng đến với Web Tra Cứu" -->
-      <h1 id="typing-text" class="typing-container">Chào mừng đến với Web Tra Cứu</h1>
-      <h1 id="glow-text" class="glow-text">Chào mừng đến với Web Tra Cứu</h1>
-    </div>
-
-    <div class="btn-container">
-      <button class="btn" id="startBtn">Bắt Đầu</button>
-    </div>
-  </div>
-
-  <div class="footer">Người phát triển: Nguyễn Văn Đạo</div>
-
-  <script>
-    // Nếu màn hình nhỏ (<=480px) thì thay đổi nội dung chữ
-    if (window.innerWidth <= 480) {
-      document.getElementById('typing-text').textContent = "Welcom to search";
-      document.getElementById('glow-text').textContent = "Welcom to search";
-    }
-
-    // Hiệu ứng chữ gõ và chuyển sang hiệu ứng phát sáng
-    setTimeout(() => {
-      document.getElementById('typing-text').style.animation = "fadeOut 1.5s ease-in-out forwards";
-      setTimeout(() => {
-        document.getElementById('typing-text').style.display = 'none';
-        document.getElementById('glow-text').style.opacity = '1';
-        document.getElementById('glow-text').style.animation = "fadeIn 1.5s ease-in-out forwards, glow 2s infinite alternate ease-in-out";
-      }, 1500);
-    }, 4000);
-
-    // Hiệu ứng chuyển trang khi bấm nút "Bắt Đầu"
-    document.getElementById("startBtn").addEventListener("click", function() {
-      document.body.classList.add("fade-out");
-      setTimeout(() => {
-        window.location.href = "login.html";
-      }, 1000);
-    });
-  </script>
+  <h1>Chào mừng đến với Web Tra Cứu</h1>
+  <button class="btn" onclick="window.location.href='login.html'">Đăng Nhập</button>
 </body>
 </html>
