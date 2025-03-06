@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
-  <!-- CSS Select2 -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
   <style>
-    /* Cài đặt CSS cơ bản */
     html, body { height: 100%; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
@@ -57,40 +55,23 @@
       margin-bottom: 3px;
       font-size: 12px;
     }
-    .filter-actions, .download-container, .zoom-controls, .results-count {
+    .filter-actions {
       text-align: center;
       margin: 5px;
     }
-    .filter-actions button, .download-container button, .zoom-controls button {
+    .filter-actions button {
       padding: 6px 12px;
       font-size: 12px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       transition: 0.3s;
-    }
-    .filter-actions button {
       background: linear-gradient(45deg, #ff8c00, #ff4500);
       color: white;
     }
     .filter-actions button:hover {
       background: linear-gradient(45deg, #ff6500, #ff0000);
     }
-    .download-container button {
-      background: linear-gradient(45deg, #007bff, #0056b3);
-      color: white;
-    }
-    .download-container button:hover {
-      background: linear-gradient(45deg, #3399ff, #007bff);
-    }
-    .zoom-controls button {
-      background: linear-gradient(45deg, #28a745, #218838);
-      color: white;
-    }
-    .zoom-controls button:hover {
-      background: linear-gradient(45deg, #34d058, #28a745);
-    }
-    .results-count { font-size: 14px; color: white; }
     .table-container {
       flex: 1 1 auto;
       margin: 5px auto;
@@ -121,36 +102,6 @@
       top: 0;
       z-index: 2;
     }
-    .sticky-col-1 {
-      position: sticky;
-      left: 0;
-      width: 40px;
-      min-width: 40px;
-      background: #4a76a8;
-      z-index: 3;
-    }
-    .sticky-col-2 {
-      position: sticky;
-      left: 40px;
-      width: 100px;
-      min-width: 100px;
-      background: #4a76a8;
-      z-index: 3;
-    }
-    .sticky-col-3 {
-      position: sticky;
-      left: 140px;
-      width: 50px;
-      min-width: 50px;
-      background: #4a76a8;
-      z-index: 3;
-    }
-    td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
-      background: #e6e6e6;
-      color: #333;
-      z-index: 1;
-    }
-    tr.selected { background-color: #ffeb99 !important; }
     .footer {
       flex: 0 0 auto;
       text-align: center;
@@ -158,33 +109,6 @@
       font-size: 14px;
       background: #333;
       color: white;
-    }
-    @media (max-width: 768px) {
-      .filter-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .filter-block {
-        width: 90%;
-        margin: 5px auto;
-      }
-      .header h1 { font-size: 24px; }
-      .header p { font-size: 14px; }
-      .filter-actions button, .download-container button, .zoom-controls button {
-        padding: 8px 12px; font-size: 12px; margin-bottom: 5px;
-      }
-      table, th, td { font-size: 10px; }
-      .table-container {
-        max-height: calc(100vh - 320px);
-      }
-    }
-    @media (max-width: 480px) {
-      .header h1 { font-size: 20px; }
-      .header p { font-size: 12px; }
-      .filter-actions button, .download-container button, .zoom-controls button {
-        padding: 6px 10px; font-size: 10px;margin-bottom: 5px;
-      }
-      table, th, td { font-size: 9px; }
     }
   </style>
 </head>
@@ -196,250 +120,57 @@
         <p>Tra cứu tình trạng FAIR</p>
       </div>
       <div class="filter-bar">
-        <!-- Filter Block Sheet -->
-        <div class="filter-block" id="filter-block-sheet">
+        <div class="filter-block">
           <label for="filter-sheet">Chọn dự án:</label>
           <select id="filter-sheet" class="value-select" multiple="multiple"></select>
         </div>
-        
-        <!-- Filter Block 1 -->
-        <div class="filter-block" id="filter-block-1">
-          <label for="filter-column-1">Chọn tiêu chí số 1:</label>
+        <div class="filter-block">
+          <label for="filter-column-1">Tiêu chí 1:</label>
           <select id="filter-column-1">
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
+            <option value="Part Number" selected>Part Number</option>
           </select>
           <label for="filter-value-1">Chọn giá trị:</label>
           <select id="filter-value-1" class="value-select" multiple="multiple"></select>
         </div>
-        
-        <!-- Filter Block 2 -->
-        <div class="filter-block" id="filter-block-2">
-          <label for="filter-column-2">Chọn tiêu chí số 2:</label>
+        <div class="filter-block">
+          <label for="filter-column-2">Tiêu chí 2:</label>
           <select id="filter-column-2">
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
+            <option value="Part Number" selected>Part Number</option>
           </select>
-          <label for="filter-value-2">Chọn giá trị: (Paste excel)</label>
-          <select id="filter-value-2" multiple="multiple"></select>
+          <label for="filter-value-2">Chọn giá trị:</label>
+          <select id="filter-value-2" class="value-select" multiple="multiple"></select>
         </div>
-        
-        <!-- Filter Block 3 -->
-        <div class="filter-block" id="filter-block-3">
-          <label for="filter-column-3">Chọn tiêu chí số 3:</label>
+        <div class="filter-block">
+          <label for="filter-column-3">Tiêu chí 3:</label>
           <select id="filter-column-3">
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
+            <option value="Part Number" selected>Part Number</option>
           </select>
           <label for="filter-value-3">Chọn giá trị:</label>
           <select id="filter-value-3" class="value-select" multiple="multiple"></select>
         </div>
-        <!-- Filter Block 4 -->
-        <div class="filter-block" id="filter-block-4">
-          <label for="filter-column-4">Chọn tiêu chí số 4:</label>
-          <select id="filter-column-4">
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-4">Chọn giá trị:</label>
-          <select id="filter-value-4" class="value-select" multiple="multiple"></select>
-        </div>
-        <!-- Filter Block 5 -->
-        <div class="filter-block" id="filter-block-5">
-          <label for="filter-column-5">Chọn tiêu chí số 5:</label>
-          <select id="filter-column-5">
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-5">Chọn giá trị:</label>
-          <select id="filter-value-5" class="value-select" multiple="multiple"></select>
-        </div>
       </div>
-      
       <div class="filter-actions">
         <button id="apply-filters">Áp Dụng Lọc</button>
         <button id="clear-filters">Xóa Lọc</button>
       </div>
-      <div class="download-container">
-        <button id="download-excel">Xuất Excel (Đang xem)</button>
-        <button id="export-all">Xuất Excel (Tất cả)</button>
-      </div>
-      <div class="zoom-controls">
-        <button id="zoom-in">Phóng to</button>
-        <button id="zoom-out">Thu nhỏ</button>
-      </div>
-      <div class="results-count" id="results-count">Tổng số dòng: 0</div>
     </div>
     
     <div class="table-container">
       <table id="results-table">
         <thead>
           <tr>
-            <th class="sticky-col-1">STT</th>
-            <th class="sticky-col-2">Part Number</th>
-            <th class="sticky-col-3">REV</th>
-            <th data-column="PO Number">PO Number</th>
-            <th data-column="Project">Project</th>
-            <th data-column="Description">Description</th>
-            <th data-column="Note Number">Note Number</th>
-            <th data-column="Critical">Critical</th>
-            <th data-column="CE">CE</th>
-            <th data-column="Material">Material</th>
-            <th data-column="Plating">Plating</th>
-            <th data-column="Painting">Painting</th>
-            <th data-column="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</th>
-            <th data-column="Ngày Nhận PO">Ngày Nhận PO</th>
-            <th data-column="Cover sheet">Cover sheet</th>
-            <th data-column="Drawing">Drawing</th>
-            <th data-column="Datasheet form">Datasheet form</th>
-            <th data-column="Data">Data</th>
-            <th data-column="COC">COC</th>
-            <th data-column="BOM">BOM</th>
-            <th data-column="Mill">Mill</th>
-            <th data-column="Part Pictures">Part Pictures</th>
-            <th data-column="Packaging Pictures">Packaging Pictures</th>
-            <th data-column="Submit date">Submit date</th>
-            <th data-column="Đã lên PO LAM">Đã lên PO LAM</th>
-            <th data-column="OK">OK</th>
-            <th data-column="Remark">Remark</th>
-            <th data-column="Remark 2">Remark 2</th>
-            <th data-column="Status">Status</th>
-            <th data-column="Note">Note</th>
+            <th>STT</th>
+            <th>Part Number</th>
+            <th>PO Number</th>
+            <th>Project</th>
+            <th>Description</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -447,408 +178,31 @@
         </tbody>
       </table>
     </div>
-    
-    <div id="load-more-container" style="text-align:center; margin:10px;">
-      <button id="load-more">Tải thêm (50)</button>
-      <button id="load-all">Tải toàn bộ</button>
-    </div>
     <div class="footer">Người phát triển: Nguyễn Văn Đạo</div>
   </div>
-  
-  <!-- JS thư viện -->
+
+  <!-- JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
   <script>
-    // Các hàm format (Excel, percentage) giữ nguyên
-    function formatExcelDate(val) {
-      if(val && !isNaN(val)) {
-        let num = parseFloat(val);
-        let date = new Date((num - 25569) * 86400 * 1000);
-        let year = date.getFullYear();
-        let month = (date.getMonth() + 1).toString().padStart(2, '0');
-        let day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-      return val || '';
-    }
-    function formatPercentage(val) {
-      if(val === undefined || val === null || val === '') return '';
-      if(!isNaN(val)) {
-        let num = parseFloat(val);
-        return num <= 1 ? Math.round(num * 100) + '%' : num + '%';
-      }
-      return val;
-    }
-    
-    let currentFilters = {};
-    let currentOffset = 0;
-    const pageSize = 50;
-    let totalData = 0;
-    let currentZoom = 1;
-    // Biến toàn cục chứa toàn bộ dữ liệu
-    let allData = null;
-    
-    // Hàm load dữ liệu ban đầu với phân trang
-function loadAllData() {
-    $.getJSON('/search?limit=' + pageSize + '&offset=0', function(response) {
-        allData = response.data;
-        totalData = response.total;
-        currentOffset = pageSize;
-        updateTable(response.data, true);
-    });
-}
-    
-    // Khởi tạo các dropdown với Select2
     $(document).ready(function() {
-      loadAllData(); // load dữ liệu toàn bộ một lần
-      
-      $('.value-select').not('#filter-value-2').select2({
-        placeholder: 'Chọn giá trị...',
-        allowClear: true,
-        width: '100%',
-        closeOnSelect: false
-      });
-      $('#filter-sheet').select2({
-        placeholder: 'Chọn dự án...',
-        allowClear: true,
-        width: '100%',
-        closeOnSelect: false
-      });
-      // Đối với filter-value-2 dùng mặc định (closeOnSelect: true)
-      $('#filter-value-2').select2({
+      $('.value-select').select2({
         placeholder: 'Chọn giá trị...',
         allowClear: true,
         width: '100%'
       });
-      
-      // Xử lý sự kiện paste cho filter-value-2
-      $(document).on('paste', '#filter-value-2 ~ .select2 .select2-search__field', function(e) {
-        e.preventDefault();
-        var clipboardData = e.originalEvent.clipboardData.getData('text/plain');
-        var values = clipboardData.split(/\r?\n/).reduce(function(acc, line) {
-          return acc.concat(line.split('\t'));
-        }, []).filter(function(val) {
-          return val.trim() !== '';
-        });
-        var $select = $('#filter-value-2');
-        var currentValues = $select.val() || [];
-        var newValues = currentValues.concat(values);
-        newValues = Array.from(new Set(newValues));
-        $select.val(newValues).trigger('change');
-      });
-      
-      // Khi chọn dự án, cập nhật lại dropdown ở block 1 và cascade các block còn lại
-      $('#filter-sheet').on('change', function(){
-        updateFilterValuesForBlock(1);
-        updateCascade(2);
-      });
-      
-      // Ban đầu, cập nhật dropdown cho block 1 (sử dụng bộ lọc dự án nếu có)
-      updateFilterValuesForBlock(1);
-      
-      // Gắn sự kiện cho từng block: khi thay đổi tiêu chí (column) cập nhật giá trị của block đó, đồng thời cascade update các block sau
-      $('#filter-column-1').on('change', function() {
-        updateFilterValuesForBlock(1);
-        updateCascade(2);
-      });
-      $('#filter-value-1').on('change', function() {
-        updateCascade(2);
-      });
-      
-      $('#filter-column-2').on('change', function() {
-        updateFilterValuesForBlock(2);
-        updateCascade(3);
-      });
-      $('#filter-value-2').on('change', function() {
-        updateCascade(3);
-      });
-      
-      $('#filter-column-3').on('change', function() {
-        updateFilterValuesForBlock(3);
-        updateCascade(4);
-      });
-      $('#filter-value-3').on('change', function() {
-        updateCascade(4);
-      });
-      
-      $('#filter-column-4').on('change', function() {
-        updateFilterValuesForBlock(4);
-        updateCascade(5);
-      });
-      $('#filter-value-4').on('change', function() {
-        updateCascade(5);
-      });
-      
-      // Đối với block 5, khi thay đổi tiêu chí thì cập nhật giá trị của block 5 (không có cascade)
-      $('#filter-column-5').on('change', function() {
-        updateFilterValuesForBlock(5);
-      });
-      
-      // Các sự kiện xử lý lọc, tải dữ liệu, zoom, xuất Excel…
-      $('#apply-filters').on('click', function() {
-        applyFilters(true);
-        $('html, body').animate({
-          scrollTop: $('.table-container').offset().top
-        }, 500);
-      });
-$('#clear-filters').on('click', function() {
-    $('.value-select').val(null).trigger('change');
-    currentFilters = {};
-    currentOffset = 0;
-    loadAllData();
-});
-      $('#load-more').on('click', function() {
-        if (currentOffset < totalData) {
-          let queryString = $.param(currentFilters);
-          $.getJSON(`/search?${queryString}&offset=${currentOffset}`, function(response) {
-            currentOffset += pageSize;
-            updateTable(response.data, false);
-          });
-        } else {
-          alert("Đã tải hết dữ liệu!");
-        }
-      });
-      $('#load-all').on('click', function() {
-        let queryParams = {};
-        const sheetValues = $('#filter-sheet').val();
-        if (sheetValues && sheetValues.length > 0) {
-          queryParams["Sheet"] = sheetValues.join(',');
-        }
-        for (let i = 1; i <= 5; i++) {
-          const col = $(`#filter-column-${i}`).val();
-          const values = $(`#filter-value-${i}`).val();
-          if (values && values.length > 0) {
-            queryParams[col] = values.join(',');
-          }
-        }
-        queryParams.limit = 1000000;
-        queryParams.offset = 0;
-        const queryString = $.param(queryParams);
-        $.getJSON(`/search?${queryString}`, function(response) {
-          currentOffset = response.total;
-          updateTable(response.data, true);
-        });
-      });
-      $('#download-excel').on('click', function() { downloadExcel(); });
-      $('#export-all').on('click', function() {
-        let queryParams = {};
-        const sheetValues = $('#filter-sheet').val();
-        if (sheetValues && sheetValues.length > 0) {
-          queryParams["Sheet"] = sheetValues.join(',');
-        }
-        for (let i = 1; i <= 5; i++) {
-          const col = $(`#filter-column-${i}`).val();
-          const values = $(`#filter-value-${i}`).val();
-          if (values && values.length > 0) {
-            queryParams[col] = values.join(',');
-          }
-        }
-        const queryString = $.param(queryParams);
-        window.location.href = `/export?${queryString}`;
-      });
-      $('#zoom-in').on('click', function() {
-        currentZoom += 0.1;
-        $('#results-table').css('zoom', currentZoom);
-      });
-      $('#zoom-out').on('click', function() {
-        if (currentZoom > 0.5) {
-          currentZoom -= 0.1;
-          $('#results-table').css('zoom', currentZoom);
-        }
-      });
-      
-      loadDistinctValuesForSheet();
-      applyFilters(true);
-      $('#results-table').colResizable({ liveDrag: true });
-    });
-    
-    // Hàm cập nhật dropdown cho từng block dựa trên dữ liệu đã lọc từ các block trước đó (và điều kiện dự án)
-    function updateFilterValuesForBlock(blockIndex) {
-      if (!allData) {
-        // Nếu dữ liệu chưa được load, gọi lại sau
-        setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
-        return;
-      }
-      let filteredData = allData.slice(); // sao chép dữ liệu toàn bộ
-      
-      // Áp dụng điều kiện bộ lọc dự án (Sheet) nếu có
-      const sheetValues = $('#filter-sheet').val();
-      if (sheetValues && sheetValues.length > 0) {
-        filteredData = filteredData.filter(function(row) {
-          return sheetValues.some(function(s) {
-            return row['Sheet'] && row['Sheet'].toString().toLowerCase().includes(s.toLowerCase());
-          });
-        });
-      }
-      
-      // Áp dụng điều kiện từ các block trước đó (block 1 đến blockIndex-1)
-      for (let i = 1; i < blockIndex; i++) {
-        let col = $('#filter-column-' + i).val();
-        let values = $('#filter-value-' + i).val();
-        if (col && values && values.length > 0) {
-          filteredData = filteredData.filter(function(row) {
-            return values.some(function(v) {
-              return row[col] && row[col].toString().toLowerCase().includes(v.toLowerCase());
-            });
-          });
-        }
-      }
-      
-      // Lấy cột của block hiện tại để tính giá trị distinct
-      let dependentColumn = $('#filter-column-' + blockIndex).val();
-let values = filteredData.map(function(row) {
-  let cellVal = row[dependentColumn];
-  if (cellVal == null) return "";
-  if (typeof cellVal === 'string') {
-    return cellVal.trim().toUpperCase();  // chuẩn hóa nếu là chuỗi
-  }
-  return cellVal.toString(); // nếu không phải chuỗi, chuyển về string
-}).filter(function(v) {
-  return v !== "";
-});
-let distinctValues = Array.from(new Set(values));
-distinctValues.sort((a, b) => a.localeCompare(b));
 
-      
-      const selectElem = $('#filter-value-' + blockIndex);
-      selectElem.empty();
-      distinctValues.forEach(function(val) {
-        const option = new Option(val, val, false, false);
-        selectElem.append(option);
-      });
-      selectElem.trigger('change');
-    }
-    
-    // Hàm cập nhật cascade: từ block startBlock đến block 5
-    function updateCascade(startBlock) {
-      for (let i = startBlock; i <= 5; i++) {
-        updateFilterValuesForBlock(i);
+      function applyFilters() {
+        console.log('Lọc dữ liệu...');
+        // Logic xử lý lọc dữ liệu từ API /search sẽ được thêm vào đây
       }
-    }
-    
-    function loadDistinctValuesForSheet() {
-      const selectElem = $('#filter-sheet');
-      selectElem.empty();
-      $.getJSON('/filters', function(data) {
-        if (data['Sheet']) {
-          data['Sheet'].forEach(function(val) {
-            const option = new Option(val, val, false, false);
-            selectElem.append(option);
-          });
-        }
-        selectElem.trigger('change');
-      });
-    }
-    
-    // Hàm áp dụng bộ lọc và gọi API /search (vẫn gọi API để load dữ liệu hiển thị bảng)
-    function applyFilters(reset = true) {
-      if (reset) {
-        currentOffset = 0;
-        $('#results-table tbody').empty();
-      }
-      let queryParams = { limit: pageSize, offset: currentOffset };
-      const sheetValues = $('#filter-sheet').val();
-      if (sheetValues && sheetValues.length > 0) {
-        queryParams["Sheet"] = sheetValues.join(',');
-      }
-      for (let i = 1; i <= 5; i++) {
-        const col = $(`#filter-column-${i}`).val();
-        const values = $(`#filter-value-${i}`).val();
-        if (values && values.length > 0) {
-          queryParams[col] = values.join(',');
-        }
-      }
-      currentFilters = queryParams;
-      const queryString = $.param(queryParams);
-      $.getJSON(`/search?${queryString}`, function(response) {
-        totalData = response.total;
-        currentOffset += pageSize;
-        updateTable(response.data, true);
-      });
-    }
-    
-function updateTable(data, reset) {
-    const tbody = $('#results-table tbody');
-    if (reset) tbody.empty();
 
-    const fragment = document.createDocumentFragment();
-    data.forEach(function(row) {
-        const tr = $('<tr>');
-        tr.append(`<td class="sticky-col-1">${tbody.children().length + 1}</td>`);
-        tr.append(`<td class="sticky-col-2">${row['Part Number'] || ''}</td>`);
-        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
-        tr.append(`<td>${row['PO Number'] || ''}</td>`);
-        tr.append(`<td>${row['Project'] || ''}</td>`);
-        tr.append(`<td>${row['Description'] || ''}</td>`);
-        tr.append(`<td>${formatPercentage(row['Note Number'])}</td>`);
-        tr.append(`<td>${row['Critical'] || ''}</td>`);
-        tr.append(`<td>${row['CE'] || ''}</td>`);
-        tr.append(`<td>${row['Material'] || ''}</td>`);
-        tr.append(`<td>${row['Plating'] || ''}</td>`);
-        tr.append(`<td>${row['Painting'] || ''}</td>`);
-        tr.append(`<td>${row['Tiêu chuẩn mạ sơn'] || ''}</td>`);
-        tr.append(`<td>${formatExcelDate(row['Ngày Nhận PO'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['Cover sheet'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['Drawing'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['Datasheet form'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['Data'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['COC'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['BOM'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['Mill'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['Part Pictures'])}</td>`);
-        tr.append(`<td>${formatPercentage(row['Packaging Pictures'])}</td>`);
-        tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
-        tr.append(`<td>${row['Đã lên PO LAM'] || ''}</td>`);
-        tr.append(`<td>${row['OK'] || ''}</td>`);
-        tr.append(`<td>${row['Remark'] || ''}</td>`);
-        tr.append(`<td>${row['Remark 2'] || ''}</td>`);
-        tr.append(`<td>${row['Status'] || ''}</td>`);
-        tr.append(`<td>${row['Note'] || ''}</td>`);
-        fragment.appendChild(tr[0]);
-    });
-    tbody.append(fragment);
-    $('#results-count').text(`Tổng số dòng: ${tbody.children().length} / ${totalData}`);
-    $('#results-table').colResizable({ liveDrag: true });
-}
+      $('#apply-filters').on('click', applyFilters);
 
-    
-    function downloadExcel() {
-      var wb = XLSX.utils.table_to_book(document.getElementById('results-table'), {sheet:"Sheet1"});
-      XLSX.writeFile(wb, 'ketqua.xlsx');
-    }
-    
-    function getColumnIndex(columnName) {
-      let index = -1;
-      $('#results-table th').each(function(i) {
-        if ($(this).data('column') === columnName) {
-          index = i;
-          return false;
-        }
+      $('#clear-filters').on('click', function() {
+        $('.value-select').val(null).trigger('change');
+        console.log('Đã xóa lọc');
       });
-      return index;
-    }
-    function sortTable(column, order) {
-      let rows = $('#results-table tbody tr').get();
-      let colIndex = getColumnIndex(column);
-      if (colIndex === -1) return;
-      rows.sort(function(a, b) {
-        let A = $(a).children('td').eq(colIndex).text().toUpperCase();
-        let B = $(b).children('td').eq(colIndex).text().toUpperCase();
-        return order === 'asc' ? A.localeCompare(B) : B.localeCompare(A);
-      });
-      $.each(rows, function(index, row) {
-        $('#results-table tbody').append(row);
-      });
-    }
-    $(document).on('click', '#results-table th', function() {
-      const col = $(this).data('column');
-      if (!col) return;
-      const currentOrder = $(this).data('order') || 'asc';
-      const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-      $(this).data('order', newOrder);
-      sortTable(col, newOrder);
     });
   </script>
 </body>
