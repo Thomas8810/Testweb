@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
+const compression = require('compression');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,15 +12,13 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Cấu hình session (lưu trong bộ nhớ – in-memory store)
-app.use(session({
-  secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật riêng của bạn
-  resave: false,
-  saveUninitialized: false
-}));
+// Sử dụng compression để nén phản hồi
+app.use(compression());
 
-// Serve file tĩnh từ thư mục "public"
-app.use(express.static(path.join(__dirname, 'public')));
+// Bật cache cho các file tĩnh trong thư mục public (cache 7 ngày)
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '7d'
+}));
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
 
@@ -60,27 +59,29 @@ function loadUsersData() {
 }
 loadUsersData();
 
-// ----------------------- MIDDLEWARE BẢO VỆ ROUTE -----------------------
+// ----------------------- SESSION -----------------------
+app.use(session({
+  secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật riêng của bạn
+  resave: false,
+  saveUninitialized: false
+}));
 
+// ----------------------- MIDDLEWARE BẢO VỆ ROUTE -----------------------
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) {
     next();
   } else {
-    // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
     res.redirect('/login.html');
   }
 }
 
 // ----------------------- API ĐĂNG NHẬP -----------------------
-
-// Endpoint đăng nhập: sử dụng trường "identifier" để nhập Tên hoặc Email và password dạng plain text
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
     return res.json({ success: false, message: "Vui lòng nhập đủ tên/email và mật khẩu." });
   }
 
-  // Tìm người dùng theo email hoặc tên (không phân biệt chữ hoa/chữ thường)
   const user = usersData.find(u =>
     u.email.toLowerCase() === identifier.toLowerCase() ||
     u.name.toLowerCase() === identifier.toLowerCase()
@@ -90,12 +91,10 @@ app.post('/login', (req, res) => {
     return res.json({ success: false, message: "Người dùng không tồn tại." });
   }
 
-  // So sánh mật khẩu dạng plain text
   if (user.password !== password) {
     return res.json({ success: false, message: "Sai mật khẩu." });
   }
 
-  // Lưu thông tin đăng nhập vào session
   req.session.user = {
     name: user.name,
     email: user.email,
@@ -105,138 +104,41 @@ app.post('/login', (req, res) => {
   return res.json({ success: true, message: "Đăng nhập thành công." });
 });
 
-// Endpoint đăng xuất: Xóa session và chuyển hướng về trang đăng nhập
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
-    if (err) {
-      console.error("Lỗi xóa session:", err);
-    }
+    if (err) console.error("Lỗi xóa session:", err);
     res.redirect('/login.html');
   });
 });
 
-// ----------------------- ROUTE BẢO VỆ TRANG HOME -----------------------
+// ----------------------- PHÂN TRANG DỮ LIỆU -----------------------
+// Endpoint này trả về dữ liệu theo từng trang; bảo vệ bằng middleware isAuthenticated
+app.get('/api/data', isAuthenticated, (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 50;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
 
-// Route bảo vệ cho trang Home, file home.html nằm trong thư mục "views"
-app.get('/home', isAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'home.html'));
-});
-
-// Cũng cho phép truy cập qua đường dẫn /home.html nếu cần
-app.get('/home.html', isAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'home.html'));
-});
-
-// ----------------------- CÁC API TRA CỨU & XUẤT EXCEL (GIỮ NGUYÊN) -----------------------
-
-// API lấy danh sách giá trị lọc
-app.get('/filters', (req, res) => {
-  const getDistinct = (col) => {
-    const values = cachedData.map(row => row[col]).filter(v => v != null);
-    return Array.from(new Set(values));
-  };
+  const slicedData = cachedData.slice(startIndex, endIndex);
 
   res.json({
-    "Sheet": getDistinct("Sheet"),
-    "PO Number": getDistinct("PO Number"),
-    "Project": getDistinct("Project"),
-    "Part Number": getDistinct("Part Number"),
-    "REV": getDistinct("REV"),
-    "Description": getDistinct("Description"),
-    "Note Number": getDistinct("Note Number"),
-    "Critical": getDistinct("Critical"),
-    "CE": getDistinct("CE"),
-    "Material": getDistinct("Material"),
-    "Plating": getDistinct("Plating"),
-    "Painting": getDistinct("Painting"),
-    "Tiêu chuẩn mạ sơn": getDistinct("Tiêu chuẩn mạ sơn"),
-    "Ngày Nhận PO": getDistinct("Ngày Nhận PO"),
-    "Cover sheet": getDistinct("Cover sheet"),
-    "Drawing": getDistinct("Drawing"),
-    "Datasheet form": getDistinct("Datasheet form"),
-    "Data": getDistinct("Data"),
-    "COC": getDistinct("COC"),
-    "BOM": getDistinct("BOM"),
-    "Mill": getDistinct("Mill"),
-    "Part Pictures": getDistinct("Part Pictures"),
-    "Packaging Pictures": getDistinct("Packaging Pictures"),
-    "Submit date": getDistinct("Submit date"),
-    "Đã lên PO LAM": getDistinct("Đã lên PO LAM"),
-    "OK": getDistinct("OK"),
-    "Remark": getDistinct("Remark"),
-    "Remark 2": getDistinct("Remark 2"),
-    "Status": getDistinct("Status"),
-    "Note": getDistinct("Note")
+    total: cachedData.length,
+    data: slicedData
   });
 });
 
-// API tìm kiếm dữ liệu có phân trang
-app.get('/search', (req, res) => {
-  let filtered = cachedData;
-  const { limit, offset, ...filters } = req.query;
-
-  for (let key in filters) {
-    if (filters[key]) {
-      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
-      filtered = filtered.filter(row => {
-        if (row[key]) {
-          const cellValue = row[key].toString().toLowerCase();
-          return filterValues.some(val => cellValue.includes(val));
-        }
-        return false;
-      });
-    }
-  }
-
-  const total = filtered.length;
-  const pageLimit = parseInt(limit, 10) || 50;
-  const pageOffset = parseInt(offset, 10) || 0;
-  const paginatedData = filtered.slice(pageOffset, pageOffset + pageLimit);
-
-  res.json({ total, data: paginatedData });
+// ----------------------- SERVE CÁC TRANG HTML -----------------------
+// Trang Home được bảo vệ, nằm trong thư mục views
+app.get(['/home', '/home.html'], isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 
-// API xuất dữ liệu sang file Excel
-app.get('/export', (req, res) => {
-  let filtered = cachedData;
-  const { limit, offset, ...filters } = req.query;
-
-  for (let key in filters) {
-    if (filters[key]) {
-      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
-      filtered = filtered.filter(row => {
-        if (row[key]) {
-          const cellValue = row[key].toString().toLowerCase();
-          return filterValues.some(val => cellValue.includes(val));
-        }
-        return false;
-      });
-    }
-  }
-
-  const wb = XLSX.utils.book_new();
-  const headerOrder = [
-  "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
-  "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
-  "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
-  "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
-  "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
-];
-const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-
-  res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
-  res.setHeader('Content-Type', 'application/octet-stream');
-  res.send(buf);
+// Trang index (welcome)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
-// Ví dụ route được bảo vệ (Dashboard)
-app.get('/dashboard', isAuthenticated, (req, res) => {
-  res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
-});
-
+// Khởi chạy server
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server đang chạy tại http://localhost:${port}`);
 });
