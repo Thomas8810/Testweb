@@ -380,7 +380,7 @@
       </div>
 
       <!-- Phần hiển thị tổng số dòng -->
-      <div class="results-count" id="results-count">Tổng số dòng: 0</div>
+      <div class="results-count" id="results-count">Total rows: 0</div>
     </div>
 
     <!-- Khu vực hiển thị bảng dữ liệu -->
@@ -849,7 +849,7 @@
         tr.append(`<td>${row['Note'] || ''}</td>`);
         tbody.append(tr);
       });
-      $('#results-count').text(`Tổng số dòng: ${tbody.children().length} / ${totalData}`);
+      $('#results-count').text(`Total rows: ${tbody.children().length} / ${totalData}`);
       $('#results-table').colResizable({ liveDrag: true });
     }
 
