@@ -35,7 +35,7 @@
     .header h1 { margin: 0; font-size: 28px; color: white; }
     .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
 
-    /* Khối chứa các filter-block */
+    /* Khối chứa các tiêu chí lọc */
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -63,11 +63,11 @@
       font-size: 12px;
     }
 
-    /* Khối chứa các nút (Áp dụng, Xóa lọc, Xuất Excel, Zoom) */
+    /* Khối chứa các nút chức năng */
     .action-bar {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center; /* Căn giữa các khối nút */
+      justify-content: center;
       padding: 5px;
     }
     .action-bar > div {
@@ -110,7 +110,7 @@
       background: linear-gradient(45deg, #34d058, #28a745);
     }
 
-    /* Khối hiển thị tổng số dòng */
+    /* Phần hiển thị tổng số dòng */
     .results-count {
       text-align: center;
       margin: 5px;
@@ -187,8 +187,6 @@
       background: #333;
       color: white;
     }
-
-    /* Responsive */
     @media (max-width: 768px) {
       .filter-bar, .action-bar {
         flex-direction: column;
@@ -214,13 +212,11 @@
 </head>
 <body>
   <div class="page-container">
-    <!-- Vùng trên: header, filter-bar, action-bar, results-count -->
     <div class="top-container">
       <div class="header">
         <h1>FAIR TEAM</h1>
         <p>Tra cứu tình trạng FAIR</p>
       </div>
-
       <!-- Phần tiêu chí lọc -->
       <div class="filter-bar">
         <!-- Filter Block Sheet -->
@@ -341,7 +337,7 @@
         </div>
       </div>
 
-      <!-- Khối các nút (áp dụng, xóa, xuất Excel, zoom) -->
+      <!-- Khối chứa các nút chức năng -->
       <div class="action-bar">
         <div class="filter-actions">
           <button id="apply-filters">Áp Dụng Lọc</button>
@@ -357,11 +353,11 @@
         </div>
       </div>
 
-      <!-- Phần tổng số dòng đặt dưới khối nút -->
+      <!-- Phần hiển thị tổng số dòng -->
       <div class="results-count" id="results-count">Tổng số dòng: 0</div>
     </div>
 
-    <!-- Vùng giữa: Bảng dữ liệu -->
+    <!-- Khu vực hiển thị bảng dữ liệu -->
     <div class="table-container">
       <table id="results-table">
         <thead>
@@ -414,7 +410,7 @@
     <div class="footer">Người phát triển: Nguyễn Văn Đạo</div>
   </div>
 
-  <!-- JS thư viện -->
+  <!-- JS Thư viện -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -450,7 +446,7 @@
     // Biến chứa toàn bộ dữ liệu
     let allData = null;
 
-    // Load toàn bộ dữ liệu khi trang mở
+    // Hàm load toàn bộ dữ liệu khi trang mở
     function loadAllData() {
       $.getJSON('/search?limit=1000000', function(response) {
         allData = response.data;
@@ -495,16 +491,15 @@
         $select.val(newValues).trigger('change');
       });
 
-      // Sự kiện khi chọn dự án => cập nhật block 1, cascade block 2
+      // Khi chọn dự án => cập nhật block 1, cascade block 2
       $('#filter-sheet').on('change', function(){
         updateFilterValuesForBlock(1);
         updateCascade(2);
       });
-
       // Ban đầu, cập nhật block 1
       updateFilterValuesForBlock(1);
 
-      // Sự kiện thay đổi tiêu chí, giá trị
+      // Sự kiện thay đổi tiêu chí và giá trị cho các block
       $('#filter-column-1').on('change', function() {
         updateFilterValuesForBlock(1);
         updateCascade(2);
@@ -512,7 +507,6 @@
       $('#filter-value-1').on('change', function() {
         updateCascade(2);
       });
-
       $('#filter-column-2').on('change', function() {
         updateFilterValuesForBlock(2);
         updateCascade(3);
@@ -520,12 +514,11 @@
       $('#filter-value-2').on('change', function() {
         updateCascade(3);
       });
-
       $('#filter-column-3').on('change', function() {
         updateFilterValuesForBlock(3);
       });
 
-      // Các nút Lọc, Xóa, Tải thêm, Xuất Excel...
+      // Các nút Lọc, Xóa, Tải thêm, Xuất Excel, Zoom
       $('#apply-filters').on('click', function() {
         applyFilters(true);
         $('html, body').animate({
@@ -601,7 +594,7 @@
       $('#results-table').colResizable({ liveDrag: true });
     });
 
-    // Hàm cập nhật dropdown cho blockIndex dựa trên dữ liệu lọc
+    // Hàm cập nhật dropdown cho blockIndex dựa trên dữ liệu đã lọc
     function updateFilterValuesForBlock(blockIndex) {
       if (!allData) {
         setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
@@ -609,7 +602,7 @@
       }
       let filteredData = allData.slice();
 
-      // Lọc theo dự án
+      // Lọc theo dự án (Sheet)
       const sheetValues = $('#filter-sheet').val();
       if (sheetValues && sheetValues.length > 0) {
         filteredData = filteredData.filter(function(row) {
@@ -618,7 +611,7 @@
           });
         });
       }
-      // Lọc theo các block trước
+      // Lọc theo các block trước (block 1 đến blockIndex - 1)
       for (let i = 1; i < blockIndex; i++) {
         let col = $('#filter-column-' + i).val();
         let values = $('#filter-value-' + i).val();
@@ -630,7 +623,7 @@
           });
         }
       }
-      // Lấy cột cho block hiện tại => distinct
+      // Lấy giá trị distinct cho cột của block hiện tại
       let dependentColumn = $('#filter-column-' + blockIndex).val();
       let values = filteredData.map(function(row) {
         let cellVal = row[dependentColumn];
@@ -652,14 +645,14 @@
       selectElem.trigger('change');
     }
 
-    // Hàm cascade: từ block startBlock đến block 3
+    // Hàm cascade: cập nhật các block từ startBlock đến 3
     function updateCascade(startBlock) {
       for (let i = startBlock; i <= 3; i++) {
         updateFilterValuesForBlock(i);
       }
     }
 
-    // Hàm áp dụng lọc
+    // Hàm áp dụng lọc (chỉ duyệt qua 3 tiêu chí)
     function applyFilters(reset = true) {
       if (reset) {
         currentOffset = 0;
@@ -686,7 +679,7 @@
       });
     }
 
-    // Hàm cập nhật bảng
+    // Hàm cập nhật bảng hiển thị dữ liệu
     function updateTable(data, reset) {
       const tbody = $('#results-table tbody');
       if (reset) tbody.empty();
@@ -728,13 +721,13 @@
       $('#results-table').colResizable({ liveDrag: true });
     }
 
-    // Xuất Excel
+    // Hàm xuất Excel
     function downloadExcel() {
       var wb = XLSX.utils.table_to_book(document.getElementById('results-table'), {sheet:"Sheet1"});
       XLSX.writeFile(wb, 'ketqua.xlsx');
     }
 
-    // Sắp xếp cột khi click tiêu đề
+    // Hàm sắp xếp bảng khi click vào tiêu đề cột
     function getColumnIndex(columnName) {
       let index = -1;
       $('#results-table th').each(function(i) {
