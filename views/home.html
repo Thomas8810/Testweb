@@ -453,6 +453,21 @@
       });
     }
 
+    // Hàm load dữ liệu dự án cho phần "Chọn dự án"
+    function loadDistinctValuesForSheet() {
+      const selectElem = $('#filter-sheet');
+      selectElem.empty();
+      $.getJSON('/filters', function(data) {
+        if (data['Sheet']) {
+          data['Sheet'].forEach(function(val) {
+            const option = new Option(val, val, false, false);
+            selectElem.append(option);
+          });
+        }
+        selectElem.trigger('change');
+      });
+    }
+
     $(document).ready(function() {
       loadAllData(); // Tải toàn bộ dữ liệu một lần
 
@@ -474,6 +489,9 @@
         allowClear: true,
         width: '100%'
       });
+
+      // Gọi hàm loadDistinctValuesForSheet() để load dữ liệu cho phần "Chọn dự án"
+      loadDistinctValuesForSheet();
 
       // Xử lý paste Excel cho filter-value-2
       $(document).on('paste', '#filter-value-2 ~ .select2 .select2-search__field', function(e) {
@@ -518,7 +536,7 @@
         updateFilterValuesForBlock(3);
       });
 
-      // Các nút Lọc, Xóa, Tải thêm, Xuất Excel, Zoom
+      // Các nút chức năng: Lọc, Xóa, Tải thêm, Xuất Excel, Zoom
       $('#apply-filters').on('click', function() {
         applyFilters(true);
         $('html, body').animate({
@@ -679,7 +697,7 @@
       });
     }
 
-    // Hàm cập nhật bảng hiển thị dữ liệu
+    // Hàm cập nhật bảng dữ liệu
     function updateTable(data, reset) {
       const tbody = $('#results-table tbody');
       if (reset) tbody.empty();
@@ -727,7 +745,7 @@
       XLSX.writeFile(wb, 'ketqua.xlsx');
     }
 
-    // Hàm sắp xếp bảng khi click vào tiêu đề cột
+    // Hàm sắp xếp bảng khi click tiêu đề cột
     function getColumnIndex(columnName) {
       let index = -1;
       $('#results-table th').each(function(i) {
