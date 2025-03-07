@@ -3,6 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
+  <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js">
+i18next.init({
+  fallbackLng: 'vi',
+  debug: false,
+  resources: {
+    en: {
+      translation: {
+        "choose_project": "Choose Project",
+        "choose_value": "Choose Value",
+        "apply_filter": "Apply Filter",
+        "clear_filter": "Clear Filter",
+        "download_excel": "Export Excel (Current)",
+        "export_all": "Export Excel (All)",
+        "zoom_in": "Zoom In",
+        "zoom_out": "Zoom Out",
+        "header_title": "FAIR TEAM - Search Status"
+      }
+    },
+    vi: {
+      translation: {
+        "choose_project": "Chọn dự án",
+        "choose_value": "Chọn giá trị",
+        "apply_filter": "Áp dụng lọc",
+        "clear_filter": "Xóa lọc",
+        "download_excel": "Xuất Excel (Đang xem)",
+        "export_all": "Xuất Excel (Tất cả)",
+        "zoom_in": "Phóng to",
+        "zoom_out": "Thu nhỏ",
+        "header_title": "FAIR TEAM - Tra cứu tình trạng FAIR"
+      }
+    }
+  }
+}, function(err, t) {
+  updateStaticContent(); // Cập nhật nội dung tĩnh ngay sau khi khởi tạo
+});
+</script>
   <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
   <!-- CSS Select2 -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
@@ -216,6 +253,10 @@
       <div class="header">
         <h1>FAIR TEAM</h1>
         <p>Tra cứu tình trạng FAIR</p>
+        <div class="language-switcher" style="position: absolute; top: 10px; right: 10px;">
+    <button onclick="changeLanguage('vi')">Tiếng Việt</button>
+    <button onclick="changeLanguage('en')">English</button>
+  </div>
       </div>
       <!-- Phần tiêu chí lọc -->
       <div class="filter-bar">
@@ -777,6 +818,30 @@
       $(this).data('order', newOrder);
       sortTable(col, newOrder);
     });
+    function updateStaticContent() {
+  // Cập nhật tiêu đề header
+  document.getElementById('header-title').innerText = i18next.t('header_title');
+  
+  // Cập nhật nhãn trong dropdown (ví dụ: phần "Chọn dự án" và "Chọn giá trị")
+  // Nếu bạn đã đặt label có attribute for, bạn có thể cập nhật:
+  document.querySelector('label[for="filter-sheet"]').innerText = i18next.t('choose_project');
+  document.querySelector('label[for="filter-value-1"]').innerText = i18next.t('choose_value');
+  // Tương tự, cập nhật nếu có các label khác cần dịch
+
+  // Cập nhật tên nút trong action-bar
+  document.getElementById('apply-filters').innerText = i18next.t('apply_filter');
+  document.getElementById('clear-filters').innerText = i18next.t('clear_filter');
+  document.getElementById('download-excel').innerText = i18next.t('download_excel');
+  document.getElementById('export-all').innerText = i18next.t('export_all');
+  document.getElementById('zoom-in').innerText = i18next.t('zoom_in');
+  document.getElementById('zoom-out').innerText = i18next.t('zoom_out');
+}
+function changeLanguage(lng) {
+  i18next.changeLanguage(lng, function() {
+    updateStaticContent();
+  });
+}
+
   </script>
 </body>
 </html>
