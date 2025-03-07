@@ -252,7 +252,7 @@
         </div>
         <!-- Filter Block 1 -->
         <div class="filter-block" id="filter-block-1">
-          <label for="filter-column-1">Chọn tiêu chí số 1:</label>
+          <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
           <select id="filter-column-1">
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
@@ -289,7 +289,7 @@
         </div>
         <!-- Filter Block 2 -->
         <div class="filter-block" id="filter-block-2">
-          <label for="filter-column-2">Chọn tiêu chí số 2:</label>
+          <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2:</label>
           <select id="filter-column-2">
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
@@ -326,7 +326,7 @@
         </div>
         <!-- Filter Block 3 -->
         <div class="filter-block" id="filter-block-3">
-          <label for="filter-column-3">Chọn tiêu chí số 3:</label>
+          <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
           <select id="filter-column-3">
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
@@ -428,8 +428,8 @@
 
     <!-- Nút tải thêm -->
     <div id="load-more-container" style="text-align:center; margin:10px;">
-      <button id="load-more">Tải thêm</button>
-      <button id="load-all">Tải toàn bộ</button>
+      <button id="load-more">Load More</button>
+      <button id="load-all">Load All</button>
     </div>
 
     <!-- Footer -->
@@ -454,6 +454,9 @@
             "header_subtitle": "Search FAIR status",
             "choose_project": "Choose Project",
             "choose_value": "Choose Value",
+            "choose_criteria_1": "Select Criteria 1:",
+            "choose_criteria_2": "Select Criteria 2:",
+            "choose_criteria_3": "Select Criteria 3:",
             "apply_filter": "Apply Filter",
             "clear_filter": "Clear Filter",
             "download_excel": "Export Excel (Current)",
@@ -461,7 +464,8 @@
             "zoom_in": "Zoom In",
             "zoom_out": "Zoom Out",
             "load_more": "Load More",
-            "load_all": "Load All"
+            "load_all": "Load All",
+            "total_rows": "Total rows: {{count}} / {{total}}"
           }
         },
         vi: {
@@ -470,6 +474,9 @@
             "header_subtitle": "Tra cứu tình trạng FAIR",
             "choose_project": "Chọn dự án",
             "choose_value": "Chọn giá trị",
+            "choose_criteria_1": "Chọn tiêu chí số 1:",
+            "choose_criteria_2": "Chọn tiêu chí số 2:",
+            "choose_criteria_3": "Chọn tiêu chí số 3:",
             "apply_filter": "Áp dụng lọc",
             "clear_filter": "Xóa lọc",
             "download_excel": "Xuất Excel (Đang xem)",
@@ -477,7 +484,8 @@
             "zoom_in": "Phóng to",
             "zoom_out": "Thu nhỏ",
             "load_more": "Tải thêm",
-            "load_all": "Tải toàn bộ"
+            "load_all": "Tải toàn bộ",
+            "total_rows": "Tổng số dòng: {{count}} / {{total}}"
           }
         }
       }
@@ -494,18 +502,32 @@
       // Các label trong filter
       var labelSheet = document.querySelector('label[for="filter-sheet"]');
       if (labelSheet) { labelSheet.innerText = i18next.t("choose_project"); }
-      var labelValue1 = document.querySelector('label[for="filter-value-1"]');
+      var labelCriteria1 = document.getElementById("label-criteria-1");
+      if (labelCriteria1) { labelCriteria1.innerText = i18next.t("choose_criteria_1"); }
+      var labelCriteria2 = document.getElementById("label-criteria-2");
+      if (labelCriteria2) { labelCriteria2.innerText = i18next.t("choose_criteria_2"); }
+      var labelCriteria3 = document.getElementById("label-criteria-3");
+      if (labelCriteria3) { labelCriteria3.innerText = i18next.t("choose_criteria_3"); }
+      var labelValue1 = document.getElementById("label-filter-value-1");
       if (labelValue1) { labelValue1.innerText = i18next.t("choose_value"); }
-      var labelValue2 = document.querySelector('label[for="filter-value-2"]');
+      var labelValue2 = document.getElementById("label-filter-value-2");
       if (labelValue2) { labelValue2.innerText = i18next.t("choose_value"); }
-      var labelValue3 = document.querySelector('label[for="filter-value-3"]');
+      var labelValue3 = document.getElementById("label-filter-value-3");
       if (labelValue3) { labelValue3.innerText = i18next.t("choose_value"); }
 
       // Cập nhật placeholder cho các dropdown Select2
-      $('#filter-sheet').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_project"));
-      $('#filter-value-1').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
-      $('#filter-value-2').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
-      $('#filter-value-3').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
+      if ($('#filter-sheet').data('select2')) {
+        $('#filter-sheet').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_project"));
+      }
+      if ($('#filter-value-1').data('select2')) {
+        $('#filter-value-1').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
+      }
+      if ($('#filter-value-2').data('select2')) {
+        $('#filter-value-2').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
+      }
+      if ($('#filter-value-3').data('select2')) {
+        $('#filter-value-3').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
+      }
 
       // Action buttons
       document.getElementById("apply-filters").innerText = i18next.t("apply_filter");
@@ -849,7 +871,8 @@
         tr.append(`<td>${row['Note'] || ''}</td>`);
         tbody.append(tr);
       });
-      $('#results-count').text(`Total rows: ${tbody.children().length} / ${totalData}`);
+      var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
+      $('#results-count').text(totalText);
       $('#results-table').colResizable({ liveDrag: true });
     }
 
