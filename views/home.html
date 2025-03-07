@@ -228,14 +228,15 @@
         <div class="filter-block" id="filter-block-1">
           <label for="filter-column-1">Chọn tiêu chí số 1:</label>
           <select id="filter-column-1">
+            <option value="Status">Status</option>
+            <option value="Critical">Critical</option>
+            <option value="CE">CE</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
             <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
             <option value="Material">Material</option>
             <option value="Plating">Plating</option>
             <option value="Painting">Painting</option>
@@ -255,7 +256,6 @@
             <option value="OK">OK</option>
             <option value="Remark">Remark</option>
             <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
             <option value="Note">Note</option>
           </select>
           <label for="filter-value-1">Chọn giá trị:</label>
@@ -265,14 +265,15 @@
         <div class="filter-block" id="filter-block-2">
           <label for="filter-column-2">Chọn tiêu chí số 2:</label>
           <select id="filter-column-2">
+            <option value="Status">Status</option>
+            <option value="Critical">Critical</option>
+            <option value="CE">CE</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
             <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
             <option value="Material">Material</option>
             <option value="Plating">Plating</option>
             <option value="Painting">Painting</option>
@@ -292,7 +293,6 @@
             <option value="OK">OK</option>
             <option value="Remark">Remark</option>
             <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
             <option value="Note">Note</option>
           </select>
           <label for="filter-value-2">Chọn giá trị: (Paste excel)</label>
@@ -302,14 +302,15 @@
         <div class="filter-block" id="filter-block-3">
           <label for="filter-column-3">Chọn tiêu chí số 3:</label>
           <select id="filter-column-3">
+            <option value="Status">Status</option>
+            <option value="Critical">Critical</option>
+            <option value="CE">CE</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
             <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
             <option value="Material">Material</option>
             <option value="Plating">Plating</option>
             <option value="Painting">Painting</option>
@@ -329,7 +330,6 @@
             <option value="OK">OK</option>
             <option value="Remark">Remark</option>
             <option value="Remark 2">Remark 2</option>
-            <option value="Status">Status</option>
             <option value="Note">Note</option>
           </select>
           <label for="filter-value-3">Chọn giá trị:</label>
@@ -365,12 +365,13 @@
             <th class="sticky-col-1">STT</th>
             <th class="sticky-col-2">Part Number</th>
             <th class="sticky-col-3">REV</th>
+            <th data-column="Status">Status</th>
+            <th data-column="Critical">Critical</th>
+            <th data-column="CE">CE</th>
             <th data-column="PO Number">PO Number</th>
             <th data-column="Project">Project</th>
             <th data-column="Description">Description</th>
             <th data-column="Note Number">Note Number</th>
-            <th data-column="Critical">Critical</th>
-            <th data-column="CE">CE</th>
             <th data-column="Material">Material</th>
             <th data-column="Plating">Plating</th>
             <th data-column="Painting">Painting</th>
@@ -390,7 +391,6 @@
             <th data-column="OK">OK</th>
             <th data-column="Remark">Remark</th>
             <th data-column="Remark 2">Remark 2</th>
-            <th data-column="Status">Status</th>
             <th data-column="Note">Note</th>
           </tr>
         </thead>
@@ -706,12 +706,13 @@
         tr.append(`<td class="sticky-col-1">${tbody.children().length + 1}</td>`);
         tr.append(`<td class="sticky-col-2">${row['Part Number'] || ''}</td>`);
         tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
+        tr.append(`<td>${row['Status'] || ''}</td>`);
+        tr.append(`<td>${row['Critical'] || ''}</td>`);
+        tr.append(`<td>${row['CE'] || ''}</td>`);
         tr.append(`<td>${row['PO Number'] || ''}</td>`);
         tr.append(`<td>${row['Project'] || ''}</td>`);
         tr.append(`<td>${row['Description'] || ''}</td>`);
         tr.append(`<td>${formatPercentage(row['Note Number'])}</td>`);
-        tr.append(`<td>${row['Critical'] || ''}</td>`);
-        tr.append(`<td>${row['CE'] || ''}</td>`);
         tr.append(`<td>${row['Material'] || ''}</td>`);
         tr.append(`<td>${row['Plating'] || ''}</td>`);
         tr.append(`<td>${row['Painting'] || ''}</td>`);
@@ -731,7 +732,6 @@
         tr.append(`<td>${row['OK'] || ''}</td>`);
         tr.append(`<td>${row['Remark'] || ''}</td>`);
         tr.append(`<td>${row['Remark 2'] || ''}</td>`);
-        tr.append(`<td>${row['Status'] || ''}</td>`);
         tr.append(`<td>${row['Note'] || ''}</td>`);
         tbody.append(tr);
       });
