@@ -15,22 +15,27 @@
       color: #333;
       display: flex;
       flex-direction: column;
-      overflow: auto;
     }
-    .page-container { display: flex; flex-direction: column; height: 100%; }
+    .page-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
     .top-container {
       flex: 0 0 auto;
       background: rgba(0, 0, 0, 0.85);
       padding: 15px;
-      overflow-y: auto;
       max-height: 40vh;
+      overflow-y: auto;
     }
     .header {
       text-align: center;
       padding: 10px;
     }
     .header h1 { margin: 0; font-size: 28px; color: white; }
-    .header p { margin: 5px 0 0 0; font-size: 16px; color: #ddd; }
+    .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
+
+    /* Khối chứa các filter-block */
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -58,7 +63,7 @@
       font-size: 12px;
     }
 
-       /* Khối chứa các nút (Áp dụng, Xóa lọc, Xuất Excel, Zoom) */
+    /* Khối chứa các nút (Áp dụng, Xóa lọc, Xuất Excel, Zoom) */
     .action-bar {
       display: flex;
       flex-wrap: wrap;
@@ -83,7 +88,6 @@
       transition: 0.3s;
       margin: 3px;
     }
-
     .filter-actions button {
       background: linear-gradient(45deg, #ff8c00, #ff4500);
       color: white;
@@ -105,6 +109,7 @@
     .zoom-controls button:hover {
       background: linear-gradient(45deg, #34d058, #28a745);
     }
+
     /* Khối hiển thị tổng số dòng */
     .results-count {
       text-align: center;
@@ -112,6 +117,8 @@
       font-size: 14px;
       color: white;
     }
+
+    /* Bảng dữ liệu */
     .table-container {
       flex: 1 1 auto;
       margin: 5px auto;
@@ -180,20 +187,19 @@
       background: #333;
       color: white;
     }
+
+    /* Responsive */
     @media (max-width: 768px) {
-      .filter-bar {
+      .filter-bar, .action-bar {
         flex-direction: column;
         align-items: stretch;
       }
-      .filter-block {
+      .filter-block, .action-bar > div {
         width: 90%;
         margin: 5px auto;
       }
       .header h1 { font-size: 24px; }
       .header p { font-size: 14px; }
-      .filter-actions button, .download-container button, .zoom-controls button {
-        padding: 8px 12px; font-size: 12px; margin-bottom: 5px;
-      }
       table, th, td { font-size: 10px; }
       .table-container {
         max-height: calc(100vh - 320px);
@@ -202,34 +208,33 @@
     @media (max-width: 480px) {
       .header h1 { font-size: 20px; }
       .header p { font-size: 12px; }
-      .filter-actions button, .download-container button, .zoom-controls button {
-        padding: 6px 10px; font-size: 10px;margin-bottom: 5px;
-      }
       table, th, td { font-size: 9px; }
     }
   </style>
 </head>
 <body>
   <div class="page-container">
+    <!-- Vùng trên: header, filter-bar, action-bar, results-count -->
     <div class="top-container">
       <div class="header">
         <h1>FAIR TEAM</h1>
         <p>Tra cứu tình trạng FAIR</p>
-   </div>
+      </div>
+
+      <!-- Phần tiêu chí lọc -->
       <div class="filter-bar">
         <!-- Filter Block Sheet -->
         <div class="filter-block" id="filter-block-sheet">
           <label for="filter-sheet">Chọn dự án:</label>
           <select id="filter-sheet" class="value-select" multiple="multiple"></select>
         </div>
-        
         <!-- Filter Block 1 -->
         <div class="filter-block" id="filter-block-1">
           <label for="filter-column-1">Chọn tiêu chí số 1:</label>
           <select id="filter-column-1">
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
+            <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
@@ -260,14 +265,13 @@
           <label for="filter-value-1">Chọn giá trị:</label>
           <select id="filter-value-1" class="value-select" multiple="multiple"></select>
         </div>
-        
         <!-- Filter Block 2 -->
         <div class="filter-block" id="filter-block-2">
           <label for="filter-column-2">Chọn tiêu chí số 2:</label>
           <select id="filter-column-2">
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
+            <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
@@ -298,14 +302,13 @@
           <label for="filter-value-2">Chọn giá trị: (Paste excel)</label>
           <select id="filter-value-2" multiple="multiple"></select>
         </div>
-        
         <!-- Filter Block 3 -->
         <div class="filter-block" id="filter-block-3">
           <label for="filter-column-3">Chọn tiêu chí số 3:</label>
           <select id="filter-column-3">
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number"selected>Part Number</option>
+            <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
@@ -336,22 +339,29 @@
           <label for="filter-value-3">Chọn giá trị:</label>
           <select id="filter-value-3" class="value-select" multiple="multiple"></select>
         </div>
-        
-      <div class="filter-actions">
-        <button id="apply-filters">Áp Dụng Lọc</button>
-        <button id="clear-filters">Xóa Lọc</button>
       </div>
-      <div class="download-container">
-        <button id="download-excel">Xuất Excel (Đang xem)</button>
-        <button id="export-all">Xuất Excel (Tất cả)</button>
+
+      <!-- Khối các nút (áp dụng, xóa, xuất Excel, zoom) -->
+      <div class="action-bar">
+        <div class="filter-actions">
+          <button id="apply-filters">Áp Dụng Lọc</button>
+          <button id="clear-filters">Xóa Lọc</button>
+        </div>
+        <div class="download-container">
+          <button id="download-excel">Xuất Excel (Đang xem)</button>
+          <button id="export-all">Xuất Excel (Tất cả)</button>
+        </div>
+        <div class="zoom-controls">
+          <button id="zoom-in">Phóng to</button>
+          <button id="zoom-out">Thu nhỏ</button>
+        </div>
       </div>
-      <div class="zoom-controls">
-        <button id="zoom-in">Phóng to</button>
-        <button id="zoom-out">Thu nhỏ</button>
-      </div>
+
+      <!-- Phần tổng số dòng đặt dưới khối nút -->
       <div class="results-count" id="results-count">Tổng số dòng: 0</div>
     </div>
- </div>
+
+    <!-- Vùng giữa: Bảng dữ liệu -->
     <div class="table-container">
       <table id="results-table">
         <thead>
@@ -393,21 +403,24 @@
         </tbody>
       </table>
     </div>
-    
+
+    <!-- Nút tải thêm -->
     <div id="load-more-container" style="text-align:center; margin:10px;">
       <button id="load-more">Tải thêm (50)</button>
       <button id="load-all">Tải toàn bộ</button>
     </div>
+
+    <!-- Footer -->
     <div class="footer">Người phát triển: Nguyễn Văn Đạo</div>
   </div>
-  
+
   <!-- JS thư viện -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
   <script>
-    // Các hàm format (Excel, percentage) giữ nguyên
+    // Hàm format Excel date
     function formatExcelDate(val) {
       if(val && !isNaN(val)) {
         let num = parseFloat(val);
@@ -419,6 +432,7 @@
       }
       return val || '';
     }
+    // Hàm format phần trăm
     function formatPercentage(val) {
       if(val === undefined || val === null || val === '') return '';
       if(!isNaN(val)) {
@@ -427,26 +441,26 @@
       }
       return val;
     }
-    
+
     let currentFilters = {};
     let currentOffset = 0;
     const pageSize = 50;
     let totalData = 0;
     let currentZoom = 1;
-    // Biến toàn cục chứa toàn bộ dữ liệu
+    // Biến chứa toàn bộ dữ liệu
     let allData = null;
-    
-    // Hàm load toàn bộ dữ liệu khi trang được load
+
+    // Load toàn bộ dữ liệu khi trang mở
     function loadAllData() {
       $.getJSON('/search?limit=1000000', function(response) {
         allData = response.data;
       });
     }
-    
-    // Khởi tạo các dropdown với Select2
+
     $(document).ready(function() {
-      loadAllData(); // load dữ liệu toàn bộ một lần
-      
+      loadAllData(); // Tải toàn bộ dữ liệu một lần
+
+      // Khởi tạo Select2
       $('.value-select').not('#filter-value-2').select2({
         placeholder: 'Chọn giá trị...',
         allowClear: true,
@@ -459,14 +473,13 @@
         width: '100%',
         closeOnSelect: false
       });
-      // Đối với filter-value-2 dùng mặc định (closeOnSelect: true)
       $('#filter-value-2').select2({
         placeholder: 'Chọn giá trị...',
         allowClear: true,
         width: '100%'
       });
-      
-      // Xử lý sự kiện paste cho filter-value-2
+
+      // Xử lý paste Excel cho filter-value-2
       $(document).on('paste', '#filter-value-2 ~ .select2 .select2-search__field', function(e) {
         e.preventDefault();
         var clipboardData = e.originalEvent.clipboardData.getData('text/plain');
@@ -481,17 +494,17 @@
         newValues = Array.from(new Set(newValues));
         $select.val(newValues).trigger('change');
       });
-      
-      // Khi chọn dự án, cập nhật lại dropdown ở block 1 và cascade các block còn lại
+
+      // Sự kiện khi chọn dự án => cập nhật block 1, cascade block 2
       $('#filter-sheet').on('change', function(){
         updateFilterValuesForBlock(1);
         updateCascade(2);
       });
-      
-      // Ban đầu, cập nhật dropdown cho block 1 (sử dụng bộ lọc dự án nếu có)
+
+      // Ban đầu, cập nhật block 1
       updateFilterValuesForBlock(1);
-      
-      // Gắn sự kiện cho từng block: khi thay đổi tiêu chí (column) cập nhật giá trị của block đó, đồng thời cascade update các block sau
+
+      // Sự kiện thay đổi tiêu chí, giá trị
       $('#filter-column-1').on('change', function() {
         updateFilterValuesForBlock(1);
         updateCascade(2);
@@ -499,7 +512,7 @@
       $('#filter-value-1').on('change', function() {
         updateCascade(2);
       });
-      
+
       $('#filter-column-2').on('change', function() {
         updateFilterValuesForBlock(2);
         updateCascade(3);
@@ -507,12 +520,12 @@
       $('#filter-value-2').on('change', function() {
         updateCascade(3);
       });
-      
+
       $('#filter-column-3').on('change', function() {
         updateFilterValuesForBlock(3);
       });
-      
-      // Các sự kiện xử lý lọc, tải dữ liệu, zoom, xuất Excel…
+
+      // Các nút Lọc, Xóa, Tải thêm, Xuất Excel...
       $('#apply-filters').on('click', function() {
         applyFilters(true);
         $('html, body').animate({
@@ -583,22 +596,20 @@
           $('#results-table').css('zoom', currentZoom);
         }
       });
-      
-      loadDistinctValuesForSheet();
+
       applyFilters(true);
       $('#results-table').colResizable({ liveDrag: true });
     });
-    
-    // Hàm cập nhật dropdown cho từng block dựa trên dữ liệu đã lọc từ các block trước đó (và điều kiện dự án)
+
+    // Hàm cập nhật dropdown cho blockIndex dựa trên dữ liệu lọc
     function updateFilterValuesForBlock(blockIndex) {
       if (!allData) {
-        // Nếu dữ liệu chưa được load, gọi lại sau
         setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
         return;
       }
-      let filteredData = allData.slice(); // sao chép dữ liệu toàn bộ
-      
-      // Áp dụng điều kiện bộ lọc dự án (Sheet) nếu có
+      let filteredData = allData.slice();
+
+      // Lọc theo dự án
       const sheetValues = $('#filter-sheet').val();
       if (sheetValues && sheetValues.length > 0) {
         filteredData = filteredData.filter(function(row) {
@@ -607,8 +618,7 @@
           });
         });
       }
-      
-      // Áp dụng điều kiện từ các block trước đó (block 1 đến blockIndex-1)
+      // Lọc theo các block trước
       for (let i = 1; i < blockIndex; i++) {
         let col = $('#filter-column-' + i).val();
         let values = $('#filter-value-' + i).val();
@@ -620,23 +630,19 @@
           });
         }
       }
-      
-      // Lấy cột của block hiện tại để tính giá trị distinct
+      // Lấy cột cho block hiện tại => distinct
       let dependentColumn = $('#filter-column-' + blockIndex).val();
-let values = filteredData.map(function(row) {
-  let cellVal = row[dependentColumn];
-  if (cellVal == null) return "";
-  if (typeof cellVal === 'string') {
-    return cellVal.trim().toUpperCase();  // chuẩn hóa nếu là chuỗi
-  }
-  return cellVal.toString(); // nếu không phải chuỗi, chuyển về string
-}).filter(function(v) {
-  return v !== "";
-});
-let distinctValues = Array.from(new Set(values));
-distinctValues.sort((a, b) => a.localeCompare(b));
+      let values = filteredData.map(function(row) {
+        let cellVal = row[dependentColumn];
+        if (cellVal == null) return "";
+        if (typeof cellVal === 'string') {
+          return cellVal.trim().toUpperCase();
+        }
+        return cellVal.toString();
+      }).filter(function(v) { return v !== ""; });
+      let distinctValues = Array.from(new Set(values));
+      distinctValues.sort((a, b) => a.localeCompare(b));
 
-      
       const selectElem = $('#filter-value-' + blockIndex);
       selectElem.empty();
       distinctValues.forEach(function(val) {
@@ -645,29 +651,15 @@ distinctValues.sort((a, b) => a.localeCompare(b));
       });
       selectElem.trigger('change');
     }
-    
-    // Hàm cập nhật cascade: từ block startBlock đến block 5
+
+    // Hàm cascade: từ block startBlock đến block 3
     function updateCascade(startBlock) {
-      for (let i = startBlock; i <= 5; i++) {
+      for (let i = startBlock; i <= 3; i++) {
         updateFilterValuesForBlock(i);
       }
     }
-    
-    function loadDistinctValuesForSheet() {
-      const selectElem = $('#filter-sheet');
-      selectElem.empty();
-      $.getJSON('/filters', function(data) {
-        if (data['Sheet']) {
-          data['Sheet'].forEach(function(val) {
-            const option = new Option(val, val, false, false);
-            selectElem.append(option);
-          });
-        }
-        selectElem.trigger('change');
-      });
-    }
-    
-    // Hàm áp dụng bộ lọc và gọi API /search (vẫn gọi API để load dữ liệu hiển thị bảng)
+
+    // Hàm áp dụng lọc
     function applyFilters(reset = true) {
       if (reset) {
         currentOffset = 0;
@@ -678,7 +670,7 @@ distinctValues.sort((a, b) => a.localeCompare(b));
       if (sheetValues && sheetValues.length > 0) {
         queryParams["Sheet"] = sheetValues.join(',');
       }
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 3; i++) {
         const col = $(`#filter-column-${i}`).val();
         const values = $(`#filter-value-${i}`).val();
         if (values && values.length > 0) {
@@ -693,7 +685,8 @@ distinctValues.sort((a, b) => a.localeCompare(b));
         updateTable(response.data, true);
       });
     }
-    
+
+    // Hàm cập nhật bảng
     function updateTable(data, reset) {
       const tbody = $('#results-table tbody');
       if (reset) tbody.empty();
@@ -734,12 +727,14 @@ distinctValues.sort((a, b) => a.localeCompare(b));
       $('#results-count').text(`Tổng số dòng: ${tbody.children().length} / ${totalData}`);
       $('#results-table').colResizable({ liveDrag: true });
     }
-    
+
+    // Xuất Excel
     function downloadExcel() {
       var wb = XLSX.utils.table_to_book(document.getElementById('results-table'), {sheet:"Sheet1"});
       XLSX.writeFile(wb, 'ketqua.xlsx');
     }
-    
+
+    // Sắp xếp cột khi click tiêu đề
     function getColumnIndex(columnName) {
       let index = -1;
       $('#results-table th').each(function(i) {
