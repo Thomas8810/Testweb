@@ -235,9 +235,9 @@
   <div class="page-container">
     <div class="top-container">
       <div class="header">
-        <h1 id="header-title">FAIR TEAM</h1>
+        <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
         <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
-        <!-- Nút chuyển đổi ngôn ngữ -->
+        <!-- Nút chuyển đổi ngôn ngữ ở góc trên bên phải -->
         <div class="language-switcher">
           <button onclick="changeLanguage('vi')">Tiếng Việt</button>
           <button onclick="changeLanguage('en')">English</button>
@@ -247,7 +247,7 @@
       <div class="filter-bar">
         <!-- Filter Block Sheet -->
         <div class="filter-block" id="filter-block-sheet">
-          <label for="filter-sheet">Chọn dự án:</label>
+          <label for="filter-sheet" id="label-filter-sheet">Chọn dự án</label>
           <select id="filter-sheet" class="value-select" multiple="multiple"></select>
         </div>
         <!-- Filter Block 1 -->
@@ -284,7 +284,7 @@
             <option value="Remark 2">Remark 2</option>
             <option value="Note">Note</option>
           </select>
-          <label for="filter-value-1">Chọn giá trị:</label>
+          <label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
           <select id="filter-value-1" class="value-select" multiple="multiple"></select>
         </div>
         <!-- Filter Block 2 -->
@@ -321,7 +321,7 @@
             <option value="Remark 2">Remark 2</option>
             <option value="Note">Note</option>
           </select>
-          <label for="filter-value-2">Chọn giá trị: (Paste excel)</label>
+          <label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
           <select id="filter-value-2" multiple="multiple"></select>
         </div>
         <!-- Filter Block 3 -->
@@ -358,7 +358,7 @@
             <option value="Remark 2">Remark 2</option>
             <option value="Note">Note</option>
           </select>
-          <label for="filter-value-3">Chọn giá trị:</label>
+          <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
           <select id="filter-value-3" class="value-select" multiple="multiple"></select>
         </div>
       </div>
@@ -428,7 +428,7 @@
 
     <!-- Nút tải thêm -->
     <div id="load-more-container" style="text-align:center; margin:10px;">
-      <button id="load-more">Tải thêm (50)</button>
+      <button id="load-more">Tải thêm</button>
       <button id="load-all">Tải toàn bộ</button>
     </div>
 
@@ -444,7 +444,6 @@
 
   <!-- i18next Integration -->
   <script>
-    // Khởi tạo i18next với các resource dịch cho tiếng Anh và tiếng Việt
     i18next.use(i18nextBrowserLanguageDetector).init({
       fallbackLng: 'vi',
       debug: false,
@@ -460,7 +459,9 @@
             "download_excel": "Export Excel (Current)",
             "export_all": "Export Excel (All)",
             "zoom_in": "Zoom In",
-            "zoom_out": "Zoom Out"
+            "zoom_out": "Zoom Out",
+            "load_more": "Load More",
+            "load_all": "Load All"
           }
         },
         vi: {
@@ -474,7 +475,9 @@
             "download_excel": "Xuất Excel (Đang xem)",
             "export_all": "Xuất Excel (Tất cả)",
             "zoom_in": "Phóng to",
-            "zoom_out": "Thu nhỏ"
+            "zoom_out": "Thu nhỏ",
+            "load_more": "Tải thêm",
+            "load_all": "Tải toàn bộ"
           }
         }
       }
@@ -487,11 +490,23 @@
       // Header
       document.getElementById("header-title").innerText = i18next.t("header_title");
       document.getElementById("header-subtitle").innerText = i18next.t("header_subtitle");
-      // Các label trong filter (nếu cần)
+
+      // Các label trong filter
       var labelSheet = document.querySelector('label[for="filter-sheet"]');
       if (labelSheet) { labelSheet.innerText = i18next.t("choose_project"); }
       var labelValue1 = document.querySelector('label[for="filter-value-1"]');
       if (labelValue1) { labelValue1.innerText = i18next.t("choose_value"); }
+      var labelValue2 = document.querySelector('label[for="filter-value-2"]');
+      if (labelValue2) { labelValue2.innerText = i18next.t("choose_value"); }
+      var labelValue3 = document.querySelector('label[for="filter-value-3"]');
+      if (labelValue3) { labelValue3.innerText = i18next.t("choose_value"); }
+
+      // Cập nhật placeholder cho các dropdown Select2
+      $('#filter-sheet').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_project"));
+      $('#filter-value-1').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
+      $('#filter-value-2').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
+      $('#filter-value-3').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
+
       // Action buttons
       document.getElementById("apply-filters").innerText = i18next.t("apply_filter");
       document.getElementById("clear-filters").innerText = i18next.t("clear_filter");
@@ -499,6 +514,10 @@
       document.getElementById("export-all").innerText = i18next.t("export_all");
       document.getElementById("zoom-in").innerText = i18next.t("zoom_in");
       document.getElementById("zoom-out").innerText = i18next.t("zoom_out");
+
+      // Update "Load More" and "Load All" buttons
+      document.getElementById("load-more").innerText = i18next.t("load_more");
+      document.getElementById("load-all").innerText = i18next.t("load_all");
     }
 
     // Hàm chuyển đổi ngôn ngữ khi bấm nút
@@ -568,19 +587,19 @@
 
       // Khởi tạo Select2
       $('.value-select').not('#filter-value-2').select2({
-        placeholder: 'Chọn giá trị...',
+        placeholder: i18next.t("choose_value"),
         allowClear: true,
         width: '100%',
         closeOnSelect: false
       });
       $('#filter-sheet').select2({
-        placeholder: 'Chọn dự án...',
+        placeholder: i18next.t("choose_project"),
         allowClear: true,
         width: '100%',
         closeOnSelect: false
       });
       $('#filter-value-2').select2({
-        placeholder: 'Chọn giá trị...',
+        placeholder: i18next.t("choose_value"),
         allowClear: true,
         width: '100%'
       });
