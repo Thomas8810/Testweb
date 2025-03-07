@@ -209,6 +209,36 @@
       color: white;
     }
     @media (max-width: 768px) {
+  /* Đưa language switcher xuống dưới tiêu đề */
+  .language-switcher {
+    position: static;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .language-switcher button {
+    padding: 3px 6px;
+    margin: 0 3px;
+    font-size: 10px;
+  }
+
+  /* Giảm khoảng cách và kích thước nút chức năng */
+  .action-bar {
+    justify-content: center;
+    padding: 3px;
+  }
+  .action-bar > div {
+    margin: 3px auto;
+    padding: 3px;
+    font-size: 10px;
+  }
+  .action-bar button {
+    padding: 4px 8px;
+    margin: 2px;
+    font-size: 10px;
+  }
+}
+
+    @media (max-width: 768px) {
       .filter-bar, .action-bar {
         flex-direction: column;
         align-items: stretch;
