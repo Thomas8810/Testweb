@@ -433,7 +433,7 @@
     </div>
 
     <!-- Footer -->
-    <div class="footer">Người phát triển: Nguyễn Văn Đạo</div>
+    <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
   </div>
 
   <!-- JS Thư viện -->
@@ -444,6 +444,7 @@
 
   <!-- i18next Integration -->
   <script>
+    // Khởi tạo i18next với resource cho tiếng Anh và tiếng Việt
     i18next.use(i18nextBrowserLanguageDetector).init({
       fallbackLng: 'vi',
       debug: false,
@@ -465,7 +466,8 @@
             "zoom_out": "Zoom Out",
             "load_more": "Load More",
             "load_all": "Load All",
-            "total_rows": "Total rows: {{count}} / {{total}}"
+            "total_rows": "Total rows: {{count}} / {{total}}",
+            "developer": "Developer: Nguyễn Văn Đạo"
           }
         },
         vi: {
@@ -485,13 +487,27 @@
             "zoom_out": "Thu nhỏ",
             "load_more": "Tải thêm",
             "load_all": "Tải toàn bộ",
-            "total_rows": "Tổng số dòng: {{count}} / {{total}}"
+            "total_rows": "Tổng số dòng: {{count}} / {{total}}",
+            "developer": "Người phát triển: Nguyễn Văn Đạo"
           }
         }
       }
     }, function(err, t) {
       updateStaticContent();
     });
+
+    // Hàm tái khởi tạo lại widget Select2 để cập nhật placeholder và giữ lựa chọn hiện tại
+    function reinitializeSelect2(selector, placeholder, extraOptions) {
+      var $el = $(selector);
+      var currentValue = $el.val();
+      $el.select2("destroy");
+      $el.select2($.extend({
+        placeholder: placeholder,
+        allowClear: true,
+        width: '100%'
+      }, extraOptions));
+      $el.val(currentValue).trigger('change');
+    }
 
     // Hàm cập nhật nội dung tĩnh theo ngôn ngữ hiện tại
     function updateStaticContent() {
@@ -515,19 +531,11 @@
       var labelValue3 = document.getElementById("label-filter-value-3");
       if (labelValue3) { labelValue3.innerText = i18next.t("choose_value"); }
 
-      // Cập nhật placeholder cho các dropdown Select2
-      if ($('#filter-sheet').data('select2')) {
-        $('#filter-sheet').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_project"));
-      }
-      if ($('#filter-value-1').data('select2')) {
-        $('#filter-value-1').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
-      }
-      if ($('#filter-value-2').data('select2')) {
-        $('#filter-value-2').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
-      }
-      if ($('#filter-value-3').data('select2')) {
-        $('#filter-value-3').data('select2').$container.find('.select2-selection__placeholder').text(i18next.t("choose_value"));
-      }
+      // Cập nhật lại các widget Select2 (để thay đổi placeholder mà vẫn giữ lựa chọn)
+      reinitializeSelect2('#filter-sheet', i18next.t("choose_project"), { closeOnSelect: false });
+      reinitializeSelect2('#filter-value-1', i18next.t("choose_value"), { closeOnSelect: false });
+      reinitializeSelect2('#filter-value-2', i18next.t("choose_value"), {}); // mặc định closeOnSelect = true
+      reinitializeSelect2('#filter-value-3', i18next.t("choose_value"), { closeOnSelect: false });
 
       // Action buttons
       document.getElementById("apply-filters").innerText = i18next.t("apply_filter");
@@ -540,6 +548,9 @@
       // Update "Load More" and "Load All" buttons
       document.getElementById("load-more").innerText = i18next.t("load_more");
       document.getElementById("load-all").innerText = i18next.t("load_all");
+
+      // Update footer text
+      document.getElementById("footer-text").innerText = i18next.t("developer");
     }
 
     // Hàm chuyển đổi ngôn ngữ khi bấm nút
@@ -607,7 +618,7 @@
     $(document).ready(function() {
       loadAllData(); // Tải toàn bộ dữ liệu một lần
 
-      // Khởi tạo Select2
+      // Khởi tạo Select2 ban đầu
       $('.value-select').not('#filter-value-2').select2({
         placeholder: i18next.t("choose_value"),
         allowClear: true,
@@ -626,7 +637,7 @@
         width: '100%'
       });
 
-      // Gọi hàm loadDistinctValuesForSheet() để load dữ liệu cho phần "Chọn dự án"
+      // Load dữ liệu cho "Chọn dự án"
       loadDistinctValuesForSheet();
 
       // Xử lý paste Excel cho filter-value-2
