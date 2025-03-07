@@ -3,46 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
-  <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js">
-i18next.init({
-  fallbackLng: 'vi',
-  debug: false,
-  resources: {
-    en: {
-      translation: {
-        "choose_project": "Choose Project",
-        "choose_value": "Choose Value",
-        "apply_filter": "Apply Filter",
-        "clear_filter": "Clear Filter",
-        "download_excel": "Export Excel (Current)",
-        "export_all": "Export Excel (All)",
-        "zoom_in": "Zoom In",
-        "zoom_out": "Zoom Out",
-        "header_title": "FAIR TEAM - Search Status"
-      }
-    },
-    vi: {
-      translation: {
-        "choose_project": "Chọn dự án",
-        "choose_value": "Chọn giá trị",
-        "apply_filter": "Áp dụng lọc",
-        "clear_filter": "Xóa lọc",
-        "download_excel": "Xuất Excel (Đang xem)",
-        "export_all": "Xuất Excel (Tất cả)",
-        "zoom_in": "Phóng to",
-        "zoom_out": "Thu nhỏ",
-        "header_title": "FAIR TEAM - Tra cứu tình trạng FAIR"
-      }
-    }
-  }
-}, function(err, t) {
-  updateStaticContent(); // Cập nhật nội dung tĩnh ngay sau khi khởi tạo
-});
-</script>
   <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
   <!-- CSS Select2 -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+  <!-- Thêm i18next và i18next-browser-languagedetector -->
+  <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
+  <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
   <style>
     /* Cài đặt CSS cơ bản */
     html, body { height: 100%; margin: 0; padding: 0; }
@@ -64,14 +30,35 @@ i18next.init({
       padding: 15px;
       max-height: 40vh;
       overflow-y: auto;
+      position: relative;
     }
     .header {
       text-align: center;
       padding: 10px;
+      position: relative;
     }
     .header h1 { margin: 0; font-size: 28px; color: white; }
     .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
-
+    /* Language switcher ở góc trên bên phải */
+    .language-switcher {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .language-switcher button {
+      padding: 4px 8px;
+      margin-left: 5px;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 3px;
+      background: #ff8c00;
+      color: white;
+      transition: background 0.3s;
+    }
+    .language-switcher button:hover {
+      background: #ff6500;
+    }
     /* Khối chứa các tiêu chí lọc */
     .filter-bar {
       display: flex;
@@ -99,7 +86,6 @@ i18next.init({
       margin-bottom: 3px;
       font-size: 12px;
     }
-
     /* Khối chứa các nút chức năng */
     .action-bar {
       display: flex;
@@ -146,7 +132,6 @@ i18next.init({
     .zoom-controls button:hover {
       background: linear-gradient(45deg, #34d058, #28a745);
     }
-
     /* Phần hiển thị tổng số dòng */
     .results-count {
       text-align: center;
@@ -154,7 +139,6 @@ i18next.init({
       font-size: 14px;
       color: white;
     }
-
     /* Bảng dữ liệu */
     .table-container {
       flex: 1 1 auto;
@@ -251,12 +235,13 @@ i18next.init({
   <div class="page-container">
     <div class="top-container">
       <div class="header">
-        <h1>FAIR TEAM</h1>
-        <p>Tra cứu tình trạng FAIR</p>
-        <div class="language-switcher" style="position: absolute; top: 10px; right: 10px;">
-    <button onclick="changeLanguage('vi')">Tiếng Việt</button>
-    <button onclick="changeLanguage('en')">English</button>
-  </div>
+        <h1 id="header-title">FAIR TEAM</h1>
+        <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
+        <!-- Nút chuyển đổi ngôn ngữ -->
+        <div class="language-switcher">
+          <button onclick="changeLanguage('vi')">Tiếng Việt</button>
+          <button onclick="changeLanguage('en')">English</button>
+        </div>
       </div>
       <!-- Phần tiêu chí lọc -->
       <div class="filter-bar">
@@ -456,6 +441,75 @@ i18next.init({
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
+
+  <!-- i18next Integration -->
+  <script>
+    // Khởi tạo i18next với các resource dịch cho tiếng Anh và tiếng Việt
+    i18next.use(i18nextBrowserLanguageDetector).init({
+      fallbackLng: 'vi',
+      debug: false,
+      resources: {
+        en: {
+          translation: {
+            "header_title": "FAIR TEAM - Search Status",
+            "header_subtitle": "Search FAIR status",
+            "choose_project": "Choose Project",
+            "choose_value": "Choose Value",
+            "apply_filter": "Apply Filter",
+            "clear_filter": "Clear Filter",
+            "download_excel": "Export Excel (Current)",
+            "export_all": "Export Excel (All)",
+            "zoom_in": "Zoom In",
+            "zoom_out": "Zoom Out"
+          }
+        },
+        vi: {
+          translation: {
+            "header_title": "FAIR TEAM - Tra cứu tình trạng FAIR",
+            "header_subtitle": "Tra cứu tình trạng FAIR",
+            "choose_project": "Chọn dự án",
+            "choose_value": "Chọn giá trị",
+            "apply_filter": "Áp dụng lọc",
+            "clear_filter": "Xóa lọc",
+            "download_excel": "Xuất Excel (Đang xem)",
+            "export_all": "Xuất Excel (Tất cả)",
+            "zoom_in": "Phóng to",
+            "zoom_out": "Thu nhỏ"
+          }
+        }
+      }
+    }, function(err, t) {
+      updateStaticContent();
+    });
+
+    // Hàm cập nhật nội dung tĩnh theo ngôn ngữ hiện tại
+    function updateStaticContent() {
+      // Header
+      document.getElementById("header-title").innerText = i18next.t("header_title");
+      document.getElementById("header-subtitle").innerText = i18next.t("header_subtitle");
+      // Các label trong filter (nếu cần)
+      var labelSheet = document.querySelector('label[for="filter-sheet"]');
+      if (labelSheet) { labelSheet.innerText = i18next.t("choose_project"); }
+      var labelValue1 = document.querySelector('label[for="filter-value-1"]');
+      if (labelValue1) { labelValue1.innerText = i18next.t("choose_value"); }
+      // Action buttons
+      document.getElementById("apply-filters").innerText = i18next.t("apply_filter");
+      document.getElementById("clear-filters").innerText = i18next.t("clear_filter");
+      document.getElementById("download-excel").innerText = i18next.t("download_excel");
+      document.getElementById("export-all").innerText = i18next.t("export_all");
+      document.getElementById("zoom-in").innerText = i18next.t("zoom_in");
+      document.getElementById("zoom-out").innerText = i18next.t("zoom_out");
+    }
+
+    // Hàm chuyển đổi ngôn ngữ khi bấm nút
+    function changeLanguage(lng) {
+      i18next.changeLanguage(lng, function() {
+        updateStaticContent();
+      });
+    }
+  </script>
+
+  <!-- Các mã JS hiện tại -->
   <script>
     // Hàm format Excel date
     function formatExcelDate(val) {
@@ -818,30 +872,6 @@ i18next.init({
       $(this).data('order', newOrder);
       sortTable(col, newOrder);
     });
-    function updateStaticContent() {
-  // Cập nhật tiêu đề header
-  document.getElementById('header-title').innerText = i18next.t('header_title');
-  
-  // Cập nhật nhãn trong dropdown (ví dụ: phần "Chọn dự án" và "Chọn giá trị")
-  // Nếu bạn đã đặt label có attribute for, bạn có thể cập nhật:
-  document.querySelector('label[for="filter-sheet"]').innerText = i18next.t('choose_project');
-  document.querySelector('label[for="filter-value-1"]').innerText = i18next.t('choose_value');
-  // Tương tự, cập nhật nếu có các label khác cần dịch
-
-  // Cập nhật tên nút trong action-bar
-  document.getElementById('apply-filters').innerText = i18next.t('apply_filter');
-  document.getElementById('clear-filters').innerText = i18next.t('clear_filter');
-  document.getElementById('download-excel').innerText = i18next.t('download_excel');
-  document.getElementById('export-all').innerText = i18next.t('export_all');
-  document.getElementById('zoom-in').innerText = i18next.t('zoom_in');
-  document.getElementById('zoom-out').innerText = i18next.t('zoom_out');
-}
-function changeLanguage(lng) {
-  i18next.changeLanguage(lng, function() {
-    updateStaticContent();
-  });
-}
-
   </script>
 </body>
 </html>
