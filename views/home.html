@@ -57,18 +57,33 @@
       margin-bottom: 3px;
       font-size: 12px;
     }
-    .filter-actions, .download-container, .zoom-controls, .results-count {
-      text-align: center;
-      margin: 5px;
+
+       /* Khối chứa các nút (Áp dụng, Xóa lọc, Xuất Excel, Zoom) */
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center; /* Căn giữa các khối nút */
+      padding: 5px;
     }
-    .filter-actions button, .download-container button, .zoom-controls button {
+    .action-bar > div {
+      background: #444;
+      border-radius: 5px;
+      padding: 5px;
+      margin: 5px;
+      font-size: 12px;
+      color: white;
+      text-align: center;
+    }
+    .action-bar button {
       padding: 6px 12px;
       font-size: 12px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       transition: 0.3s;
+      margin: 3px;
     }
+
     .filter-actions button {
       background: linear-gradient(45deg, #ff8c00, #ff4500);
       color: white;
@@ -90,7 +105,13 @@
     .zoom-controls button:hover {
       background: linear-gradient(45deg, #34d058, #28a745);
     }
-    .results-count { font-size: 14px; color: white; }
+    /* Khối hiển thị tổng số dòng */
+    .results-count {
+      text-align: center;
+      margin: 5px;
+      font-size: 14px;
+      color: white;
+    }
     .table-container {
       flex: 1 1 auto;
       margin: 5px auto;
