@@ -38,10 +38,10 @@
 </head>
 <body>
   <div class="container mt-4">
-    <!-- Thông tin người dùng -->
+    <!-- Khu vực hiển thị tên user và role -->
     <div id="welcome" class="mb-3"></div>
-    
-    <!-- Phần lọc nhiệm vụ (chỉ admin) -->
+
+    <!-- Khu vực lọc nhiệm vụ (chỉ admin mới thấy) -->
     <div id="filter-section" style="display: none;" class="mb-3">
       <label for="filterAssigned">Lọc theo người nhận:</label>
       <select id="filterAssigned" class="form-control" onchange="filterTasks()">
@@ -55,14 +55,14 @@
         <option value="Ha">Ha</option>
       </select>
     </div>
-    
-    <!-- Phần tiến độ công việc nhóm -->
+
+    <!-- Khu vực hiển thị tiến độ công việc nhóm -->
     <div class="progress-container">
       <h3>Tiến độ công việc nhóm</h3>
       <div id="progress-bars"></div>
     </div>
 
-    <!-- Form tạo nhiệm vụ (chỉ admin) -->
+    <!-- Form tạo nhiệm vụ (chỉ admin mới thấy) -->
     <form id="taskForm" style="display:none;">
       <div class="form-group">
         <label for="taskTitle">Tên nhiệm vụ:</label>
@@ -106,6 +106,7 @@
       </div>
       <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
     </form>
+
     <hr>
     <!-- Bảng danh sách nhiệm vụ -->
     <h2>Danh sách nhiệm vụ</h2>
@@ -115,7 +116,7 @@
           <th>ID</th>
           <th>Tên nhiệm vụ</th>
           <th>Người nhận</th>
-          <th>Mức ưu tiên</th>
+          <th>Mức độ ưu tiên</th>
           <th>Thời hạn</th>
           <th>Mô tả</th>
           <th>Trạng thái</th>
@@ -124,27 +125,30 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Danh sách nhiệm vụ sẽ được load qua API -->
+        <!-- Nhiệm vụ sẽ được load qua API -->
       </tbody>
     </table>
   </div>
 
   <script>
-    let currentUser = null; // Lưu thông tin user
-    let selectedImageFile = null; // Lưu file ảnh từ input/drag/paste
+    let currentUser = null;           // Lưu thông tin user đăng nhập
+    let selectedImageFile = null;     // Lưu file ảnh (khi người dùng chọn/kéo/dán)
 
-    // Kiểm tra đăng nhập và lấy thông tin user
+    // 1. Kiểm tra đăng nhập và role
     async function checkAuth() {
       try {
         const res = await fetch('/api/me');
         const data = await res.json();
         if (!data.success) {
+          // Nếu chưa đăng nhập, chuyển về login
           window.location.href = '/login.html';
           return;
         }
-        currentUser = data.user;
+        currentUser = data.user;  // Lưu user { name, email, role }
         document.getElementById('welcome').innerText =
           `Xin chào ${currentUser.name} - Vai trò: ${currentUser.role}`;
+
+        // Nếu là admin => hiển thị form tạo nhiệm vụ và dropdown lọc
         if (currentUser.role === 'admin') {
           document.getElementById('taskForm').style.display = 'block';
           document.getElementById('filter-section').style.display = 'block';
@@ -155,7 +159,7 @@
       }
     }
 
-    // Load tiến độ công việc
+    // 2. Hàm load tiến độ công việc nhóm
     async function loadProgress() {
       try {
         const res = await fetch('/api/progress');
@@ -179,13 +183,13 @@
       }
     }
 
-    // Hiển thị preview khi chọn file
+    // 3. Xử lý preview ảnh khi chọn file input
     document.getElementById('taskImage').addEventListener('change', function(event) {
       const file = event.target.files[0];
       if (file) handleFile(file);
     });
 
-    // Drag & Drop
+    // 4. Drag & Drop
     const dropzone = document.getElementById('dropzone');
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -201,7 +205,7 @@
       if (file) handleFile(file);
     });
 
-    // Paste ảnh
+    // 5. Paste ảnh
     document.addEventListener('paste', function(e) {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (let i = 0; i < items.length; i++) {
@@ -213,7 +217,7 @@
       }
     });
 
-    // Hàm xử lý file ảnh: hiển thị preview & lưu file vào biến global
+    // 6. Hàm xử lý file ảnh: hiển thị preview & lưu file vào biến
     function handleFile(file) {
       if (file && file.type.startsWith('image/')) {
         selectedImageFile = file;
@@ -229,7 +233,7 @@
       }
     }
 
-    // Hàm upload ảnh qua API /api/upload-image
+    // 7. Upload ảnh qua /api/upload-image
     async function uploadImage(file) {
       const formData = new FormData();
       formData.append('image', file);
@@ -237,14 +241,14 @@
         method: 'POST',
         body: formData
       });
-      return await response.json();
+      return await response.json(); // { success: boolean, imageUrl: string }
     }
 
-    // Load danh sách nhiệm vụ
+    // 8. Hàm load danh sách nhiệm vụ (mặc định gọi khi trang tải)
     async function loadTasks() {
       try {
         let url = '/api/tasks';
-        // Nếu admin, có thể lọc theo người nhận từ dropdown
+        // Nếu user là admin, có thể lọc theo dropdown
         if (currentUser.role === 'admin') {
           const assigned = document.getElementById('filterAssigned').value;
           if (assigned) {
@@ -253,28 +257,30 @@
         }
         const response = await fetch(url);
         const tasks = await response.json();
+
         const tbody = document.querySelector('#tasksTable tbody');
         tbody.innerHTML = '';
         tasks.forEach(task => {
           let actionButtons = '';
-          // Nút "Nhận Nhiệm Vụ" chỉ hiển thị nếu nhiệm vụ chưa thực hiện và được giao cho chính user
+          // Nút "Nhận Nhiệm Vụ" - nếu trạng thái là "Chưa thực hiện" và user là người được giao
           if (task.status === "Chưa thực hiện" && currentUser.name === task.assignedTo) {
             actionButtons += `<button class="btn btn-info btn-sm" onclick="startTask(${task.id})">Nhận Nhiệm Vụ</button> `;
           }
-          // Nút "Hoàn thành" hiển thị nếu nhiệm vụ chưa hoàn thành và nếu là admin hoặc được giao cho user
+          // Nút "Hoàn thành" - nếu chưa hoàn thành và (admin hoặc user được giao)
           if (task.status !== "Hoàn thành" && (currentUser.role === 'admin' || currentUser.name === task.assignedTo)) {
             actionButtons += `<button class="btn btn-success btn-sm" onclick="completeTask(${task.id})">Hoàn thành</button> `;
           }
-          // Nút "Bàn giao" chỉ dành cho admin
+          // Nút "Bàn giao" - chỉ admin
           if (currentUser.role === 'admin') {
             actionButtons += `<button class="btn btn-warning btn-sm" onclick="handoverTask(${task.id})">Bàn giao</button> `;
           }
-          // Nút "Xem Comment" cho tất cả
+          // Nút "Xem Comment" - tất cả
           actionButtons += `<button class="btn btn-info btn-sm" onclick="toggleComments(${task.id})">Xem Comment</button> `;
-          // Nút "Xóa" chỉ dành cho admin
+          // Nút "Xóa" - chỉ admin
           if (currentUser.role === 'admin') {
             actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Xóa</button>`;
           }
+          
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${task.id}</td>
@@ -309,7 +315,14 @@
       }
     }
 
-    // Hàm nhận nhiệm vụ (chuyển trạng thái sang "Đang thực hiện")
+    // 9. Hàm lọc nhiệm vụ (gọi khi dropdown thay đổi)
+    // Thay vì gọi loadTasks trực tiếp, ta tách hàm riêng để user dễ đọc code
+    async function filterTasks() {
+      // Mỗi khi admin thay đổi dropdown, ta gọi loadTasks() (vì loadTasks() cũng dựa vào dropdown)
+      await loadTasks();
+    }
+
+    // 10. Hàm nhận nhiệm vụ
     async function startTask(taskId) {
       if (!confirm("Bạn có chắc muốn nhận nhiệm vụ này không?")) return;
       try {
@@ -331,7 +344,7 @@
       }
     }
 
-    // Hàm hoàn thành nhiệm vụ
+    // 11. Hàm hoàn thành nhiệm vụ
     async function completeTask(taskId) {
       if (!confirm("Bạn có chắc muốn đánh dấu nhiệm vụ này là 'Hoàn thành'?")) return;
       try {
@@ -353,7 +366,7 @@
       }
     }
 
-    // Hàm bàn giao nhiệm vụ (admin)
+    // 12. Hàm bàn giao nhiệm vụ (admin)
     async function handoverTask(taskId) {
       const newAssignee = prompt("Nhập tên người nhận mới:");
       if (!newAssignee) return;
@@ -375,7 +388,7 @@
       }
     }
 
-    // Hàm xóa nhiệm vụ (admin)
+    // 13. Hàm xóa nhiệm vụ (admin)
     async function deleteTask(taskId) {
       if (!confirm("Bạn có chắc muốn xóa nhiệm vụ này?")) return;
       try {
@@ -395,7 +408,7 @@
       }
     }
 
-    // Hàm toggle hiển thị/ẩn comment cho nhiệm vụ
+    // 14. Toggle comment
     async function toggleComments(taskId) {
       const container = document.getElementById(`comments-${taskId}`);
       if (container.style.display === 'none' || container.style.display === '') {
@@ -406,7 +419,7 @@
       }
     }
 
-    // Hàm load comment cho nhiệm vụ
+    // 15. Load comment cho nhiệm vụ
     async function loadComments(taskId) {
       try {
         const response = await fetch(`/api/tasks/${taskId}/comments`);
@@ -415,7 +428,8 @@
         list.innerHTML = '';
         comments.forEach(comment => {
           const p = document.createElement('p');
-          p.innerHTML = `<strong>${comment.user}</strong>: ${comment.comment_text}<br><small>${new Date(comment.created_at).toLocaleString()}</small>`;
+          p.innerHTML = `<strong>${comment.user}</strong>: ${comment.comment_text}
+                         <br><small>${new Date(comment.created_at).toLocaleString()}</small>`;
           list.appendChild(p);
         });
       } catch (err) {
@@ -423,7 +437,7 @@
       }
     }
 
-    // Hàm gửi comment cho nhiệm vụ
+    // 16. Gửi comment cho nhiệm vụ
     async function postComment(taskId) {
       const textArea = document.getElementById(`new-comment-${taskId}`);
       const commentText = textArea.value.trim();
@@ -450,235 +464,48 @@
       }
     }
 
-    // Hàm load danh sách tiến độ của nhóm (sử dụng API /api/progress)
-    async function loadProgress() {
-      try {
-        const res = await fetch('/api/progress');
-        const progressData = await res.json();
-        let progressHTML = '';
-        progressData.forEach(user => {
-          let percent = (user.completed / user.total) * 100;
-          progressHTML += `
-            <div class="mb-2">
-              <p>${user.name} (${user.completed}/${user.total} nhiệm vụ hoàn thành)</p>
-              <div class="progress">
-                <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%;"
-                  aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">${percent.toFixed(1)}%</div>
-              </div>
-            </div>
-          `;
-        });
-        document.getElementById('progress-bars').innerHTML = progressHTML;
-      } catch (err) {
-        console.error("Error loading progress:", err);
-      }
-    }
-
-    // Hàm load danh sách nhiệm vụ
-    async function loadTasks() {
-      try {
-        let url = '/api/tasks';
-        if (currentUser.role === 'admin') {
-          const assigned = document.getElementById('filterAssigned').value;
-          if (assigned) {
-            url += `?assignedTo=${encodeURIComponent(assigned)}`;
-          }
-        }
-        const response = await fetch(url);
-        const tasks = await response.json();
-        const tbody = document.querySelector('#tasksTable tbody');
-        tbody.innerHTML = '';
-        tasks.forEach(task => {
-          let actionButtons = '';
-          if (task.status === "Chưa thực hiện" && currentUser.name === task.assignedTo) {
-            actionButtons += `<button class="btn btn-info btn-sm" onclick="startTask(${task.id})">Nhận Nhiệm Vụ</button> `;
-          }
-          if (task.status !== "Hoàn thành" && (currentUser.role === 'admin' || currentUser.name === task.assignedTo)) {
-            actionButtons += `<button class="btn btn-success btn-sm" onclick="completeTask(${task.id})">Hoàn thành</button> `;
-          }
-          if (currentUser.role === 'admin') {
-            actionButtons += `<button class="btn btn-warning btn-sm" onclick="handoverTask(${task.id})">Bàn giao</button> `;
-          }
-          actionButtons += `<button class="btn btn-info btn-sm" onclick="toggleComments(${task.id})">Xem Comment</button> `;
-          if (currentUser.role === 'admin') {
-            actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Xóa</button>`;
-          }
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${task.id}</td>
-            <td>${task.title}</td>
-            <td>${task.assignedTo}</td>
-            <td>${task.priority}</td>
-            <td>${task.deadline}</td>
-            <td>${task.description || ''}</td>
-            <td>${task.status}</td>
-            <td>
-              ${
-                task.imageURL
-                  ? `<a href="${task.imageURL}" target="_blank" download>
-                       <img src="${task.imageURL}" style="max-width:100px;" alt="thumbnail">
-                     </a>`
-                  : 'N/A'
-              }
-            </td>
-            <td>
-              ${actionButtons}
-              <div id="comments-${task.id}" class="comments-container" style="display:none;">
-                <div id="comments-list-${task.id}"></div>
-                <textarea id="new-comment-${task.id}" class="form-control" rows="2" placeholder="Nhập comment..."></textarea>
-                <button class="btn btn-primary btn-sm mt-2" onclick="postComment(${task.id})">Gửi</button>
-              </div>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error("Error loading tasks:", err);
-      }
-    }
-
-    // Hàm nhận nhiệm vụ (chuyển trạng thái sang "Đang thực hiện")
-    async function startTask(taskId) {
-      if (!confirm("Bạn có chắc muốn nhận nhiệm vụ này không?")) return;
-      try {
-        const response = await fetch(`/api/tasks/${taskId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'Đang thực hiện' })
-        });
-        const result = await response.json();
-        if (result.success) {
-          alert("Bạn đã nhận nhiệm vụ! Trạng thái chuyển sang 'Đang thực hiện'.");
-          loadTasks();
-          loadProgress();
+    // 17. Xử lý gửi form tạo nhiệm vụ (chỉ admin)
+    document.getElementById('taskForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const task = {
+        title: document.getElementById('taskTitle').value,
+        assignedTo: document.getElementById('taskAssigned').value,
+        priority: document.getElementById('taskPriority').value,
+        deadline: document.getElementById('taskDeadline').value,
+        description: document.getElementById('taskDescription').value,
+        status: 'Chưa thực hiện'
+      };
+      // Upload ảnh (nếu có)
+      if (selectedImageFile) {
+        const uploadResult = await uploadImage(selectedImageFile);
+        if (uploadResult.success) {
+          task.imageURL = uploadResult.imageUrl;
         } else {
-          alert("Lỗi: " + result.message);
+          alert('Upload ảnh thất bại: ' + uploadResult.message);
+          return;
         }
-      } catch (err) {
-        console.error("Error starting task:", err);
       }
-    }
-
-    // Hàm hoàn thành nhiệm vụ
-    async function completeTask(taskId) {
-      if (!confirm("Bạn có chắc muốn đánh dấu nhiệm vụ này là 'Hoàn thành'?")) return;
-      try {
-        const response = await fetch(`/api/tasks/${taskId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'Hoàn thành' })
-        });
-        const result = await response.json();
-        if (result.success) {
-          alert("Nhiệm vụ đã được cập nhật thành 'Hoàn thành'!");
-          loadTasks();
-          loadProgress();
-        } else {
-          alert("Lỗi: " + result.message);
-        }
-      } catch (err) {
-        console.error("Error completing task:", err);
-      }
-    }
-
-    // Hàm bàn giao nhiệm vụ (admin)
-    async function handoverTask(taskId) {
-      const newAssignee = prompt("Nhập tên người nhận mới:");
-      if (!newAssignee) return;
-      try {
-        const response = await fetch(`/api/tasks/${taskId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ assignedTo: newAssignee })
-        });
-        const result = await response.json();
-        if (result.success) {
-          alert("Nhiệm vụ đã được bàn giao thành công!");
-          loadTasks();
-        } else {
-          alert("Lỗi: " + result.message);
-        }
-      } catch (err) {
-        console.error("Error handing over task:", err);
-      }
-    }
-
-    // Hàm xóa nhiệm vụ (admin)
-    async function deleteTask(taskId) {
-      if (!confirm("Bạn có chắc muốn xóa nhiệm vụ này?")) return;
-      try {
-        const response = await fetch(`/api/tasks/${taskId}`, {
-          method: 'DELETE'
-        });
-        const result = await response.json();
-        if (result.success) {
-          alert("Nhiệm vụ đã được xóa!");
-          loadTasks();
-          loadProgress();
-        } else {
-          alert("Lỗi: " + result.message);
-        }
-      } catch (err) {
-        console.error("Error deleting task:", err);
-      }
-    }
-
-    // Hàm toggle hiển thị/ẩn comment cho nhiệm vụ
-    async function toggleComments(taskId) {
-      const container = document.getElementById(`comments-${taskId}`);
-      if (container.style.display === 'none' || container.style.display === '') {
-        container.style.display = 'block';
-        await loadComments(taskId);
+      // Gửi dữ liệu nhiệm vụ đến API
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert('Nhiệm vụ được giao thành công!');
+        loadTasks();
+        loadProgress();
+        // Reset form
+        document.getElementById('taskForm').reset();
+        document.getElementById('imagePreview').style.display = 'none';
+        selectedImageFile = null;
       } else {
-        container.style.display = 'none';
+        alert('Lỗi: ' + result.message);
       }
-    }
+    });
 
-    // Hàm load comment cho nhiệm vụ
-    async function loadComments(taskId) {
-      try {
-        const response = await fetch(`/api/tasks/${taskId}/comments`);
-        const comments = await response.json();
-        const list = document.getElementById(`comments-list-${taskId}`);
-        list.innerHTML = '';
-        comments.forEach(comment => {
-          const p = document.createElement('p');
-          p.innerHTML = `<strong>${comment.user}</strong>: ${comment.comment_text}<br><small>${new Date(comment.created_at).toLocaleString()}</small>`;
-          list.appendChild(p);
-        });
-      } catch (err) {
-        console.error("Error loading comments:", err);
-      }
-    }
-
-    // Hàm gửi comment cho nhiệm vụ
-    async function postComment(taskId) {
-      const textArea = document.getElementById(`new-comment-${taskId}`);
-      const commentText = textArea.value.trim();
-      if (!commentText) {
-        alert("Vui lòng nhập nội dung comment.");
-        return;
-      }
-      try {
-        const response = await fetch(`/api/tasks/${taskId}/comments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ comment_text: commentText })
-        });
-        const result = await response.json();
-        if (result.success) {
-          alert("Comment đã được gửi!");
-          textArea.value = '';
-          await loadComments(taskId);
-        } else {
-          alert("Lỗi: " + result.message);
-        }
-      } catch (err) {
-        console.error("Error posting comment:", err);
-      }
-    }
-
-    // Khi trang tải, kiểm tra đăng nhập, load tasks và tiến độ
+    // 18. Khi trang tải, kiểm tra đăng nhập, rồi load tasks & progress
     window.onload = async () => {
       await checkAuth();
       loadTasks();
