@@ -11,18 +11,32 @@
       max-height: 200px;
       margin-top: 10px;
     }
+    /* Dropzone style */
+    #dropzone {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      color: #666;
+      transition: background-color 0.3s;
+    }
+    #dropzone.dragover {
+      background-color: #eee;
+    }
   </style>
 </head>
 <body>
   <div class="container mt-4">
     <h1>Quản lý Nhiệm vụ</h1>
     <hr>
-    <!-- Form tạo nhiệm vụ (chỉ admin sẽ thấy phần này nếu bạn muốn ẩn nó đối với user qua JS) -->
+    <!-- Form tạo nhiệm vụ (chỉ admin mới gọi được API /api/tasks) -->
     <form id="taskForm">
       <div class="form-group">
         <label for="taskTitle">Tên nhiệm vụ:</label>
         <input type="text" class="form-control" id="taskTitle" required>
       </div>
+
       <div class="form-group">
         <label for="taskAssigned">Giao cho:</label>
         <select class="form-control" id="taskAssigned" required>
@@ -37,6 +51,7 @@
           <option value="Ha">Ha</option>
         </select>
       </div>
+
       <div class="form-group">
         <label for="taskPriority">Mức độ ưu tiên:</label>
         <select class="form-control" id="taskPriority" required>
@@ -45,19 +60,26 @@
           <option value="thap">Không ưu tiên</option>
         </select>
       </div>
+
       <div class="form-group">
         <label for="taskDeadline">Thời hạn:</label>
         <input type="date" class="form-control" id="taskDeadline" required>
       </div>
+
       <div class="form-group">
         <label for="taskDescription">Mô tả:</label>
         <textarea class="form-control" id="taskDescription" rows="3"></textarea>
       </div>
+
+      <!-- Khu vực kéo thả ảnh -->
+      <div id="dropzone">Kéo & thả ảnh vào đây (hoặc paste ảnh khi bấm Ctrl+V)</div>
+
       <div class="form-group">
-        <label for="taskImage">Hình ảnh đính kèm:</label>
+        <label for="taskImage">Hoặc chọn file ảnh (tùy chọn):</label>
         <input type="file" class="form-control-file" id="taskImage" accept="image/*">
         <img id="imagePreview" class="preview-img" src="#" alt="Preview" style="display:none;">
       </div>
+
       <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
     </form>
     <hr>
@@ -69,8 +91,9 @@
           <th>ID</th>
           <th>Tên nhiệm vụ</th>
           <th>Người nhận</th>
-          <th>Mức ưu tiên</th>
+          <th>Mức độ ưu tiên</th>
           <th>Thời hạn</th>
+          <th>Mô tả</th>
           <th>Trạng thái</th>
           <th>Hình ảnh</th>
         </tr>
@@ -82,10 +105,51 @@
   </div>
 
   <script>
-    // Hiển thị preview của ảnh khi chọn file
+    let selectedImageFile = null; // Lưu trữ file ảnh (từ drop/paste/input)
+
+    // ========== 1. Hiển thị preview khi chọn file ========== 
     document.getElementById('taskImage').addEventListener('change', function(event) {
       const file = event.target.files[0];
       if (file) {
+        handleFile(file);
+      }
+    });
+
+    // ========== 2. Drag & Drop ========== 
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleFile(file);
+      }
+    });
+
+    // ========== 3. Paste ảnh ========== 
+    document.addEventListener('paste', function(e) {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          handleFile(file);
+        }
+      }
+    });
+
+    // Hàm xử lý file (hiển thị preview & lưu vào selectedImageFile)
+    function handleFile(file) {
+      if (file && file.type.startsWith('image/')) {
+        selectedImageFile = file;
+        // Preview
         const reader = new FileReader();
         reader.onload = function(e) {
           const img = document.getElementById('imagePreview');
@@ -93,10 +157,12 @@
           img.style.display = 'block';
         }
         reader.readAsDataURL(file);
+      } else {
+        alert('File không phải hình ảnh!');
       }
-    });
+    }
 
-    // Hàm upload hình ảnh qua API /api/upload-image
+    // ========== 4. Upload ảnh lên Supabase ========== 
     async function uploadImage(file) {
       const formData = new FormData();
       formData.append('image', file);
@@ -104,10 +170,10 @@
         method: 'POST',
         body: formData
       });
-      return await response.json();
+      return await response.json(); // { success: boolean, imageUrl: string }
     }
 
-    // Hàm load danh sách nhiệm vụ từ API
+    // ========== 5. Tải danh sách nhiệm vụ ========== 
     async function loadTasks() {
       try {
         const response = await fetch('/api/tasks');
@@ -122,6 +188,7 @@
             <td>${task.assignedTo}</td>
             <td>${task.priority}</td>
             <td>${task.deadline}</td>
+            <td>${task.description || ''}</td>
             <td>${task.status}</td>
             <td>${task.imageURL ? `<img src="${task.imageURL}" style="max-width:100px;">` : 'N/A'}</td>
           `;
@@ -132,9 +199,10 @@
       }
     }
 
-    // Xử lý gửi form tạo nhiệm vụ
+    // ========== 6. Xử lý gửi form tạo nhiệm vụ ========== 
     document.getElementById('taskForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      // Tạo object nhiệm vụ
       const task = {
         title: document.getElementById('taskTitle').value,
         assignedTo: document.getElementById('taskAssigned').value,
@@ -144,10 +212,9 @@
         status: 'Chưa thực hiện'
       };
 
-      // Nếu có file ảnh được chọn, upload ảnh trước
-      const imageFile = document.getElementById('taskImage').files[0];
-      if (imageFile) {
-        const uploadResult = await uploadImage(imageFile);
+      // Nếu có file ảnh => upload trước, lấy URL
+      if (selectedImageFile) {
+        const uploadResult = await uploadImage(selectedImageFile);
         if (uploadResult.success) {
           task.imageURL = uploadResult.imageUrl;
         } else {
@@ -156,7 +223,7 @@
         }
       }
 
-      // Gửi dữ liệu nhiệm vụ đến API tạo nhiệm vụ
+      // Gửi dữ liệu nhiệm vụ đến API
       const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -166,14 +233,16 @@
       if (result.success) {
         alert('Nhiệm vụ được giao thành công!');
         loadTasks();
+        // Reset form
         document.getElementById('taskForm').reset();
         document.getElementById('imagePreview').style.display = 'none';
+        selectedImageFile = null; // Xoá file tạm
       } else {
         alert('Lỗi: ' + result.message);
       }
     });
 
-    // Load nhiệm vụ khi trang được tải
+    // ========== 7. Load nhiệm vụ khi trang được tải ========== 
     window.onload = loadTasks;
   </script>
 </body>
