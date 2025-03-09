@@ -228,7 +228,7 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
     if (taskData.image_path) {
       const { error: removeImageError } = await supabase
         .storage
-        .from('task-images')
+        .from('tasks-images')
         .remove([taskData.image_path]);
       if (removeImageError) console.error("Error removing task image:", removeImageError);
     }
@@ -307,7 +307,7 @@ app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
-    const fileName = `task-images/${Date.now()}_${req.file.originalname}`;
+    const fileName = `tasks-images/${Date.now()}_${req.file.originalname}`;
     const { data: uploadData, error: uploadError } = await supabase
       .storage
       .from('tasks-images')
