@@ -11,6 +11,28 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+
+  .header {
+  position: relative;
+  text-align: center;
+  padding: 10px;
+}
+.home-link {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #fff;
+  background: #007bff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.home-link:hover {
+  background: #0056b3;
+}
+
     /* Dropzone */
     #dropzone {
       border: 2px dashed #ccc;
@@ -72,7 +94,7 @@
   <div class="container mt-4">
     <!-- Khu vực hiển thị user -->
     <div id="welcome" class="mb-3"></div>
-    
+     <a href="/home" class="home-link">Home</a>
     <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="tasksTab" role="tablist">
       <li class="nav-item">
