@@ -3,11 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
-
-const { createClient } = require('@supabase/supabase-js');
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const { createClient } = require('@supabase/supabase-js'); // Thư viện Supabase
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,6 +21,12 @@ app.use(session({
 
 // Serve file tĩnh từ thư mục "public"
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ----------------------- SUPABASE KHỞI TẠO -----------------------
+// Lấy thông tin từ biến môi trường (đã cấu hình trên Vercel)
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
 
@@ -78,7 +80,6 @@ function isAuthenticated(req, res, next) {
 
 // ----------------------- API ĐĂNG NHẬP -----------------------
 
-// Endpoint đăng nhập: sử dụng trường "identifier" để nhập Tên hoặc Email và password dạng plain text
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -122,7 +123,6 @@ app.get('/logout', (req, res) => {
 
 // ----------------------- ROUTE BẢO VỆ TRANG HOME -----------------------
 
-// Route bảo vệ cho trang Home, file home.html nằm trong thư mục "views"
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
@@ -132,9 +132,8 @@ app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 
-// ----------------------- CÁC API TRA CỨU & XUẤT EXCEL (GIỮ NGUYÊN) -----------------------
+// ----------------------- CÁC API TRA CỨU & XUẤT EXCEL -----------------------
 
-// API lấy danh sách giá trị lọc
 app.get('/filters', (req, res) => {
   const getDistinct = (col) => {
     const values = cachedData.map(row => row[col]).filter(v => v != null);
@@ -175,7 +174,6 @@ app.get('/filters', (req, res) => {
   });
 });
 
-// API tìm kiếm dữ liệu có phân trang
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -201,7 +199,6 @@ app.get('/search', (req, res) => {
   res.json({ total, data: paginatedData });
 });
 
-// API xuất dữ liệu sang file Excel
 app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -221,13 +218,13 @@ app.get('/export', (req, res) => {
 
   const wb = XLSX.utils.book_new();
   const headerOrder = [
-  "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
-  "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
-  "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
-  "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
-  "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
-];
-const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
+    "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
+    "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
+    "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
+    "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
+    "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
+  ];
+  const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
 
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
@@ -237,10 +234,7 @@ const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
   res.send(buf);
 });
 
-// Ví dụ route được bảo vệ (Dashboard)
-app.get('/dashboard', isAuthenticated, (req, res) => {
-  res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
-});
+// ----------------------- API TASKS SỬ DỤNG SUPABASE -----------------------
 
 // Route phục vụ trang quản lý nhiệm vụ (tasks.html)
 app.get('/tasks', isAuthenticated, (req, res) => {
@@ -273,6 +267,12 @@ app.post('/api/tasks', isAuthenticated, async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+});
+
+// ----------------------- ROUTE DASHBOARD -----------------------
+
+app.get('/dashboard', isAuthenticated, (req, res) => {
+  res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
 
 app.listen(port, () => {
