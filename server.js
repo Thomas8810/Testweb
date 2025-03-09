@@ -12,7 +12,7 @@ const port = process.env.PORT || 3000;
 // ----------------------- COOKIE-SESSION -----------------------
 app.use(cookieSession({
   name: 'session',
-  keys: ['your-secret-key'], // Thay đổi chuỗi bí mật
+  keys: ['your-secret-key'], // Thay đổi chuỗi bí mật của bạn
   maxAge: 24 * 60 * 60 * 1000 // 1 ngày
 }));
 
@@ -25,14 +25,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ----------------------- SUPABASE KHỞI TẠO -----------------------
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseKey = process.env.SUPABASE_KEY; // Nên dùng Service Role key cho đầy đủ quyền
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ----------------------- MULTER CONFIG -----------------------
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// ----------------------- TẢI DỮ LIỆU (nếu cần) -----------------------
+// ----------------------- DỮ LIỆU TRA CỨU & NGƯỜI DÙNG -----------------------
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
 function loadDataFromFile() {
@@ -50,7 +50,6 @@ function loadDataFromFile() {
 }
 loadDataFromFile();
 
-// ----------------------- TẢI USERS -----------------------
 const usersFilePath = path.join(__dirname, 'users.json');
 let usersData = [];
 function loadUsersData() {
@@ -110,15 +109,12 @@ app.get('/logout', (req, res) => {
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
-
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
-
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
-
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
@@ -134,19 +130,16 @@ async function logTaskHistory(taskId, changedBy, action, oldValue, newValue) {
 }
 
 // ----------------------- TASKS ENDPOINTS -----------------------
+
 // Lấy danh sách nhiệm vụ
 app.get('/api/tasks', isAuthenticated, async (req, res) => {
   try {
     let query = supabase.from('tasks').select('*').order('id', { ascending: true });
-
-    // Người thường chỉ xem nhiệm vụ của họ
     if (req.session.user.role !== 'admin') {
       query = query.eq('assignedTo', req.session.user.name);
     } else if (req.query.assignedTo) {
-      // Admin có thể lọc theo assignedTo
       query = query.eq('assignedTo', req.query.assignedTo);
     }
-
     const { data, error } = await query;
     if (error) {
       console.error("Error in GET /api/tasks:", error);
@@ -185,7 +178,6 @@ app.post('/api/tasks', isAuthenticated, isAdmin, async (req, res) => {
 app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   try {
-    // Lấy task hiện tại
     const { data: taskData, error: selectError } = await supabase
       .from('tasks')
       .select('*')
@@ -193,18 +185,15 @@ app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
       .single();
     if (selectError) throw selectError;
 
-    // Chỉ admin hoặc chủ nhiệm vụ mới được update
     if (req.session.user.role !== 'admin' && taskData.assignedTo !== req.session.user.name) {
       return res.status(403).json({ success: false, message: "Bạn không có quyền cập nhật nhiệm vụ này." });
     }
 
     let updateData = { ...req.body };
-    // Nếu không phải admin thì không cho đổi assignedTo
     if (req.session.user.role !== 'admin') {
       delete updateData.assignedTo;
     }
 
-    // Kiểm tra thay đổi status để log
     const oldStatus = taskData.status;
     const newStatus = updateData.status;
 
@@ -215,7 +204,6 @@ app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
       .select();
     if (updateError) throw updateError;
 
-    // Ghi log nếu có thay đổi status
     if (newStatus && newStatus !== oldStatus) {
       await logTaskHistory(taskId, req.session.user.name, 'Status change', oldStatus, newStatus);
     }
@@ -226,11 +214,10 @@ app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-// Xóa nhiệm vụ (chỉ admin)
+// Xóa nhiệm vụ (chỉ admin) và xóa file khỏi storage
 app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
   const taskId = req.params.id;
   try {
-    // Lấy thông tin nhiệm vụ
     const { data: taskData, error: taskError } = await supabase
       .from('tasks')
       .select('*')
@@ -238,8 +225,8 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
       .single();
     if (taskError) throw taskError;
 
-    // Nếu có ảnh => xóa trong bucket tasks-images
     if (taskData.image_path) {
+      console.log("Deleting image:", taskData.image_path);
       const { error: removeImageError } = await supabase
         .storage
         .from('tasks-images')
@@ -249,7 +236,6 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
       }
     }
 
-    // Xóa file đính kèm trong tasks-attachments
     const { data: attachments, error: attError } = await supabase
       .from('task_attachments')
       .select('*')
@@ -258,6 +244,7 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
 
     for (const att of attachments) {
       if (att.file_path) {
+        console.log("Deleting attachment:", att.file_path);
         const { error: removeAttError } = await supabase
           .storage
           .from('tasks-attachments')
@@ -268,14 +255,12 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
       }
     }
 
-    // Xóa record trong bảng task_attachments
     const { error: deleteAttError } = await supabase
       .from('task_attachments')
       .delete()
       .eq('task_id', taskId);
     if (deleteAttError) throw deleteAttError;
 
-    // Cuối cùng xóa nhiệm vụ
     const { data, error } = await supabase
       .from('tasks')
       .delete()
@@ -327,24 +312,16 @@ app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 // ----------------------- IMAGE UPLOAD ENDPOINT -----------------------
 app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file provided' });
-    }
-    // fileName = folder + timestamp + originalName
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
     const fileName = `tasks-images/${Date.now()}_${req.file.originalname}`;
-    // Upload vào bucket tasks-images
     const { data: uploadData, error: uploadError } = await supabase
       .storage
       .from('tasks-images')
-      .upload(fileName, req.file.buffer, {
-        contentType: req.file.mimetype,
-        upsert: false
-      });
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
     if (uploadError) {
       console.error("Upload error:", JSON.stringify(uploadError, null, 2));
       return res.status(500).json({ success: false, message: uploadError.message || JSON.stringify(uploadError) });
     }
-
     const filePath = uploadData.path;
     const { data: publicUrlData, error: publicUrlError } = supabase
       .storage
@@ -354,12 +331,7 @@ app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (re
       console.error("Error getting public URL:", publicUrlError);
       return res.status(500).json({ success: false, message: publicUrlError.message || JSON.stringify(publicUrlError) });
     }
-
-    res.json({
-      success: true,
-      imageUrl: publicUrlData.publicUrl,
-      filePath
-    });
+    res.json({ success: true, imageUrl: publicUrlData.publicUrl, filePath });
   } catch (error) {
     console.error("Error in POST /api/upload-image:", error);
     res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
@@ -370,24 +342,16 @@ app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (re
 app.post('/api/tasks/:id/attachments', isAuthenticated, upload.single('file'), async (req, res) => {
   const taskId = req.params.id;
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file provided' });
-    }
-    // fileName = folder + timestamp + originalName
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
     const fileName = `attachments/${Date.now()}_${req.file.originalname}`;
-    // Upload vào bucket tasks-attachments
     const { data: uploadData, error: uploadError } = await supabase
       .storage
       .from('tasks-attachments')
-      .upload(fileName, req.file.buffer, {
-        contentType: req.file.mimetype,
-        upsert: false
-      });
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
     if (uploadError) {
       console.error("Upload error:", JSON.stringify(uploadError, null, 2));
       return res.status(500).json({ success: false, message: uploadError.message || JSON.stringify(uploadError) });
     }
-
     const filePath = uploadData.path;
     const { data: publicUrlData, error: publicUrlError } = supabase
       .storage
@@ -397,8 +361,6 @@ app.post('/api/tasks/:id/attachments', isAuthenticated, upload.single('file'), a
       console.error("Error getting public URL:", publicUrlError);
       return res.status(500).json({ success: false, message: publicUrlError.message || JSON.stringify(publicUrlError) });
     }
-
-    // Lưu DB
     const { data: attachData, error: dbError } = await supabase
       .from('task_attachments')
       .insert([{
@@ -413,7 +375,6 @@ app.post('/api/tasks/:id/attachments', isAuthenticated, upload.single('file'), a
       console.error("Error inserting attachment to DB:", JSON.stringify(dbError, null, 2));
       return res.status(500).json({ success: false, message: dbError.message || JSON.stringify(dbError) });
     }
-
     res.json({ success: true, attachment: attachData[0] });
   } catch (error) {
     console.error("Error uploading attachment:", error);
@@ -448,13 +409,9 @@ app.get('/api/progress', isAuthenticated, async (req, res) => {
     let progress = {};
     data.forEach(task => {
       const user = task.assignedTo || "Không xác định";
-      if (!progress[user]) {
-        progress[user] = { name: user, total: 0, completed: 0 };
-      }
+      if (!progress[user]) progress[user] = { name: user, total: 0, completed: 0 };
       progress[user].total++;
-      if (task.status === "Hoàn thành") {
-        progress[user].completed++;
-      }
+      if (task.status === "Hoàn thành") progress[user].completed++;
     });
 
     res.json(Object.values(progress));
@@ -462,6 +419,111 @@ app.get('/api/progress', isAuthenticated, async (req, res) => {
     console.error("Error in GET /api/progress:", err);
     res.status(500).json({ success: false, message: err.message || JSON.stringify(err) });
   }
+});
+
+// ----------------------- SEARCH & EXPORT ENDPOINTS -----------------------
+
+// API lấy danh sách giá trị lọc
+app.get('/filters', (req, res) => {
+  const getDistinct = (col) => {
+    const values = cachedData.map(row => row[col]).filter(v => v != null);
+    return Array.from(new Set(values));
+  };
+
+  res.json({
+    "Sheet": getDistinct("Sheet"),
+    "PO Number": getDistinct("PO Number"),
+    "Project": getDistinct("Project"),
+    "Part Number": getDistinct("Part Number"),
+    "REV": getDistinct("REV"),
+    "Description": getDistinct("Description"),
+    "Note Number": getDistinct("Note Number"),
+    "Critical": getDistinct("Critical"),
+    "CE": getDistinct("CE"),
+    "Material": getDistinct("Material"),
+    "Plating": getDistinct("Plating"),
+    "Painting": getDistinct("Painting"),
+    "Tiêu chuẩn mạ sơn": getDistinct("Tiêu chuẩn mạ sơn"),
+    "Ngày Nhận PO": getDistinct("Ngày Nhận PO"),
+    "Cover sheet": getDistinct("Cover sheet"),
+    "Drawing": getDistinct("Drawing"),
+    "Datasheet form": getDistinct("Datasheet form"),
+    "Data": getDistinct("Data"),
+    "COC": getDistinct("COC"),
+    "BOM": getDistinct("BOM"),
+    "Mill": getDistinct("Mill"),
+    "Part Pictures": getDistinct("Part Pictures"),
+    "Packaging Pictures": getDistinct("Packaging Pictures"),
+    "Submit date": getDistinct("Submit date"),
+    "Đã lên PO LAM": getDistinct("Đã lên PO LAM"),
+    "OK": getDistinct("OK"),
+    "Remark": getDistinct("Remark"),
+    "Remark 2": getDistinct("Remark 2"),
+    "Status": getDistinct("Status"),
+    "Note": getDistinct("Note")
+  });
+});
+
+// API tìm kiếm dữ liệu có phân trang
+app.get('/search', (req, res) => {
+  let filtered = cachedData;
+  const { limit, offset, ...filters } = req.query;
+
+  for (let key in filters) {
+    if (filters[key]) {
+      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
+      filtered = filtered.filter(row => {
+        if (row[key]) {
+          const cellValue = row[key].toString().toLowerCase();
+          return filterValues.some(val => cellValue.includes(val));
+        }
+        return false;
+      });
+    }
+  }
+
+  const total = filtered.length;
+  const pageLimit = parseInt(limit, 10) || 50;
+  const pageOffset = parseInt(offset, 10) || 0;
+  const paginatedData = filtered.slice(pageOffset, pageOffset + pageLimit);
+
+  res.json({ total, data: paginatedData });
+});
+
+// API xuất dữ liệu sang file Excel
+app.get('/export', (req, res) => {
+  let filtered = cachedData;
+  const { limit, offset, ...filters } = req.query;
+
+  for (let key in filters) {
+    if (filters[key]) {
+      const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
+      filtered = filtered.filter(row => {
+        if (row[key]) {
+          const cellValue = row[key].toString().toLowerCase();
+          return filterValues.some(val => cellValue.includes(val));
+        }
+        return false;
+      });
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  const headerOrder = [
+    "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
+    "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
+    "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
+    "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
+    "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
+  ];
+  const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+  res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.send(buf);
 });
 
 // ----------------------- START SERVER -----------------------
