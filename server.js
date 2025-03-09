@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
-const cookieSession = require('cookie-session'); // Sử dụng cookie-session thay cho express-session
+const cookieSession = require('cookie-session'); // Sử dụng cookie-session để lưu session trong cookie
 const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 
@@ -119,7 +119,7 @@ app.get('/home', isAuthenticated, (req, res) => {
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
-// Route cho trang Tasks (nếu đã đăng nhập, người dùng sẽ không bị chuyển hướng về login)
+// Route cho trang Tasks – nếu người dùng đã đăng nhập, file tasks.html được gửi
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
@@ -163,7 +163,6 @@ app.get('/filters', (req, res) => {
     "Note": getDistinct("Note")
   });
 });
-
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -185,7 +184,6 @@ app.get('/search', (req, res) => {
   const paginatedData = filtered.slice(pageOffset, pageOffset + pageLimit);
   res.json({ total, data: paginatedData });
 });
-
 app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -252,7 +250,7 @@ app.post('/api/tasks', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
-// PUT update task (admin có thể cập nhật mọi trường; user chỉ cập nhật nếu được giao)
+// PUT update task (admin có thể cập nhật mọi trường; user chỉ cập nhật nếu nhiệm vụ được giao)
 app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   try {
@@ -292,7 +290,7 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
       .eq('id', taskId)
       .select();
     if (error) throw error;
-    res.json({ success: true, message: "Nhiệm vụ đã được xóa thành công!" });
+    res.json({ success: true, message: "Task deleted successfully!" });
   } catch (error) {
     console.error("Error in DELETE /api/tasks/:id:", error);
     res.status(500).json({ success: false, message: error.message });
@@ -321,6 +319,7 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
+  // Sử dụng cột "user" trong bảng task_comments (đảm bảo bảng có cột này)
   const userName = req.session.user.name || req.session.user.email;
   try {
     let { data, error } = await supabase
@@ -360,6 +359,30 @@ app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (re
   } catch (error) {
     console.error("Error in POST /api/upload-image:", error);
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ----------------------- PROGRESS ENDPOINT -----------------------
+// API lấy tiến độ công việc của từng user (dựa trên nhiệm vụ)
+app.get('/api/progress', isAuthenticated, async (req, res) => {
+  try {
+    let { data, error } = await supabase
+      .from('tasks')
+      .select('assignedTo, status');
+    if (error) throw error;
+    let progress = {};
+    data.forEach(task => {
+      let user = task.assignedTo || "Không xác định";
+      if (!progress[user]) {
+        progress[user] = { name: user, total: 0, completed: 0 };
+      }
+      progress[user].total++;
+      if (task.status === "Hoàn thành") progress[user].completed++;
+    });
+    res.json(Object.values(progress));
+  } catch (err) {
+    console.error("Error in GET /api/progress:", err);
+    res.status(500).json({ success: false, message: "Error fetching progress data." });
   }
 });
 
