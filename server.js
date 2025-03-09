@@ -80,12 +80,11 @@ function isAdmin(req, res, next) {
 }
 
 // ----------------------- API ĐĂNG NHẬP & ĐĂNG XUẤT -----------------------
-// Kiểm tra thông tin user
 app.get('/api/me', (req, res) => {
   if (!req.session.user) return res.json({ success: false });
   res.json({ success: true, user: req.session.user });
 });
-// Đăng nhập
+
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -97,10 +96,11 @@ app.post('/login', (req, res) => {
   );
   if (!user) return res.json({ success: false, message: "User not found" });
   if (user.password !== password) return res.json({ success: false, message: "Incorrect password" });
+
   req.session.user = { name: user.name, email: user.email, role: user.role };
   res.json({ success: true, message: "Login successful" });
 });
-// Đăng xuất
+
 app.get('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login.html');
@@ -110,15 +110,19 @@ app.get('/logout', (req, res) => {
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
+
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
+
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
+
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
-  
+});
+
 // ----------------------- AUDIT LOG -----------------------
 async function logTaskHistory(taskId, changedBy, action, oldValue, newValue) {
   const { data, error } = await supabase
@@ -134,13 +138,15 @@ async function logTaskHistory(taskId, changedBy, action, oldValue, newValue) {
 app.get('/api/tasks', isAuthenticated, async (req, res) => {
   try {
     let query = supabase.from('tasks').select('*').order('id', { ascending: true });
+
+    // Người thường chỉ xem nhiệm vụ của họ
     if (req.session.user.role !== 'admin') {
-      // Người thường chỉ xem được tasks giao cho họ
       query = query.eq('assignedTo', req.session.user.name);
     } else if (req.query.assignedTo) {
       // Admin có thể lọc theo assignedTo
       query = query.eq('assignedTo', req.query.assignedTo);
     }
+
     const { data, error } = await query;
     if (error) {
       console.error("Error in GET /api/tasks:", error);
@@ -198,7 +204,7 @@ app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
       delete updateData.assignedTo;
     }
 
-    // Nếu có thay đổi trạng thái => log
+    // Kiểm tra thay đổi status để log
     const oldStatus = taskData.status;
     const newStatus = updateData.status;
 
@@ -231,19 +237,19 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
       .eq('id', taskId)
       .single();
     if (taskError) throw taskError;
-    
-    // Nếu có ảnh nhiệm vụ => xóa file trong bucket tasks-images
+
+    // Nếu có ảnh => xóa trong bucket tasks-images
     if (taskData.image_path) {
       const { error: removeImageError } = await supabase
         .storage
-        .from('tasks-images') // bucket
-        .remove([taskData.image_path]); // đường dẫn
+        .from('tasks-images')
+        .remove([taskData.image_path]);
       if (removeImageError) {
         console.error("Error removing task image:", removeImageError);
       }
     }
-    
-    // Lấy danh sách file đính kèm => xóa khỏi tasks-attachments
+
+    // Xóa file đính kèm trong tasks-attachments
     const { data: attachments, error: attError } = await supabase
       .from('task_attachments')
       .select('*')
@@ -261,14 +267,14 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
         }
       }
     }
-    
-    // Xóa record trong bảng task_attachments (nếu chưa thiết lập cascade)
+
+    // Xóa record trong bảng task_attachments
     const { error: deleteAttError } = await supabase
       .from('task_attachments')
       .delete()
       .eq('task_id', taskId);
     if (deleteAttError) throw deleteAttError;
-    
+
     // Cuối cùng xóa nhiệm vụ
     const { data, error } = await supabase
       .from('tasks')
@@ -300,6 +306,7 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
     res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
   }
 });
+
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
@@ -323,7 +330,7 @@ app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (re
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file provided' });
     }
-    // Đặt fileName => folder tasks-images/ + timestamp + originalName
+    // fileName = folder + timestamp + originalName
     const fileName = `tasks-images/${Date.now()}_${req.file.originalname}`;
     // Upload vào bucket tasks-images
     const { data: uploadData, error: uploadError } = await supabase
@@ -338,8 +345,7 @@ app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (re
       return res.status(500).json({ success: false, message: uploadError.message || JSON.stringify(uploadError) });
     }
 
-    // Lấy path => tạo public URL
-    const filePath = uploadData.path; 
+    const filePath = uploadData.path;
     const { data: publicUrlData, error: publicUrlError } = supabase
       .storage
       .from('tasks-images')
@@ -367,7 +373,7 @@ app.post('/api/tasks/:id/attachments', isAuthenticated, upload.single('file'), a
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file provided' });
     }
-    // Đặt fileName => folder attachments/ + timestamp + originalName
+    // fileName = folder + timestamp + originalName
     const fileName = `attachments/${Date.now()}_${req.file.originalname}`;
     // Upload vào bucket tasks-attachments
     const { data: uploadData, error: uploadError } = await supabase
@@ -382,7 +388,6 @@ app.post('/api/tasks/:id/attachments', isAuthenticated, upload.single('file'), a
       return res.status(500).json({ success: false, message: uploadError.message || JSON.stringify(uploadError) });
     }
 
-    // Lấy path => tạo public URL
     const filePath = uploadData.path;
     const { data: publicUrlData, error: publicUrlError } = supabase
       .storage
@@ -416,7 +421,6 @@ app.post('/api/tasks/:id/attachments', isAuthenticated, upload.single('file'), a
   }
 });
 
-// Lấy danh sách file đính kèm
 app.get('/api/tasks/:id/attachments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   try {
