@@ -3,18 +3,23 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
-const { createClient } = require('@supabase/supabase-js'); // Thư viện Supabase
+const { createClient } = require('@supabase/supabase-js');
+const multer = require('multer');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Cấu hình Multer (lưu file vào bộ nhớ)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Middleware để parse JSON và dữ liệu form
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Cấu hình session (lưu trong bộ nhớ – in-memory store)
+// Cấu hình session (in-memory store)
 app.use(session({
-  secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật riêng của bạn
+  secret: 'your-secret-key', // thay đổi chuỗi bí mật của bạn
   resave: false,
   saveUninitialized: false
 }));
@@ -23,7 +28,7 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ----------------------- SUPABASE KHỞI TẠO -----------------------
-// Lấy thông tin từ biến môi trường (đã cấu hình trên Vercel)
+// Các biến môi trường SUPABASE_URL và SUPABASE_KEY đã được cấu hình trên Vercel
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -73,8 +78,16 @@ function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) {
     next();
   } else {
-    // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
     res.redirect('/login.html');
+  }
+}
+
+// Middleware kiểm tra role admin
+function isAdmin(req, res, next) {
+  if (req.session && req.session.user && req.session.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Chỉ admin mới có quyền giao nhiệm vụ." });
   }
 }
 
@@ -85,33 +98,24 @@ app.post('/login', (req, res) => {
   if (!identifier || !password) {
     return res.json({ success: false, message: "Vui lòng nhập đủ tên/email và mật khẩu." });
   }
-
-  // Tìm người dùng theo email hoặc tên (không phân biệt chữ hoa/chữ thường)
   const user = usersData.find(u =>
     u.email.toLowerCase() === identifier.toLowerCase() ||
     u.name.toLowerCase() === identifier.toLowerCase()
   );
-
   if (!user) {
     return res.json({ success: false, message: "Người dùng không tồn tại." });
   }
-
-  // So sánh mật khẩu dạng plain text
   if (user.password !== password) {
     return res.json({ success: false, message: "Sai mật khẩu." });
   }
-
-  // Lưu thông tin đăng nhập vào session
   req.session.user = {
     name: user.name,
     email: user.email,
     role: user.role
   };
-
   return res.json({ success: true, message: "Đăng nhập thành công." });
 });
 
-// Endpoint đăng xuất: Xóa session và chuyển hướng về trang đăng nhập
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
@@ -126,8 +130,6 @@ app.get('/logout', (req, res) => {
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
-
-// Cũng cho phép truy cập qua đường dẫn /home.html nếu cần
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
@@ -139,7 +141,6 @@ app.get('/filters', (req, res) => {
     const values = cachedData.map(row => row[col]).filter(v => v != null);
     return Array.from(new Set(values));
   };
-
   res.json({
     "Sheet": getDistinct("Sheet"),
     "PO Number": getDistinct("PO Number"),
@@ -177,7 +178,6 @@ app.get('/filters', (req, res) => {
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
-
   for (let key in filters) {
     if (filters[key]) {
       const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
@@ -190,19 +190,16 @@ app.get('/search', (req, res) => {
       });
     }
   }
-
   const total = filtered.length;
   const pageLimit = parseInt(limit, 10) || 50;
   const pageOffset = parseInt(offset, 10) || 0;
   const paginatedData = filtered.slice(pageOffset, pageOffset + pageLimit);
-
   res.json({ total, data: paginatedData });
 });
 
 app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
-
   for (let key in filters) {
     if (filters[key]) {
       const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
@@ -215,7 +212,6 @@ app.get('/export', (req, res) => {
       });
     }
   }
-
   const wb = XLSX.utils.book_new();
   const headerOrder = [
     "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
@@ -225,10 +221,8 @@ app.get('/export', (req, res) => {
     "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
   ];
   const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
-
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-
   res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
   res.setHeader('Content-Type', 'application/octet-stream');
   res.send(buf);
@@ -259,29 +253,89 @@ app.get('/api/tasks', isAuthenticated, async (req, res) => {
   }
 });
 
-// API tạo nhiệm vụ mới và lưu vào Supabase
-app.post('/api/tasks', isAuthenticated, async (req, res) => {
+// API tạo nhiệm vụ mới và lưu vào Supabase (chỉ admin được tạo)
+app.post('/api/tasks', isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const { title, assignedTo, priority, deadline, description, status } = req.body;
-    // Sử dụng .select() để lấy bản ghi vừa được chèn
+    const { title, assignedTo, priority, deadline, description, status, imageURL } = req.body;
     let { data, error } = await supabase
       .from('tasks')
-      .insert([{ title, assignedTo, priority, deadline, description, status }])
+      .insert([{ title, assignedTo, priority, deadline, description, status, imageURL }])
       .select();
-
     if (error) {
       console.error('Supabase insert error:', error);
       return res.status(500).json({ success: false, message: error.message });
     }
-
     if (!data || data.length === 0) {
       return res.status(500).json({ success: false, message: "No data returned from Supabase" });
     }
-
-    // data[0] là nhiệm vụ vừa chèn
     res.json({ success: true, task: data[0] });
   } catch (error) {
     console.error('API /api/tasks POST error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// API cập nhật nhiệm vụ (cho admin và user được giao)
+app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
+  const taskId = req.params.id;
+  const { title, priority, deadline, description, status } = req.body;
+  let { data: taskData, error: selectError } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('id', taskId)
+    .single();
+  if (selectError) {
+    return res.status(500).json({ success: false, message: selectError.message });
+  }
+  if (req.session.user.role !== 'admin' && taskData.assignedTo !== req.session.user.name) {
+    return res.status(403).json({ success: false, message: "Bạn không có quyền cập nhật nhiệm vụ này." });
+  }
+  let updateData = { title, priority, deadline, description, status };
+  if (req.session.user.role === 'admin' && req.body.assignedTo) {
+    updateData.assignedTo = req.body.assignedTo;
+  }
+  let { data, error: updateError } = await supabase
+    .from('tasks')
+    .update(updateData)
+    .eq('id', taskId)
+    .select();
+  if (updateError) {
+    return res.status(500).json({ success: false, message: updateError.message });
+  }
+  res.json({ success: true, task: data[0] });
+});
+
+// ----------------------- API UPLOAD ẢNH VỚI MULTER VÀ SUPABASE STORAGE -----------------------
+
+// Lưu ý: bạn cần tạo bucket "tasks-images" trên Supabase Storage
+app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file provided' });
+    }
+    const fileName = `task-images/${Date.now()}_${req.file.originalname}`;
+    let { data, error } = await supabase
+      .storage
+      .from('tasks-images')
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false,
+      });
+    if (error) {
+      console.error('Supabase storage upload error:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+    const { data: publicUrlData, error: publicUrlError } = supabase
+      .storage
+      .from('tasks-images')
+      .getPublicUrl(data.path);
+    if (publicUrlError) {
+      console.error('Supabase get public URL error:', publicUrlError);
+      return res.status(500).json({ success: false, message: publicUrlError.message });
+    }
+    res.json({ success: true, imageUrl: publicUrlData.publicUrl });
+  } catch (error) {
+    console.error('API /api/upload-image error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
