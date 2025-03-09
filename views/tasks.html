@@ -296,13 +296,31 @@
           id: task.id,
           title: task.title,
           start: task.deadline,
-          color: task.status === "Hoàn thành" ? 'green' : (task.status === "Đang thực hiện" ? 'orange' : 'red')
+          color: task.status === "Hoàn thành" ? 'green' : (task.status === "Đang thực hiện" ? 'orange' : 'red'),
+           extendedProps: {
+    assignedTo: task.assignedTo,
+    priority: task.priority,
+    status: task.status,
+    description: task.description
+    // ... bạn có thể thêm những cột khác nếu muốn
+  }
         }));
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: 'dayGridMonth',
           events,
           editable: true,
+                eventDidMount: function(info) {
+        const ext = info.event.extendedProps;
+        const tooltipContent = `
+          Tên: ${info.event.title}<br>
+          Người nhận: ${ext.assignedTo || ''}<br>
+          Ưu tiên: ${ext.priority || ''}<br>
+          Trạng thái: ${ext.status || ''}<br>
+          Mô tả: ${ext.description || ''}
+        `;
+        info.el.setAttribute('title', tooltipContent);
+      },
           eventDrop: async (info) => {
             const newDeadline = info.event.start.toISOString().split('T')[0];
             try {
