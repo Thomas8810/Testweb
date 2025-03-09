@@ -337,6 +337,26 @@ app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+// Xóa nhiệm vụ (chỉ admin)
+app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
+  const taskId = req.params.id;
+  try {
+    // Gọi Supabase xóa dòng có id = taskId
+    const { data, error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId)
+      .select(); // .select() để trả về dòng vừa xóa (tùy chọn)
+
+    if (error) throw error;
+
+    // Nếu bạn có thiết lập foreign key ON DELETE CASCADE với bảng comments,
+    // các comment liên quan cũng sẽ được xóa tự động.
+    res.json({ success: true, message: "Nhiệm vụ đã được xóa thành công!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // ----------------------- API UPLOAD ẢNH VỚI MULTER VÀ SUPABASE STORAGE -----------------------
 
