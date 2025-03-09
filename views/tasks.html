@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Nhiệm vụ</title>
+  <!-- Sử dụng Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-4">
+    <h1>Quản lý Nhiệm vụ</h1>
+    <hr>
+    <!-- Form tạo nhiệm vụ -->
+    <form id="taskForm">
+      <div class="form-group">
+        <label for="taskTitle">Tên nhiệm vụ:</label>
+        <input type="text" class="form-control" id="taskTitle" required>
+      </div>
+      <div class="form-group">
+        <label for="taskAssigned">Giao cho:</label>
+        <select class="form-control" id="taskAssigned" required>
+          <option value="">Chọn người nhận</option>
+          <!-- Bạn có thể load danh sách người dùng từ server hoặc ghi cứng tạm thời -->
+          <option value="Thiet">Thiet</option>
+          <option value="Son">Son</option>
+          <option value="Hai">Hai</option>
+          <option value="Duc">Duc</option>
+          <option value="Long">Long</option>
+          <option value="SongJisub">SongJisub</option>
+          <option value="Ha">Ha</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="taskPriority">Mức độ ưu tiên:</label>
+        <select class="form-control" id="taskPriority" required>
+          <option value="cao">Ưu tiên cao</option>
+          <option value="trungbinh">Trung bình</option>
+          <option value="thap">Không ưu tiên</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="taskDeadline">Thời hạn:</label>
+        <input type="date" class="form-control" id="taskDeadline" required>
+      </div>
+      <div class="form-group">
+        <label for="taskDescription">Mô tả:</label>
+        <textarea class="form-control" id="taskDescription" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
+    </form>
+    <hr>
+    <!-- Bảng liệt kê nhiệm vụ -->
+    <h2>Danh sách nhiệm vụ</h2>
+    <table class="table table-bordered" id="tasksTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên nhiệm vụ</th>
+          <th>Người nhận</th>
+          <th>Mức ưu tiên</th>
+          <th>Thời hạn</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Các nhiệm vụ sẽ được load ở đây -->
+      </tbody>
+    </table>
+  </div>
+  
+  <script>
+    // Hàm load danh sách nhiệm vụ từ server
+    function loadTasks() {
+      fetch('/api/tasks')
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.querySelector('#tasksTable tbody');
+          tbody.innerHTML = '';
+          data.forEach((task, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${task.title}</td>
+              <td>${task.assignedTo}</td>
+              <td>${task.priority}</td>
+              <td>${task.deadline}</td>
+              <td>${task.status}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+    }
+
+    // Xử lý gửi form tạo nhiệm vụ
+    document.getElementById('taskForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const task = {
+        title: document.getElementById('taskTitle').value,
+        assignedTo: document.getElementById('taskAssigned').value,
+        priority: document.getElementById('taskPriority').value,
+        deadline: document.getElementById('taskDeadline').value,
+        description: document.getElementById('taskDescription').value,
+        status: 'Chưa thực hiện'
+      };
+      fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if(result.success) {
+          alert('Nhiệm vụ được giao thành công!');
+          loadTasks();
+          document.getElementById('taskForm').reset();
+        } else {
+          alert('Có lỗi xảy ra: ' + result.message);
+        }
+      });
+    });
+
+    // Tải nhiệm vụ khi trang load
+    window.onload = loadTasks;
+  </script>
+</body>
+</html>
