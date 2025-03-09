@@ -248,9 +248,13 @@ app.get('/api/tasks', isAuthenticated, async (req, res) => {
       .from('tasks')
       .select('*')
       .order('id', { ascending: true });
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase select error:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
     res.json(data);
   } catch (error) {
+    console.error('API /api/tasks error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -259,13 +263,25 @@ app.get('/api/tasks', isAuthenticated, async (req, res) => {
 app.post('/api/tasks', isAuthenticated, async (req, res) => {
   try {
     const { title, assignedTo, priority, deadline, description, status } = req.body;
+    // Sử dụng .select() để lấy bản ghi vừa được chèn
     let { data, error } = await supabase
       .from('tasks')
-      .insert([{ title, assignedTo, priority, deadline, description, status }]);
-      .select(); // <--- BẮT BUỘC CÓ ĐỂ LẤY BẢN GHI VỪA THÊM
-    if (error) throw error;
+      .insert([{ title, assignedTo, priority, deadline, description, status }])
+      .select();
+
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(500).json({ success: false, message: "No data returned from Supabase" });
+    }
+
+    // data[0] là nhiệm vụ vừa chèn
     res.json({ success: true, task: data[0] });
   } catch (error) {
+    console.error('API /api/tasks POST error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
