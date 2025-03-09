@@ -3,32 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý Nhiệm vụ - Tooltip & Báo cáo</title>
+  <title>Quản lý Nhiệm vụ - Cải tiến</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet">
-  <!-- Chart.js -->
+  <!-- Chart.js (đã load qua script) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Dropzone */
-    #dropzone {
-      border: 2px dashed #ccc;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      color: #666;
-      transition: background-color 0.3s;
-    }
-    #dropzone.dragover {
-      background-color: #eee;
-    }
-
-    /* Preview list cho file đã chọn */
-    #filePreviewList {
-      margin-top: 10px;
-    }
     .preview-item {
       display: inline-block;
       position: relative;
@@ -57,7 +39,18 @@
       line-height: 18px;
       text-align: center;
     }
-
+    #dropzone {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      color: #666;
+      transition: background-color 0.3s;
+    }
+    #dropzone.dragover {
+      background-color: #eee;
+    }
     .comments-container {
       border: 1px solid #ddd;
       padding: 10px;
@@ -65,8 +58,6 @@
       border-radius: 5px;
       background: #f9f9f9;
     }
-
-    /* Toast container */
     .toast-container {
       position: fixed;
       top: 20px;
@@ -109,7 +100,7 @@
               </select>
             </div>
           </div>
-          <!-- Dropdown lọc theo người (chỉ admin) -->
+          <!-- Dropdown lọc theo người (cho admin) -->
           <div id="filter-section" style="display: none;" class="mb-3">
             <label for="filterAssigned">Lọc theo người nhận:</label>
             <select id="filterAssigned" class="form-control" onchange="filterTasks()">
@@ -224,7 +215,7 @@
   <script>
     let currentUser = null;
     let selectedFiles = [];
-
+    
     // 1. Kiểm tra đăng nhập
     async function checkAuth() {
       try {
@@ -245,19 +236,29 @@
         window.location.href = '/login.html';
       }
     }
-
+    
     // 2. Load tiến độ công việc
     async function loadProgress() {
       try {
         const res = await fetch('/api/progress');
         const progressData = await res.json();
-        // Bạn có thể hiển thị progressData trong 1 div, nếu muốn
-        // (đoạn code cũ hiển thị progress ở 1 chỗ, có lẽ "progress-bars", tuỳ bạn)
+        let html = '';
+        progressData.forEach(user => {
+          let percent = (user.completed / user.total) * 100;
+          html += `<div class="mb-2">
+                     <p>${user.name} (${user.completed}/${user.total} nhiệm vụ)</p>
+                     <div class="progress">
+                       <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%;"
+                         aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">${percent.toFixed(1)}%</div>
+                     </div>
+                   </div>`;
+        });
+        document.getElementById('progress-bars').innerHTML = html;
       } catch (err) {
         console.error("Error loading progress:", err);
       }
     }
-
+    
     // 3. Load báo cáo với Chart.js
     async function loadReport() {
       try {
@@ -268,9 +269,7 @@
           if (counts[task.status] !== undefined) counts[task.status]++;
         });
         const ctx = document.getElementById('tasksChart').getContext('2d');
-        if (window.tasksChart) {
-          window.tasksChart.destroy();
-        }
+        if (window.tasksChart) window.tasksChart.destroy();
         window.tasksChart = new Chart(ctx, {
           type: 'bar',
           data: {
@@ -281,55 +280,29 @@
               backgroundColor: ['#dc3545', '#ffc107', '#28a745']
             }]
           },
-          options: {
-            scales: {
-              y: { beginAtZero: true, precision: 0 }
-            }
-          }
+          options: { scales: { y: { beginAtZero: true, precision: 0 } } }
         });
       } catch (err) {
         console.error("Error loading report:", err);
       }
     }
-
-    // 4. Load FullCalendar với tooltip
+    
+    // 4. Load FullCalendar
     async function loadCalendar() {
       try {
         const res = await fetch('/api/tasks');
         const tasks = await res.json();
-
-        // Tạo events kèm extendedProps để hiển thị tooltip
         const events = tasks.map(task => ({
           id: task.id,
           title: task.title,
           start: task.deadline,
-          color: (task.status === "Hoàn thành") ? 'green'
-               : (task.status === "Đang thực hiện") ? 'orange' : 'red',
-          extendedProps: {
-            assignedTo: task.assignedTo,
-            priority: task.priority,
-            status: task.status,
-            description: task.description
-          }
+          color: task.status === "Hoàn thành" ? 'green' : (task.status === "Đang thực hiện" ? 'orange' : 'red')
         }));
-
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: 'dayGridMonth',
           events,
           editable: true,
-          eventDidMount: function(info) {
-            // Gắn tooltip khi di chuột
-            const ext = info.event.extendedProps;
-            const tooltipContent = `
-              <b>${info.event.title}</b><br>
-              Người nhận: ${ext.assignedTo || ''}<br>
-              Ưu tiên: ${ext.priority || ''}<br>
-              Trạng thái: ${ext.status || ''}<br>
-              Mô tả: ${ext.description || ''}
-            `;
-            info.el.setAttribute('title', tooltipContent);
-          },
           eventDrop: async (info) => {
             const newDeadline = info.event.start.toISOString().split('T')[0];
             try {
@@ -358,8 +331,8 @@
         console.error("Error loading calendar:", err);
       }
     }
-
-    // 5. Xử lý file: cho phép chọn nhiều file + preview
+    
+    // 5. Xử lý file: cho phép chọn nhiều file và hiển thị preview với nút xóa
     document.getElementById('taskImage').addEventListener('change', e => {
       const files = Array.from(e.target.files);
       files.forEach(file => addSelectedFile(file));
@@ -387,33 +360,35 @@
       selectedFiles.push(file);
       renderFilePreviews();
     }
+    
     function renderFilePreviews() {
       const container = document.getElementById('filePreviewList');
       container.innerHTML = '';
       selectedFiles.forEach((file, index) => {
-        const div = document.createElement('div');
-        div.className = 'preview-item';
+        let previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = e => {
-            div.innerHTML = `<img src="${e.target.result}" alt="${file.name}">
+            previewItem.innerHTML = `<img src="${e.target.result}" alt="${file.name}">
               <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>`;
-            container.appendChild(div);
+            container.appendChild(previewItem);
           };
           reader.readAsDataURL(file);
         } else {
-          div.innerHTML = `<span>${file.name}</span>
-            <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>`;
-          container.appendChild(div);
+          previewItem.innerHTML = `<span>${file.name}</span>
+              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>`;
+          container.appendChild(previewItem);
         }
       });
     }
+    
     function removeSelectedFile(index) {
       selectedFiles.splice(index, 1);
       renderFilePreviews();
     }
-
-    // 6. Upload ảnh
+    
+    // 6. Hàm upload ảnh qua /api/upload-image (dành cho file ảnh riêng)
     async function uploadImage(file) {
       try {
         const formData = new FormData();
@@ -425,7 +400,8 @@
         return { success: false, message: err?.message || "Unknown error" };
       }
     }
-    // 7. Upload attachment
+    
+    // 7. Hàm upload attachment qua /api/tasks/:id/attachments (cho file đính kèm)
     async function uploadAttachment(taskId, file) {
       try {
         const formData = new FormData();
@@ -437,7 +413,7 @@
         return { success: false, message: err?.message || "Unknown error" };
       }
     }
-
+    
     // 8. Load danh sách nhiệm vụ
     async function loadTasks() {
       try {
@@ -521,7 +497,7 @@
     function filterTasks() {
       loadTasks();
     }
-
+    
     // 9. Nhận nhiệm vụ
     async function startTask(taskId) {
       if (!confirm("Bạn có chắc nhận nhiệm vụ này không?")) return;
@@ -545,7 +521,7 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
+    
     // 10. Hoàn thành nhiệm vụ
     async function completeTask(taskId) {
       if (!confirm("Đánh dấu nhiệm vụ này là 'Hoàn thành'?")) return;
@@ -569,7 +545,7 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
+    
     // 11. Bàn giao nhiệm vụ (admin)
     async function handoverTask(taskId) {
       const newAssignee = prompt("Nhập tên người nhận mới:");
@@ -593,7 +569,7 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
+    
     // 12. Xóa nhiệm vụ (admin)
     async function deleteTask(taskId) {
       if (!confirm("Xóa nhiệm vụ này?")) return;
@@ -613,8 +589,8 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
-    // 13. Toggle comment
+    
+    // 13. Toggle và load comment
     async function toggleComments(taskId) {
       const container = document.getElementById(`comments-${taskId}`);
       if (container.style.display === 'none' || container.style.display === '') {
@@ -665,7 +641,7 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
+    
     // 14. Upload attachment cho nhiệm vụ
     async function uploadAttachmentPrompt(taskId) {
       const input = document.createElement('input');
@@ -699,7 +675,7 @@
         console.error("Error loading attachments:", err);
       }
     }
-
+    
     // 15. Toast notification (Bootstrap Toast)
     function showToast(message) {
       const toastContainer = document.querySelector('.toast-container');
@@ -715,7 +691,7 @@
       $(toast).toast('show');
       setTimeout(() => { toast.remove(); }, 3500);
     }
-
+    
     // 16. Khi chuyển tab, load lại Calendar và Report
     $(document).ready(function(){
       $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -728,80 +704,82 @@
         }
       });
     });
+    
+    // 17. Xử lý form tạo nhiệm vụ
+  document.getElementById('taskForm').addEventListener('submit', async function(e) {
+    e.preventDefault(); // Ngăn form reload trang
 
-    // 17. Xử lý form tạo nhiệm vụ (cải tiến)
-    document.getElementById('taskForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // Ngăn form reload trang
+    // 1) Tạo nhiệm vụ (không kèm ảnhURL)
+    const task = {
+      title: document.getElementById('taskTitle').value,
+      assignedTo: document.getElementById('taskAssigned').value,
+      priority: document.getElementById('taskPriority').value,
+      deadline: document.getElementById('taskDeadline').value,
+      description: document.getElementById('taskDescription').value,
+      status: 'Chưa thực hiện'
+    };
 
-      // 1) Tạo nhiệm vụ (chỉ chứa thông tin cơ bản)
-      const task = {
-        title: document.getElementById('taskTitle').value,
-        assignedTo: document.getElementById('taskAssigned').value,
-        priority: document.getElementById('taskPriority').value,
-        deadline: document.getElementById('taskDeadline').value,
-        description: document.getElementById('taskDescription').value,
-        status: 'Chưa thực hiện'
-      };
+    try {
+      // Gọi API tạo nhiệm vụ
+      const createRes = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      });
+      const createResult = await createRes.json();
+      if (!createResult.success) {
+        showToast("Lỗi tạo nhiệm vụ: " + createResult.message);
+        return;
+      }
+      const createdTask = createResult.task; // Chứa id, title, v.v.
 
-      try {
-        // Gọi API tạo nhiệm vụ
-        const createRes = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(task)
-        });
-        const createResult = await createRes.json();
-        if (!createResult.success) {
-          showToast("Lỗi tạo nhiệm vụ: " + createResult.message);
-          return;
-        }
-        const createdTask = createResult.task; // { id, title, ... }
-
-        // 2) Upload từng file trong selectedFiles
-        for (let i = 0; i < selectedFiles.length; i++) {
-          const file = selectedFiles[i];
-          if (file.type.startsWith('image/') && i === 0) {
-            // File ảnh đầu tiên => uploadImage => cập nhật imageURL
-            const uploadRes = await uploadImage(file);
-            if (uploadRes.success) {
-              // PUT để cập nhật cột imageURL, image_path
-              await fetch(`/api/tasks/${createdTask.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  imageURL: uploadRes.imageUrl,
-                  image_path: uploadRes.filePath
-                })
-              });
-            } else {
-              showToast("Upload ảnh thất bại: " + uploadRes.message);
-            }
+      // 2) Upload các file trong selectedFiles
+      // Nếu file đầu tiên (hoặc một file nào đó) là ảnh bạn muốn gán cho cột imageURL
+      // thì uploadImage -> PUT tasks. Còn lại uploadAttachment.
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        if (file.type.startsWith('image/') && i === 0) {
+          // Ví dụ: Lấy file đầu tiên là ảnh để gán cho cột imageURL
+          const uploadRes = await uploadImage(file);
+          if (uploadRes.success) {
+            // Cập nhật cột imageURL, image_path cho nhiệm vụ
+            await fetch(`/api/tasks/${createdTask.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageURL: uploadRes.imageUrl,
+                image_path: uploadRes.filePath
+              })
+            });
           } else {
-            // Các file còn lại => uploadAttachment
-            const attachRes = await uploadAttachment(createdTask.id, file);
-            if (!attachRes.success) {
-              showToast("Lỗi upload file: " + attachRes.message);
-            }
+            showToast("Upload ảnh thất bại: " + uploadRes.message);
+          }
+        } else {
+          // Còn lại thì upload dưới dạng file đính kèm
+          const attachRes = await uploadAttachment(createdTask.id, file);
+          if (!attachRes.success) {
+            showToast("Lỗi upload file: " + attachRes.message);
           }
         }
-
-        // 3) Refresh giao diện
-        showToast("Nhiệm vụ được tạo và upload file thành công!");
-        loadTasks();
-        loadProgress();
-        loadReport();
-
-        // Reset form
-        document.getElementById('taskForm').reset();
-        document.getElementById('filePreviewList').innerHTML = '';
-        selectedFiles = [];
-
-      } catch (err) {
-        console.error("Error creating task:", err);
-        showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
       }
-    });
 
+      // 3) Sau khi upload xong, loadTasks() để hiển thị
+      showToast("Nhiệm vụ được tạo và upload file thành công!");
+      loadTasks();
+      loadProgress();
+      loadReport();
+
+      // Reset form
+      document.getElementById('taskForm').reset();
+      document.getElementById('filePreviewList').innerHTML = '';
+      selectedFiles = [];
+
+    } catch (err) {
+      console.error("Error creating task:", err);
+      showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
+    }
+  });
+    
     // 18. Khởi tạo trang
     async function initPage() {
       await checkAuth();
