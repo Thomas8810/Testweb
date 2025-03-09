@@ -305,6 +305,39 @@ app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
   res.json({ success: true, task: data[0] });
 });
 
+// Lấy danh sách comment cho một nhiệm vụ
+app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
+  const taskId = req.params.id;
+  try {
+    let { data, error } = await supabase
+      .from('task_comments')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Thêm comment mới cho một nhiệm vụ
+app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
+  const taskId = req.params.id;
+  const { comment_text } = req.body;
+  const user = req.session.user.name || req.session.user.email;
+  try {
+    let { data, error } = await supabase
+      .from('task_comments')
+      .insert([{ task_id: taskId, user, comment_text }])
+      .select();
+    if (error) throw error;
+    res.json({ success: true, comment: data[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ----------------------- API UPLOAD ẢNH VỚI MULTER VÀ SUPABASE STORAGE -----------------------
 
 // Lưu ý: bạn cần tạo bucket "tasks-images" trên Supabase Storage
