@@ -594,6 +594,11 @@
 
     // 20. Khi trang tải, kiểm tra đăng nhập, load tasks, progress và báo cáo
     window.onload = async () => {
+      document.getElementById('taskForm').addEventListener('submit', async function(e) {
+  e.preventDefault(); // Ngăn chặn hành vi gửi form mặc định
+  // Xử lý giao nhiệm vụ qua AJAX ở đây...
+});
+
       await checkAuth();
       loadTasks();
       loadProgress();
