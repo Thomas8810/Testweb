@@ -17,7 +17,7 @@
   <div class="container mt-4">
     <h1>Quản lý Nhiệm vụ</h1>
     <hr>
-    <!-- Form tạo nhiệm vụ -->
+    <!-- Form tạo nhiệm vụ (chỉ admin sẽ thấy phần này nếu bạn muốn ẩn nó đối với user qua JS) -->
     <form id="taskForm">
       <div class="form-group">
         <label for="taskTitle">Tên nhiệm vụ:</label>
@@ -27,7 +27,7 @@
         <label for="taskAssigned">Giao cho:</label>
         <select class="form-control" id="taskAssigned" required>
           <option value="">Chọn người nhận</option>
-          <!-- Có thể load danh sách từ server hoặc định nghĩa tạm -->
+          <!-- Danh sách người nhận, bạn có thể load động từ server nếu muốn -->
           <option value="Thiet">Thiet</option>
           <option value="Son">Son</option>
           <option value="Hai">Hai</option>
@@ -109,23 +109,27 @@
 
     // Hàm load danh sách nhiệm vụ từ API
     async function loadTasks() {
-      const response = await fetch('/api/tasks');
-      const tasks = await response.json();
-      const tbody = document.querySelector('#tasksTable tbody');
-      tbody.innerHTML = '';
-      tasks.forEach(task => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${task.id}</td>
-          <td>${task.title}</td>
-          <td>${task.assignedTo}</td>
-          <td>${task.priority}</td>
-          <td>${task.deadline}</td>
-          <td>${task.status}</td>
-          <td>${task.imageURL ? `<img src="${task.imageURL}" style="max-width:100px;">` : 'N/A'}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+      try {
+        const response = await fetch('/api/tasks');
+        const tasks = await response.json();
+        const tbody = document.querySelector('#tasksTable tbody');
+        tbody.innerHTML = '';
+        tasks.forEach(task => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${task.id}</td>
+            <td>${task.title}</td>
+            <td>${task.assignedTo}</td>
+            <td>${task.priority}</td>
+            <td>${task.deadline}</td>
+            <td>${task.status}</td>
+            <td>${task.imageURL ? `<img src="${task.imageURL}" style="max-width:100px;">` : 'N/A'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error loading tasks:", err);
+      }
     }
 
     // Xử lý gửi form tạo nhiệm vụ
