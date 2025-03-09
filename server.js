@@ -4,6 +4,11 @@ const path = require('path');
 const XLSX = require('xlsx');
 const session = require('express-session');
 
+const { createClient } = require('@supabase/supabase-js');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 const app = express();
 const port = process.env.PORT || 3000;
 
