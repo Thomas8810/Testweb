@@ -8,20 +8,21 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet">
-  <!-- Chart.js -->
+  <!-- Chart.js (đã load qua script) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .preview-item {
       display: inline-block;
       position: relative;
-      margin-right: 10px;
-      margin-bottom: 10px;
+      margin: 5px;
     }
-    .preview-item img, .preview-item span {
+    .preview-item img,
+    .preview-item span {
       max-width: 150px;
       max-height: 150px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      padding: 2px;
     }
     .remove-btn {
       position: absolute;
@@ -57,15 +58,11 @@
       border-radius: 5px;
       background: #f9f9f9;
     }
-    .progress-container {
-      margin-bottom: 20px;
-    }
-    .filter-bar {
-      margin-bottom: 20px;
-    }
-    /* Container hiển thị danh sách file đã chọn */
-    #filePreviewList {
-      margin-top: 10px;
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
     }
   </style>
 </head>
@@ -161,7 +158,6 @@
                 <div id="dropzone">Kéo & thả file vào đây (hoặc dán khi bấm Ctrl+V)</div>
                 <div class="form-group">
                   <label for="taskImage">Chọn file (ảnh/tài liệu):</label>
-                  <!-- Cho phép chọn nhiều file -->
                   <input type="file" class="form-control-file" id="taskImage" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple>
                   <div id="filePreviewList"></div>
                 </div>
@@ -213,10 +209,11 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- FullCalendar JS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
   
   <script>
     let currentUser = null;
-    // Sử dụng mảng để lưu nhiều file đã chọn
     let selectedFiles = [];
     
     // 1. Kiểm tra đăng nhập
@@ -306,7 +303,7 @@
           initialView: 'dayGridMonth',
           events,
           editable: true,
-          eventDrop: async info => {
+          eventDrop: async (info) => {
             const newDeadline = info.event.start.toISOString().split('T')[0];
             try {
               const res = await fetch(`/api/tasks/${info.event.id}`, {
@@ -335,7 +332,7 @@
       }
     }
     
-    // 5. Xử lý file: cho phép chọn nhiều file, hiển thị danh sách file đã chọn
+    // 5. Xử lý file: cho phép chọn nhiều file và hiển thị preview với nút xóa
     document.getElementById('taskImage').addEventListener('change', e => {
       const files = Array.from(e.target.files);
       files.forEach(file => addSelectedFile(file));
@@ -360,39 +357,35 @@
     });
     
     function addSelectedFile(file) {
-      // Thêm file vào mảng selectedFiles
       selectedFiles.push(file);
-      renderFilePreview();
+      renderFilePreviews();
     }
     
-    function renderFilePreview() {
+    function renderFilePreviews() {
       const container = document.getElementById('filePreviewList');
       container.innerHTML = '';
       selectedFiles.forEach((file, index) => {
-        let previewHTML = '<div class="preview-item">';
+        let previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = e => {
-            previewHTML = `<div class="preview-item">
-              <img src="${e.target.result}" alt="${file.name}">
-              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>
-            </div>`;
-            container.innerHTML += previewHTML;
+            previewItem.innerHTML = `<img src="${e.target.result}" alt="${file.name}">
+              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>`;
+            container.appendChild(previewItem);
           };
           reader.readAsDataURL(file);
         } else {
-          previewHTML = `<div class="preview-item">
-              <span>${file.name}</span>
-              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>
-            </div>`;
-          container.innerHTML += previewHTML;
+          previewItem.innerHTML = `<span>${file.name}</span>
+              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>`;
+          container.appendChild(previewItem);
         }
       });
     }
     
     function removeSelectedFile(index) {
       selectedFiles.splice(index, 1);
-      renderFilePreview();
+      renderFilePreviews();
     }
     
     // 6. Hàm upload ảnh qua /api/upload-image (dành cho file ảnh riêng)
@@ -408,7 +401,7 @@
       }
     }
     
-    // 7. Hàm upload attachment qua /api/tasks/:id/attachments (dành cho file tài liệu hoặc ảnh đính kèm)
+    // 7. Hàm upload attachment qua /api/tasks/:id/attachments (cho file đính kèm)
     async function uploadAttachment(taskId, file) {
       try {
         const formData = new FormData();
@@ -421,7 +414,7 @@
       }
     }
     
-    // 8. Load danh sách nhiệm vụ (tìm kiếm, sắp xếp, lọc)
+    // 8. Load danh sách nhiệm vụ
     async function loadTasks() {
       try {
         let url = '/api/tasks';
@@ -577,37 +570,10 @@
       }
     }
     
-    // 12. Xóa nhiệm vụ (admin) và xóa file trên storage
+    // 12. Xóa nhiệm vụ (admin)
     async function deleteTask(taskId) {
       if (!confirm("Xóa nhiệm vụ này?")) return;
       try {
-        // Lấy thông tin nhiệm vụ
-        const { data: taskData, error: taskError } = await fetchAPI(`/api/tasks/${taskId}`);
-        if (taskError) throw taskError;
-        
-        // Nếu có ảnh nhiệm vụ, xóa file từ bucket 'tasks-images'
-        if (taskData.image_path) {
-          const { error: removeImageError } = await supabase
-            .storage
-            .from('tasks-images')
-            .remove([taskData.image_path]);
-          if (removeImageError) console.error("Error removing task image:", removeImageError);
-        }
-        
-        // Lấy danh sách file đính kèm và xóa chúng
-        const { data: attachments, error: attError } = await fetchAPI(`/api/tasks/${taskId}/attachments`);
-        if (attError) throw attError;
-        for (const att of attachments) {
-          if (att.file_path) {
-            const { error: removeAttError } = await supabase
-              .storage
-              .from('tasks-attachments')
-              .remove([att.file_path]);
-            if (removeAttError) console.error("Error removing attachment:", removeAttError);
-          }
-        }
-        
-        // Xóa nhiệm vụ (và các record đính kèm sẽ cascade nếu DB được cấu hình)
         const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
         const result = await res.json();
         if (result.success) {
@@ -624,18 +590,7 @@
       }
     }
     
-    // Utility: fetchAPI helper (GET)
-    async function fetchAPI(url) {
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        return { data };
-      } catch (error) {
-        return { error };
-      }
-    }
-    
-    // 13. Toggle comment
+    // 13. Toggle và load comment
     async function toggleComments(taskId) {
       const container = document.getElementById(`comments-${taskId}`);
       if (container.style.display === 'none' || container.style.display === '') {
@@ -721,7 +676,7 @@
       }
     }
     
-    // 15. Toast notification sử dụng Bootstrap Toast
+    // 15. Toast notification (Bootstrap Toast)
     function showToast(message) {
       const toastContainer = document.querySelector('.toast-container');
       const toast = document.createElement('div');
@@ -739,7 +694,7 @@
     
     // 16. Khi chuyển tab, load lại Calendar và Report
     $(document).ready(function(){
-      $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+      $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         const target = $(e.target).attr("href");
         if (target === "#calendar-pane") {
           loadCalendar();
@@ -752,7 +707,7 @@
     
     // 17. Xử lý form tạo nhiệm vụ
     document.getElementById('taskForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // Ngăn form reload trang
+      e.preventDefault(); // Ngăn reload trang
       const task = {
         title: document.getElementById('taskTitle').value,
         assignedTo: document.getElementById('taskAssigned').value,
@@ -761,11 +716,8 @@
         description: document.getElementById('taskDescription').value,
         status: 'Chưa thực hiện'
       };
-      // Nếu có file đính kèm đã chọn (mảng selectedFiles)
+      // Nếu có file được chọn, upload file ảnh đầu tiên để set imageURL (các file khác có thể upload sau dưới dạng attachment)
       if (selectedFiles.length > 0) {
-        // Nếu file đầu tiên là ảnh, ta upload qua /api/upload-image để lấy imageURL và file path
-        // (Nếu nhiều file, bạn có thể chọn cách: file ảnh dùng /api/upload-image, còn tài liệu dùng /api/tasks/:id/attachments sau khi tạo nhiệm vụ)
-        // Ví dụ: Ta upload file ảnh đầu tiên để set imageURL cho nhiệm vụ
         const firstFile = selectedFiles[0];
         if (firstFile.type.startsWith('image/')) {
           const uploadResult = await uploadImage(firstFile);
@@ -774,7 +726,7 @@
             return;
           }
           task.imageURL = uploadResult.imageUrl;
-          task.image_path = uploadResult.filePath; // lưu filePath để xóa sau nếu cần
+          task.image_path = uploadResult.filePath; // lưu filePath để xóa nếu cần
         }
       }
       try {
@@ -789,7 +741,6 @@
           loadTasks();
           loadProgress();
           loadReport();
-          // Reset form
           document.getElementById('taskForm').reset();
           document.getElementById('filePreviewList').innerHTML = '';
           selectedFiles = [];
@@ -811,9 +762,6 @@
       loadCalendar();
     }
     window.onload = initPage;
-    
-    // Sử dụng mảng để lưu file đã chọn (cho phép nhiều file)
-    let selectedFiles = [];
   </script>
 </body>
 </html>
