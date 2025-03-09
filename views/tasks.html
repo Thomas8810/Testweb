@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý Nhiệm vụ</title>
+  <title>Quản lý Nhiệm vụ - Mở Rộng</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- FullCalendar -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
+  <!-- Chart.js cho báo cáo -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .preview-img {
       max-width: 200px;
@@ -34,14 +39,31 @@
     .progress-container {
       margin-bottom: 20px;
     }
+    .filter-bar {
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container mt-4">
-    <!-- Khu vực hiển thị tên user và role -->
+    <!-- Thông tin người dùng -->
     <div id="welcome" class="mb-3"></div>
-
-    <!-- Khu vực lọc nhiệm vụ (chỉ admin mới thấy) -->
+    
+    <!-- Thanh tìm kiếm & sắp xếp -->
+    <div class="filter-bar row mb-3">
+      <div class="col-md-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm nhiệm vụ...">
+      </div>
+      <div class="col-md-4">
+        <select id="sortSelect" class="form-control">
+          <option value="">Sắp xếp theo...</option>
+          <option value="deadline">Deadline</option>
+          <option value="priority">Ưu tiên</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Dropdown lọc theo người (chỉ admin) -->
     <div id="filter-section" style="display: none;" class="mb-3">
       <label for="filterAssigned">Lọc theo người nhận:</label>
       <select id="filterAssigned" class="form-control" onchange="filterTasks()">
@@ -55,14 +77,26 @@
         <option value="Ha">Ha</option>
       </select>
     </div>
-
+    
+    <!-- Phần Calendar hiển thị nhiệm vụ theo lịch -->
+    <div class="mb-4">
+      <h3>Lịch nhiệm vụ</h3>
+      <div id="calendar"></div>
+    </div>
+    
+    <!-- Phần báo cáo bằng Chart.js -->
+    <div class="mb-4">
+      <h3>Báo cáo nhiệm vụ</h3>
+      <canvas id="tasksChart" width="400" height="150"></canvas>
+    </div>
+    
     <!-- Khu vực hiển thị tiến độ công việc nhóm -->
     <div class="progress-container">
       <h3>Tiến độ công việc nhóm</h3>
       <div id="progress-bars"></div>
     </div>
-
-    <!-- Form tạo nhiệm vụ (chỉ admin mới thấy) -->
+    
+    <!-- Form tạo nhiệm vụ (chỉ admin) -->
     <form id="taskForm" style="display:none;">
       <div class="form-group">
         <label for="taskTitle">Tên nhiệm vụ:</label>
@@ -97,16 +131,16 @@
         <label for="taskDescription">Mô tả:</label>
         <textarea class="form-control" id="taskDescription" rows="3"></textarea>
       </div>
-      <!-- Dropzone để kéo & thả hoặc dán ảnh -->
-      <div id="dropzone">Kéo & thả ảnh vào đây (hoặc dán ảnh khi bấm Ctrl+V)</div>
+      <!-- Dropzone để kéo & thả hoặc dán file -->
+      <div id="dropzone">Kéo & thả file vào đây (hoặc dán khi bấm Ctrl+V)</div>
       <div class="form-group">
-        <label for="taskImage">Hoặc chọn file ảnh (tùy chọn):</label>
-        <input type="file" class="form-control-file" id="taskImage" accept="image/*">
+        <label for="taskImage">Hoặc chọn file (ảnh, PDF, Word, Excel...):</label>
+        <input type="file" class="form-control-file" id="taskImage" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
         <img id="imagePreview" class="preview-img" src="#" alt="Preview" style="display:none;">
       </div>
       <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
     </form>
-
+    
     <hr>
     <!-- Bảng danh sách nhiệm vụ -->
     <h2>Danh sách nhiệm vụ</h2>
@@ -116,10 +150,11 @@
           <th>ID</th>
           <th>Tên nhiệm vụ</th>
           <th>Người nhận</th>
-          <th>Mức độ ưu tiên</th>
+          <th>Mức ưu tiên</th>
           <th>Thời hạn</th>
           <th>Mô tả</th>
           <th>Trạng thái</th>
+          <th>File đính kèm</th>
           <th>Hình ảnh</th>
           <th>Hành động</th>
         </tr>
@@ -129,26 +164,23 @@
       </tbody>
     </table>
   </div>
-
+  
   <script>
-    let currentUser = null;           // Lưu thông tin user đăng nhập
-    let selectedImageFile = null;     // Lưu file ảnh (khi người dùng chọn/kéo/dán)
+    let currentUser = null;  // Lưu thông tin user đăng nhập
+    let selectedFile = null; // Lưu file được chọn (để upload nhiệm vụ, có thể là hình ảnh hoặc tài liệu)
 
-    // 1. Kiểm tra đăng nhập và role
+    // 1. Kiểm tra đăng nhập và lấy thông tin user
     async function checkAuth() {
       try {
         const res = await fetch('/api/me');
         const data = await res.json();
         if (!data.success) {
-          // Nếu chưa đăng nhập, chuyển về login
           window.location.href = '/login.html';
           return;
         }
-        currentUser = data.user;  // Lưu user { name, email, role }
+        currentUser = data.user;
         document.getElementById('welcome').innerText =
           `Xin chào ${currentUser.name} - Vai trò: ${currentUser.role}`;
-
-        // Nếu là admin => hiển thị form tạo nhiệm vụ và dropdown lọc
         if (currentUser.role === 'admin') {
           document.getElementById('taskForm').style.display = 'block';
           document.getElementById('filter-section').style.display = 'block';
@@ -159,7 +191,7 @@
       }
     }
 
-    // 2. Hàm load tiến độ công việc nhóm
+    // 2. Load tiến độ công việc nhóm
     async function loadProgress() {
       try {
         const res = await fetch('/api/progress');
@@ -183,13 +215,52 @@
       }
     }
 
-    // 3. Xử lý preview ảnh khi chọn file input
+    // 3. Load báo cáo nhiệm vụ bằng Chart.js (theo trạng thái)
+    async function loadReport() {
+      try {
+        const response = await fetch('/api/tasks');
+        const tasks = await response.json();
+        let statusCounts = { "Chưa thực hiện": 0, "Đang thực hiện": 0, "Hoàn thành": 0 };
+        tasks.forEach(task => {
+          if (statusCounts[task.status] !== undefined) {
+            statusCounts[task.status]++;
+          }
+        });
+        const ctx = document.getElementById('tasksChart').getContext('2d');
+        if (window.tasksChartInstance) {
+          window.tasksChartInstance.destroy();
+        }
+        window.tasksChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(statusCounts),
+            datasets: [{
+              label: 'Số lượng nhiệm vụ',
+              data: Object.values(statusCounts),
+              backgroundColor: ['#dc3545', '#ffc107', '#28a745']
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                precision: 0
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Error loading report:", err);
+      }
+    }
+
+    // 4. Xử lý preview file khi chọn từ input
     document.getElementById('taskImage').addEventListener('change', function(event) {
       const file = event.target.files[0];
       if (file) handleFile(file);
     });
 
-    // 4. Drag & Drop
+    // 5. Drag & Drop cho file
     const dropzone = document.getElementById('dropzone');
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -205,22 +276,22 @@
       if (file) handleFile(file);
     });
 
-    // 5. Paste ảnh
+    // 6. Paste file từ clipboard
     document.addEventListener('paste', function(e) {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        if (item.kind === 'file' && item.type.startsWith('image/')) {
+        if (item.kind === 'file') {
           const file = item.getAsFile();
           handleFile(file);
         }
       }
     });
 
-    // 6. Hàm xử lý file ảnh: hiển thị preview & lưu file vào biến
+    // 7. Hàm xử lý file: lưu file vào biến và nếu là hình ảnh thì preview
     function handleFile(file) {
       if (file && file.type.startsWith('image/')) {
-        selectedImageFile = file;
+        selectedFile = file;
         const reader = new FileReader();
         reader.onload = function(e) {
           const img = document.getElementById('imagePreview');
@@ -229,11 +300,14 @@
         };
         reader.readAsDataURL(file);
       } else {
-        alert('File không phải hình ảnh!');
+        // Với file không phải hình ảnh, chỉ lưu vào biến selectedFile
+        selectedFile = file;
+        // Bạn có thể hiển thị tên file, v.v.
+        alert(`File ${file.name} đã được chọn.`);
       }
     }
 
-    // 7. Upload ảnh qua /api/upload-image
+    // 8. Hàm upload file qua /api/upload-image (dành cho hình ảnh) – dùng cho giao nhiệm vụ
     async function uploadImage(file) {
       const formData = new FormData();
       formData.append('image', file);
@@ -241,42 +315,70 @@
         method: 'POST',
         body: formData
       });
-      return await response.json(); // { success: boolean, imageUrl: string }
+      return await response.json(); // { success, imageUrl }
     }
 
-    // 8. Hàm load danh sách nhiệm vụ (mặc định gọi khi trang tải)
+    // 9. Hàm upload attachment qua /api/tasks/:id/attachments (dành cho các file tài liệu)
+    async function uploadAttachment(taskId, file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch(`/api/tasks/${taskId}/attachments`, {
+        method: 'POST',
+        body: formData
+      });
+      return await response.json(); // { success, attachment }
+    }
+
+    // 10. Hàm load danh sách nhiệm vụ (với tìm kiếm & sắp xếp)
     async function loadTasks() {
       try {
         let url = '/api/tasks';
-        // Nếu user là admin, có thể lọc theo dropdown
         if (currentUser.role === 'admin') {
           const assigned = document.getElementById('filterAssigned').value;
           if (assigned) {
             url += `?assignedTo=${encodeURIComponent(assigned)}`;
           }
         }
+        // Thêm tham số tìm kiếm & sắp xếp (lọc phía client)
         const response = await fetch(url);
-        const tasks = await response.json();
-
+        let tasks = await response.json();
+        const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+        if (searchVal) {
+          tasks = tasks.filter(task => {
+            return (task.title && task.title.toLowerCase().includes(searchVal)) ||
+                   (task.description && task.description.toLowerCase().includes(searchVal));
+          });
+        }
+        if (document.getElementById('sortSelect').value === 'deadline') {
+          tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+        } else if (document.getElementById('sortSelect').value === 'priority') {
+          // Giả sử thứ tự ưu tiên: cao > trung bình > thấp
+          const order = { 'cao': 1, 'trungbinh': 2, 'thap': 3 };
+          tasks.sort((a, b) => order[a.priority] - order[b.priority]);
+        }
         const tbody = document.querySelector('#tasksTable tbody');
         tbody.innerHTML = '';
         tasks.forEach(task => {
           let actionButtons = '';
-          // Nút "Nhận Nhiệm Vụ" - nếu trạng thái là "Chưa thực hiện" và user là người được giao
+          // Nút "Nhận Nhiệm Vụ" (user nhận nhiệm vụ)
           if (task.status === "Chưa thực hiện" && currentUser.name === task.assignedTo) {
             actionButtons += `<button class="btn btn-info btn-sm" onclick="startTask(${task.id})">Nhận Nhiệm Vụ</button> `;
           }
-          // Nút "Hoàn thành" - nếu chưa hoàn thành và (admin hoặc user được giao)
+          // Nút "Hoàn thành" (cả admin và user được giao)
           if (task.status !== "Hoàn thành" && (currentUser.role === 'admin' || currentUser.name === task.assignedTo)) {
             actionButtons += `<button class="btn btn-success btn-sm" onclick="completeTask(${task.id})">Hoàn thành</button> `;
           }
-          // Nút "Bàn giao" - chỉ admin
+          // Nút "Bàn giao" (chỉ admin)
           if (currentUser.role === 'admin') {
             actionButtons += `<button class="btn btn-warning btn-sm" onclick="handoverTask(${task.id})">Bàn giao</button> `;
           }
-          // Nút "Xem Comment" - tất cả
+          // Nút "Upload Attachment" (cho cả admin và user nếu nhiệm vụ thuộc về họ)
+          if (currentUser.role === 'admin' || currentUser.name === task.assignedTo) {
+            actionButtons += `<button class="btn btn-secondary btn-sm" onclick="uploadAttachmentPrompt(${task.id})">Upload File</button> `;
+          }
+          // Nút "Xem Comment"
           actionButtons += `<button class="btn btn-info btn-sm" onclick="toggleComments(${task.id})">Xem Comment</button> `;
-          // Nút "Xóa" - chỉ admin
+          // Nút "Xóa" (chỉ admin)
           if (currentUser.role === 'admin') {
             actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Xóa</button>`;
           }
@@ -290,6 +392,7 @@
             <td>${task.deadline}</td>
             <td>${task.description || ''}</td>
             <td>${task.status}</td>
+            <td id="attachments-${task.id}"></td>
             <td>
               ${
                 task.imageURL
@@ -309,20 +412,20 @@
             </td>
           `;
           tbody.appendChild(tr);
+          // Load attachments cho từng nhiệm vụ
+          loadAttachments(task.id);
         });
       } catch (err) {
         console.error("Error loading tasks:", err);
       }
     }
 
-    // 9. Hàm lọc nhiệm vụ (gọi khi dropdown thay đổi)
-    // Thay vì gọi loadTasks trực tiếp, ta tách hàm riêng để user dễ đọc code
+    // 11. Hàm lọc nhiệm vụ khi dropdown thay đổi
     async function filterTasks() {
-      // Mỗi khi admin thay đổi dropdown, ta gọi loadTasks() (vì loadTasks() cũng dựa vào dropdown)
       await loadTasks();
     }
 
-    // 10. Hàm nhận nhiệm vụ
+    // 12. Hàm nhận nhiệm vụ (chuyển trạng thái sang "Đang thực hiện")
     async function startTask(taskId) {
       if (!confirm("Bạn có chắc muốn nhận nhiệm vụ này không?")) return;
       try {
@@ -336,6 +439,7 @@
           alert("Bạn đã nhận nhiệm vụ! Trạng thái chuyển sang 'Đang thực hiện'.");
           loadTasks();
           loadProgress();
+          loadReport();
         } else {
           alert("Lỗi: " + result.message);
         }
@@ -344,7 +448,7 @@
       }
     }
 
-    // 11. Hàm hoàn thành nhiệm vụ
+    // 13. Hàm hoàn thành nhiệm vụ
     async function completeTask(taskId) {
       if (!confirm("Bạn có chắc muốn đánh dấu nhiệm vụ này là 'Hoàn thành'?")) return;
       try {
@@ -358,6 +462,7 @@
           alert("Nhiệm vụ đã được cập nhật thành 'Hoàn thành'!");
           loadTasks();
           loadProgress();
+          loadReport();
         } else {
           alert("Lỗi: " + result.message);
         }
@@ -366,7 +471,7 @@
       }
     }
 
-    // 12. Hàm bàn giao nhiệm vụ (admin)
+    // 14. Hàm bàn giao nhiệm vụ (admin)
     async function handoverTask(taskId) {
       const newAssignee = prompt("Nhập tên người nhận mới:");
       if (!newAssignee) return;
@@ -380,6 +485,7 @@
         if (result.success) {
           alert("Nhiệm vụ đã được bàn giao thành công!");
           loadTasks();
+          loadReport();
         } else {
           alert("Lỗi: " + result.message);
         }
@@ -388,7 +494,7 @@
       }
     }
 
-    // 13. Hàm xóa nhiệm vụ (admin)
+    // 15. Hàm xóa nhiệm vụ (admin)
     async function deleteTask(taskId) {
       if (!confirm("Bạn có chắc muốn xóa nhiệm vụ này?")) return;
       try {
@@ -400,6 +506,7 @@
           alert("Nhiệm vụ đã được xóa!");
           loadTasks();
           loadProgress();
+          loadReport();
         } else {
           alert("Lỗi: " + result.message);
         }
@@ -408,7 +515,7 @@
       }
     }
 
-    // 14. Toggle comment
+    // 16. Hàm toggle hiển thị/ẩn comment cho nhiệm vụ
     async function toggleComments(taskId) {
       const container = document.getElementById(`comments-${taskId}`);
       if (container.style.display === 'none' || container.style.display === '') {
@@ -419,7 +526,7 @@
       }
     }
 
-    // 15. Load comment cho nhiệm vụ
+    // 17. Hàm load comment cho nhiệm vụ
     async function loadComments(taskId) {
       try {
         const response = await fetch(`/api/tasks/${taskId}/comments`);
@@ -437,7 +544,7 @@
       }
     }
 
-    // 16. Gửi comment cho nhiệm vụ
+    // 18. Hàm gửi comment cho nhiệm vụ
     async function postComment(taskId) {
       const textArea = document.getElementById(`new-comment-${taskId}`);
       const commentText = textArea.value.trim();
@@ -464,53 +571,289 @@
       }
     }
 
-    // 17. Xử lý gửi form tạo nhiệm vụ (chỉ admin)
-    document.getElementById('taskForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const task = {
-        title: document.getElementById('taskTitle').value,
-        assignedTo: document.getElementById('taskAssigned').value,
-        priority: document.getElementById('taskPriority').value,
-        deadline: document.getElementById('taskDeadline').value,
-        description: document.getElementById('taskDescription').value,
-        status: 'Chưa thực hiện'
-      };
-      // Upload ảnh (nếu có)
-      if (selectedImageFile) {
-        const uploadResult = await uploadImage(selectedImageFile);
-        if (uploadResult.success) {
-          task.imageURL = uploadResult.imageUrl;
-        } else {
-          alert('Upload ảnh thất bại: ' + uploadResult.message);
-          return;
+    // 19. Hàm upload attachment cho nhiệm vụ (gọi modal prompt đơn giản)
+    async function uploadAttachmentPrompt(taskId) {
+      // Tạo một input file tạm ẩn để chọn file đính kèm
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (file) {
+          const result = await uploadAttachment(taskId, file);
+          if (result.success) {
+            alert("File đính kèm đã được upload!");
+            // Bạn có thể cập nhật UI hiển thị danh sách file đính kèm cho nhiệm vụ này.
+            loadAttachments(taskId);
+          } else {
+            alert("Lỗi upload file: " + result.message);
+          }
         }
-      }
-      // Gửi dữ liệu nhiệm vụ đến API
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task)
-      });
-      const result = await response.json();
-      if (result.success) {
-        alert('Nhiệm vụ được giao thành công!');
-        loadTasks();
-        loadProgress();
-        // Reset form
-        document.getElementById('taskForm').reset();
-        document.getElementById('imagePreview').style.display = 'none';
-        selectedImageFile = null;
-      } else {
-        alert('Lỗi: ' + result.message);
-      }
-    });
+      };
+      input.click();
+    }
 
-    // 18. Khi trang tải, kiểm tra đăng nhập, rồi load tasks & progress
-    window.onload = async () => {
+    // 20. Hàm load file đính kèm cho nhiệm vụ
+    async function loadAttachments(taskId) {
+      try {
+        const response = await fetch(`/api/tasks/${taskId}/attachments`);
+        const attachments = await response.json();
+        const container = document.getElementById(`attachments-${taskId}`);
+        let html = '';
+        attachments.forEach(att => {
+          html += `<div>
+                    <a href="${att.file_url}" target="_blank" download>${att.file_name}</a>
+                   </div>`;
+        });
+        container.innerHTML = html;
+      } catch (err) {
+        console.error("Error loading attachments:", err);
+      }
+    }
+
+    // 21. Tích hợp FullCalendar để hiển thị nhiệm vụ theo lịch
+    async function loadCalendar() {
+      try {
+        const response = await fetch('/api/tasks');
+        const tasks = await response.json();
+        const events = tasks.map(task => {
+          return {
+            id: task.id,
+            title: task.title,
+            start: task.deadline,
+            color: task.status === "Hoàn thành" ? 'green' : (task.status === "Đang thực hiện" ? 'orange' : 'red')
+          };
+        });
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          events: events,
+          editable: true,
+          eventDrop: async function(info) {
+            const newDeadline = info.event.start.toISOString().split('T')[0];
+            try {
+              const res = await fetch(`/api/tasks/${info.event.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deadline: newDeadline })
+              });
+              const result = await res.json();
+              if (!result.success) {
+                alert("Lỗi cập nhật deadline: " + result.message);
+                info.revert();
+              } else {
+                loadTasks();
+                loadProgress();
+                loadReport();
+              }
+            } catch (error) {
+              console.error("Error updating deadline:", error);
+              info.revert();
+            }
+          }
+        });
+        calendar.render();
+      } catch (err) {
+        console.error("Error loading calendar:", err);
+      }
+    }
+
+    // 22. Hàm tìm kiếm & sắp xếp (gọi applyFilters)
+    function applyFilters() {
+      loadTasks();
+      loadReport();
+    }
+    document.getElementById('searchInput').addEventListener('keyup', applyFilters);
+    document.getElementById('sortSelect').addEventListener('change', applyFilters);
+
+    // 23. Hàm load báo cáo nhiệm vụ bằng Chart.js
+    async function loadReport() {
+      try {
+        const response = await fetch('/api/tasks');
+        const tasks = await response.json();
+        let statusCounts = { "Chưa thực hiện": 0, "Đang thực hiện": 0, "Hoàn thành": 0 };
+        tasks.forEach(task => {
+          if (statusCounts[task.status] !== undefined) {
+            statusCounts[task.status]++;
+          }
+        });
+        const ctx = document.getElementById('tasksChart').getContext('2d');
+        if (window.tasksChartInstance) {
+          window.tasksChartInstance.destroy();
+        }
+        window.tasksChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(statusCounts),
+            datasets: [{
+              label: 'Số lượng nhiệm vụ',
+              data: Object.values(statusCounts),
+              backgroundColor: ['#dc3545', '#ffc107', '#28a745']
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                precision: 0
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Error loading report:", err);
+      }
+    }
+
+    // 24. Hàm load tasks (đã tích hợp tìm kiếm, sắp xếp, lọc theo assigned)
+    async function loadTasks() {
+      try {
+        let url = '/api/tasks';
+        if (currentUser.role === 'admin') {
+          const assigned = document.getElementById('filterAssigned').value;
+          if (assigned) {
+            url += `?assignedTo=${encodeURIComponent(assigned)}`;
+          }
+        }
+        const response = await fetch(url);
+        let tasks = await response.json();
+        // Lọc theo từ khóa tìm kiếm (phía client)
+        const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+        if (searchVal) {
+          tasks = tasks.filter(task => {
+            return (task.title && task.title.toLowerCase().includes(searchVal)) ||
+                   (task.description && task.description.toLowerCase().includes(searchVal));
+          });
+        }
+        // Sắp xếp theo Deadline hoặc Priority
+        if (document.getElementById('sortSelect').value === 'deadline') {
+          tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+        } else if (document.getElementById('sortSelect').value === 'priority') {
+          const order = { 'cao': 1, 'trungbinh': 2, 'thap': 3 };
+          tasks.sort((a, b) => order[a.priority] - order[b.priority]);
+        }
+        const tbody = document.querySelector('#tasksTable tbody');
+        tbody.innerHTML = '';
+        tasks.forEach(task => {
+          let actionButtons = '';
+          if (task.status === "Chưa thực hiện" && currentUser.name === task.assignedTo) {
+            actionButtons += `<button class="btn btn-info btn-sm" onclick="startTask(${task.id})">Nhận Nhiệm Vụ</button> `;
+          }
+          if (task.status !== "Hoàn thành" && (currentUser.role === 'admin' || currentUser.name === task.assignedTo)) {
+            actionButtons += `<button class="btn btn-success btn-sm" onclick="completeTask(${task.id})">Hoàn thành</button> `;
+          }
+          if (currentUser.role === 'admin') {
+            actionButtons += `<button class="btn btn-warning btn-sm" onclick="handoverTask(${task.id})">Bàn giao</button> `;
+          }
+          actionButtons += `<button class="btn btn-secondary btn-sm" onclick="uploadAttachmentPrompt(${task.id})">Upload File</button> `;
+          actionButtons += `<button class="btn btn-info btn-sm" onclick="toggleComments(${task.id})">Xem Comment</button> `;
+          if (currentUser.role === 'admin') {
+            actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Xóa</button>`;
+          }
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${task.id}</td>
+            <td>${task.title}</td>
+            <td>${task.assignedTo}</td>
+            <td>${task.priority}</td>
+            <td>${task.deadline}</td>
+            <td>${task.description || ''}</td>
+            <td>${task.status}</td>
+            <td id="attachments-${task.id}"></td>
+            <td>
+              ${
+                task.imageURL
+                  ? `<a href="${task.imageURL}" target="_blank" download>
+                       <img src="${task.imageURL}" style="max-width:100px;" alt="thumbnail">
+                     </a>`
+                  : 'N/A'
+              }
+            </td>
+            <td>
+              ${actionButtons}
+              <div id="comments-${task.id}" class="comments-container" style="display:none;">
+                <div id="comments-list-${task.id}"></div>
+                <textarea id="new-comment-${task.id}" class="form-control" rows="2" placeholder="Nhập comment..."></textarea>
+                <button class="btn btn-primary btn-sm mt-2" onclick="postComment(${task.id})">Gửi</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+          loadAttachments(task.id);
+        });
+      } catch (err) {
+        console.error("Error loading tasks:", err);
+      }
+    }
+
+    // 25. Hàm realtime notification sử dụng Supabase Realtime (nếu muốn)
+    async function setupRealtime() {
+      // Sử dụng client Supabase đã được tạo ở phía server, bạn có thể tái tạo client trên front-end nếu cần
+      const supabaseClient = createClient(
+        '<SUPABASE_URL>',
+        '<SUPABASE_ANON_KEY>'  // Sử dụng anon key cho client
+      );
+      supabaseClient
+        .from('tasks')
+        .on('*', payload => {
+          console.log('Realtime event:', payload);
+          // Ví dụ: hiển thị thông báo toast
+          alert(`Có thay đổi nhiệm vụ: ${payload.eventType}`);
+          loadTasks();
+          loadProgress();
+          loadReport();
+        })
+        .subscribe();
+    }
+
+    // 26. Hàm uploadAttachmentPrompt: mở input file ẩn để upload file đính kèm cho nhiệm vụ
+    async function uploadAttachmentPrompt(taskId) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (file) {
+          const result = await uploadAttachment(taskId, file);
+          if (result.success) {
+            alert("File đính kèm đã được upload!");
+            loadAttachments(taskId);
+          } else {
+            alert("Lỗi upload file: " + result.message);
+          }
+        }
+      };
+      input.click();
+    }
+
+    // 27. Hàm loadAttachments: lấy danh sách file đính kèm cho nhiệm vụ
+    async function loadAttachments(taskId) {
+      try {
+        const response = await fetch(`/api/tasks/${taskId}/attachments`);
+        const attachments = await response.json();
+        const container = document.getElementById(`attachments-${taskId}`);
+        let html = '';
+        attachments.forEach(att => {
+          html += `<div>
+                    <a href="${att.file_url}" target="_blank" download>${att.file_name}</a>
+                   </div>`;
+        });
+        container.innerHTML = html;
+      } catch (err) {
+        console.error("Error loading attachments:", err);
+      }
+    }
+
+    // 28. Khi trang tải, kiểm tra đăng nhập, load tasks, progress, báo cáo và calendar
+    async function initPage() {
       await checkAuth();
       loadTasks();
       loadProgress();
-    };
+      loadReport();
+      loadCalendar();
+      // setupRealtime(); // Nếu muốn sử dụng realtime notifications, cấu hình SUPABASE_URL và SUPABASE_ANON_KEY phù hợp.
+    }
+    window.onload = initPage;
   </script>
 </body>
 </html>
