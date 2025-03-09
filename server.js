@@ -242,6 +242,39 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
 
+// Route phục vụ trang quản lý nhiệm vụ (tasks.html)
+app.get('/tasks', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
+});
+
+// API lấy danh sách nhiệm vụ từ Supabase
+app.get('/api/tasks', isAuthenticated, async (req, res) => {
+  try {
+    let { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .order('id', { ascending: true });
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// API tạo nhiệm vụ mới và lưu vào Supabase
+app.post('/api/tasks', isAuthenticated, async (req, res) => {
+  try {
+    const { title, assignedTo, priority, deadline, description, status } = req.body;
+    let { data, error } = await supabase
+      .from('tasks')
+      .insert([{ title, assignedTo, priority, deadline, description, status }]);
+    if (error) throw error;
+    res.json({ success: true, task: data[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
