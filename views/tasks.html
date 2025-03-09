@@ -164,7 +164,13 @@
                 <div id="dropzone">Kéo & thả file vào đây (hoặc dán khi bấm Ctrl+V)</div>
                 <div class="form-group">
                   <label for="taskImage">Chọn file (ảnh/tài liệu):</label>
-                  <input type="file" class="form-control-file" id="taskImage" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple>
+                  <input
+                    type="file"
+                    class="form-control-file"
+                    id="taskImage"
+                    accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    multiple
+                  >
                   <div id="filePreviewList"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
@@ -227,7 +233,6 @@
   <script>
     let currentUser = null;
     let selectedFiles = [];
-    // Dùng biến toàn cục cho Chart
     window.tasksChart = null;
 
     // 1) Kiểm tra đăng nhập
@@ -257,31 +262,19 @@
       try {
         const res = await fetch('/api/tasks');
         const tasks = await res.json();
-        console.log("Tasks for report:", tasks);
-
         let counts = { "Chưa thực hiện": 0, "Đang thực hiện": 0, "Hoàn thành": 0 };
         tasks.forEach(task => {
           if (counts[task.status] !== undefined) {
             counts[task.status]++;
-          } else {
-            console.warn("Unexpected status:", task.status);
           }
         });
-        console.log("Counts:", counts);
-
         const canvas = document.getElementById('tasksChart');
-        if (!canvas) {
-          console.error("Không tìm thấy canvas #tasksChart");
-          return;
-        }
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
-        // Kiểm tra trước khi destroy
         if (window.tasksChart && typeof window.tasksChart.destroy === 'function') {
           window.tasksChart.destroy();
         }
-
-        // Tạo chart
         window.tasksChart = new Chart(ctx, {
           type: 'bar',
           data: {
@@ -298,7 +291,6 @@
             }
           }
         });
-        console.log("Đã vẽ chart với data:", counts);
       } catch (err) {
         console.error("Error loading report:", err);
       }
@@ -407,14 +399,18 @@
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = e => {
-            div.innerHTML = `<img src="${e.target.result}" alt="${file.name}">
-              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>`;
+            div.innerHTML = `
+              <img src="${e.target.result}" alt="${file.name}">
+              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>
+            `;
             container.appendChild(div);
           };
           reader.readAsDataURL(file);
         } else {
-          div.innerHTML = `<span>${file.name}</span>
-            <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>`;
+          div.innerHTML = `
+            <span>${file.name}</span>
+            <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>
+          `;
           container.appendChild(div);
         }
       });
@@ -763,6 +759,7 @@
         status: 'Chưa thực hiện'
       };
       try {
+        // Tạo task trước
         const createRes = await fetch('/api/tasks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -774,12 +771,15 @@
           return;
         }
         const createdTask = createResult.task;
-        // Upload file
+
+        // Upload file (file đầu tiên là ảnh => uploadImage, còn lại => uploadAttachment)
         for (let i = 0; i < selectedFiles.length; i++) {
           const file = selectedFiles[i];
           if (file.type.startsWith('image/') && i === 0) {
+            // Upload ảnh
             const uploadRes = await uploadImage(file);
             if (uploadRes.success) {
+              // Cập nhật imageURL, image_path
               await fetch(`/api/tasks/${createdTask.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -792,12 +792,14 @@
               showToast("Upload ảnh thất bại: " + uploadRes.message);
             }
           } else {
+            // Upload file đính kèm
             const attachRes = await uploadAttachment(createdTask.id, file);
             if (!attachRes.success) {
               showToast("Lỗi upload file: " + attachRes.message);
             }
           }
         }
+
         showToast("Nhiệm vụ được tạo và upload file thành công!");
         loadTasks();
         loadProgress();
@@ -813,38 +815,32 @@
       }
     });
 
-
-
+    // 17) Tải tiến độ
     async function loadProgress() {
-  try {
-    // Gọi API /api/progress để lấy dữ liệu
-    const res = await fetch('/api/progress');
-    const progressData = await res.json();
-    // Giả sử bạn có 1 thẻ <div id="progress-bars"> để hiển thị
-    let html = '';
-    progressData.forEach(user => {
-      let percent = (user.completed / user.total) * 100;
-      html += `
-        <div class="mb-2">
-          <p>${user.name} (${user.completed}/${user.total} nhiệm vụ)</p>
-          <div class="progress">
-            <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%;"
-              aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
-              ${percent.toFixed(1)}%
-            </div>
-          </div>
-        </div>`;
-    });
-    document.getElementById('progress-bars').innerHTML = html;
-  } catch (err) {
-    console.error("Error loading progress:", err);
-  }
-}
+      try {
+        const res = await fetch('/api/progress');
+        const progressData = await res.json();
+        let html = '';
+        progressData.forEach(user => {
+          let percent = (user.completed / user.total) * 100;
+          html += `
+            <div class="mb-2">
+              <p>${user.name} (${user.completed}/${user.total} nhiệm vụ)</p>
+              <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%;"
+                  aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
+                  ${percent.toFixed(1)}%
+                </div>
+              </div>
+            </div>`;
+        });
+        document.getElementById('progress-bars').innerHTML = html;
+      } catch (err) {
+        console.error("Error loading progress:", err);
+      }
+    }
 
-
-
-    
-    // 17) initPage
+    // 18) initPage
     async function initPage() {
       await checkAuth();
       loadTasks();
