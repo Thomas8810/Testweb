@@ -114,11 +114,17 @@ app.get('/logout', (req, res) => {
 });
 
 // ----------------------- TRANG -----------------------
+// Trang Home
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
+});
+
+// Route cho trang Tasks (để hiển thị tasks.html)
+app.get('/tasks', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
 
 // ----------------------- API TRA CỨU & XUẤT (data.json) -----------------------
@@ -214,8 +220,7 @@ app.get('/export', (req, res) => {
 });
 
 // ----------------------- TASKS ENDPOINTS (Supabase) -----------------------
-
-// GET tasks
+// GET tasks (đã được xử lý bởi route /tasks để gửi tasks.html cho giao diện)
 app.get('/api/tasks', isAuthenticated, async (req, res) => {
   try {
     let { data, error } = await supabase
@@ -318,7 +323,6 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
-  // Sử dụng cột "user" (đã tạo trong DB) để lưu tên người comment
   const userName = req.session.user.name || req.session.user.email;
   try {
     let { data, error } = await supabase
