@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Cấu hình session (in-memory store)
 app.use(session({
-  secret: 'your-secret-key', // Thay đổi chuỗi bí mật của bạn
+  secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật của bạn
   resave: false,
   saveUninitialized: false
 }));
@@ -34,7 +34,6 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
-
 // Dữ liệu tra cứu từ file data.json (nếu cần cho các API search/export)
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
@@ -73,28 +72,20 @@ function loadUsersData() {
 loadUsersData();
 
 // ----------------------- MIDDLEWARE BẢO VỆ ROUTE -----------------------
-
 function isAuthenticated(req, res, next) {
-  if (req.session && req.session.user) {
-    return next();
-  }
+  if (req.session && req.session.user) return next();
   res.redirect('/login.html');
 }
 
 function isAdmin(req, res, next) {
-  if (req.session && req.session.user && req.session.user.role === 'admin') {
-    return next();
-  }
+  if (req.session && req.session.user && req.session.user.role === 'admin') return next();
   res.status(403).json({ success: false, message: "Chỉ admin mới có quyền thực hiện thao tác này." });
 }
 
 // ----------------------- API XÁC THỰC -----------------------
-
 // Kiểm tra thông tin đăng nhập của user
 app.get('/api/me', (req, res) => {
-  if (!req.session.user) {
-    return res.json({ success: false });
-  }
+  if (!req.session.user) return res.json({ success: false });
   res.json({ success: true, user: req.session.user });
 });
 
@@ -108,12 +99,8 @@ app.post('/login', (req, res) => {
     u.email.toLowerCase() === identifier.toLowerCase() ||
     u.name.toLowerCase() === identifier.toLowerCase()
   );
-  if (!user) {
-    return res.json({ success: false, message: "Người dùng không tồn tại." });
-  }
-  if (user.password !== password) {
-    return res.json({ success: false, message: "Sai mật khẩu." });
-  }
+  if (!user) return res.json({ success: false, message: "Người dùng không tồn tại." });
+  if (user.password !== password) return res.json({ success: false, message: "Sai mật khẩu." });
   req.session.user = { name: user.name, email: user.email, role: user.role };
   return res.json({ success: true, message: "Đăng nhập thành công." });
 });
@@ -126,9 +113,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// ----------------------- ROUTE TRANG -----------------------
-
-// Trang Home (được bảo vệ)
+// ----------------------- TRANG -----------------------
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
@@ -137,7 +122,7 @@ app.get('/home.html', isAuthenticated, (req, res) => {
 });
 
 // ----------------------- API TRA CỨU & XUẤT (data.json) -----------------------
-// (Nếu cần, giữ nguyên)
+// (Giữ nguyên nếu cần)
 app.get('/filters', (req, res) => {
   const getDistinct = (col) => {
     const values = cachedData.map(row => row[col]).filter(v => v != null);
@@ -312,8 +297,7 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
 });
 
 // ----------------------- COMMENTS ENDPOINTS -----------------------
-
-// GET comments cho một nhiệm vụ
+// GET comments cho nhiệm vụ
 app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   try {
@@ -330,11 +314,11 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   }
 });
 
-// POST new comment cho một nhiệm vụ
+// POST new comment cho nhiệm vụ
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
-  // Lấy tên người dùng từ session, sử dụng cột "user" trong bảng
+  // Sử dụng cột "user" (đã tạo trong DB) để lưu tên người comment
   const userName = req.session.user.name || req.session.user.email;
   try {
     let { data, error } = await supabase
@@ -350,21 +334,14 @@ app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 });
 
 // ----------------------- IMAGE UPLOAD ENDPOINT -----------------------
-
-// POST /api/upload-image sử dụng Multer và Supabase Storage
 app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file provided' });
-    }
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
     const fileName = `task-images/${Date.now()}_${req.file.originalname}`;
     let { data, error } = await supabase
       .storage
       .from('tasks-images')
-      .upload(fileName, req.file.buffer, {
-        contentType: req.file.mimetype,
-        upsert: false,
-      });
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
     if (error) {
       console.error("Error uploading image:", error);
       return res.status(500).json({ success: false, message: error.message });
@@ -389,7 +366,6 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
 });
 
-// Start server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
