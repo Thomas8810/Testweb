@@ -8,13 +8,12 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet">
-  <!-- Chart.js (chỉ cần script) -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .preview-img {
       max-width: 200px;
       max-height: 200px;
-      margin-top: 10px;
     }
     /* Dropzone style */
     #dropzone {
@@ -36,11 +35,29 @@
       border-radius: 5px;
       background: #f9f9f9;
     }
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
+    .progress-container {
+      margin-bottom: 20px;
+    }
+    .filter-bar {
+      margin-bottom: 20px;
+    }
+    /* Container cho preview file đính kèm */
+    #filePreviewContainer {
+      display: none;
+      position: relative;
+      margin-top: 10px;
+    }
+    #removeFileBtn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: red;
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -48,7 +65,7 @@
   <div class="container mt-4">
     <!-- Thông tin user -->
     <div id="welcome" class="mb-3"></div>
-
+    
     <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="tasksTab" role="tablist">
       <li class="nav-item">
@@ -62,7 +79,7 @@
       </li>
     </ul>
     <div class="tab-content" id="tasksTabContent">
-      <!-- Tab: Danh sách nhiệm vụ -->
+      <!-- Tab Danh sách nhiệm vụ -->
       <div class="tab-pane fade show active" id="list-pane" role="tabpanel" aria-labelledby="list-tab">
         <div class="mt-3">
           <!-- Thanh tìm kiếm & sắp xếp -->
@@ -92,7 +109,7 @@
               <option value="Ha">Ha</option>
             </select>
           </div>
-          <!-- Button mở form tạo nhiệm vụ (cho admin) -->
+          <!-- Nút mở form tạo nhiệm vụ (cho admin) -->
           <div class="mb-3">
             <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#createTaskForm" aria-expanded="false" aria-controls="createTaskForm">
               Tạo nhiệm vụ mới
@@ -132,12 +149,15 @@
                   <label for="taskDescription">Mô tả:</label>
                   <textarea class="form-control" id="taskDescription" rows="3"></textarea>
                 </div>
-                <!-- Dropzone cho file đính kèm -->
+                <!-- Dropzone -->
                 <div id="dropzone">Kéo & thả file vào đây (hoặc dán khi bấm Ctrl+V)</div>
                 <div class="form-group">
                   <label for="taskImage">Hoặc chọn file (ảnh/tài liệu):</label>
                   <input type="file" class="form-control-file" id="taskImage" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                  <img id="imagePreview" class="preview-img" src="#" alt="Preview" style="display:none;">
+                  <div id="filePreviewContainer">
+                    <img id="imagePreview" class="preview-img" src="#" alt="Preview">
+                    <button type="button" id="removeFileBtn">×</button>
+                  </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
               </form>
@@ -163,14 +183,14 @@
           </table>
         </div>
       </div>
-      <!-- Tab: Lịch nhiệm vụ -->
+      <!-- Tab Lịch nhiệm vụ -->
       <div class="tab-pane fade" id="calendar-pane" role="tabpanel" aria-labelledby="calendar-tab">
         <div class="mt-3">
           <h3>Lịch nhiệm vụ</h3>
           <div id="calendar"></div>
         </div>
       </div>
-      <!-- Tab: Báo cáo -->
+      <!-- Tab Báo cáo -->
       <div class="tab-pane fade" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
         <div class="mt-3">
           <h3>Báo cáo nhiệm vụ</h3>
@@ -179,19 +199,19 @@
       </div>
     </div>
   </div>
-
-  <!-- Toast container (nếu cần) -->
+  
+  <!-- Toast container -->
   <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- Scripts: jQuery, Popper.js, Bootstrap JS -->
+  
+  <!-- Scripts: jQuery, Popper, Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+  
   <script>
     let currentUser = null;
     let selectedFile = null;
-
+    
     // 1. Kiểm tra đăng nhập
     async function checkAuth() {
       try {
@@ -202,8 +222,7 @@
           return;
         }
         currentUser = data.user;
-        document.getElementById('welcome').innerText =
-          `Xin chào ${currentUser.name} - Vai trò: ${currentUser.role}`;
+        document.getElementById('welcome').innerText = `Xin chào ${currentUser.name} - Vai trò: ${currentUser.role}`;
         if (currentUser.role === 'admin') {
           document.getElementById('taskForm').style.display = 'block';
           document.getElementById('filter-section').style.display = 'block';
@@ -213,7 +232,7 @@
         window.location.href = '/login.html';
       }
     }
-
+    
     // 2. Load tiến độ công việc
     async function loadProgress() {
       try {
@@ -222,22 +241,20 @@
         let html = '';
         progressData.forEach(user => {
           let percent = (user.completed / user.total) * 100;
-          html += `
-            <div class="mb-2">
-              <p>${user.name} (${user.completed}/${user.total} nhiệm vụ)</p>
-              <div class="progress">
-                <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%;"
-                  aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">${percent.toFixed(1)}%</div>
-              </div>
-            </div>
-          `;
+          html += `<div class="mb-2">
+                     <p>${user.name} (${user.completed}/${user.total} nhiệm vụ)</p>
+                     <div class="progress">
+                       <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%;"
+                         aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">${percent.toFixed(1)}%</div>
+                     </div>
+                   </div>`;
         });
         document.getElementById('progress-bars').innerHTML = html;
       } catch (err) {
         console.error("Error loading progress:", err);
       }
     }
-
+    
     // 3. Load báo cáo nhiệm vụ với Chart.js
     async function loadReport() {
       try {
@@ -259,15 +276,13 @@
               backgroundColor: ['#dc3545', '#ffc107', '#28a745']
             }]
           },
-          options: {
-            scales: { y: { beginAtZero: true, precision: 0 } }
-          }
+          options: { scales: { y: { beginAtZero: true, precision: 0 } } }
         });
       } catch (err) {
         console.error("Error loading report:", err);
       }
     }
-
+    
     // 4. Load FullCalendar
     async function loadCalendar() {
       try {
@@ -284,7 +299,7 @@
           initialView: 'dayGridMonth',
           events,
           editable: true,
-          eventDrop: async function(info) {
+          eventDrop: async (info) => {
             const newDeadline = info.event.start.toISOString().split('T')[0];
             try {
               const res = await fetch(`/api/tasks/${info.event.id}`, {
@@ -312,7 +327,7 @@
         console.error("Error loading calendar:", err);
       }
     }
-
+    
     // 5. Xử lý file: preview và lưu file
     document.getElementById('taskImage').addEventListener('change', e => {
       const file = e.target.files[0];
@@ -327,7 +342,7 @@
       const file = e.dataTransfer.files[0];
       if (file) handleFile(file);
     });
-    document.addEventListener('paste', function(e) {
+    document.addEventListener('paste', e => {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (let i = 0; i < items.length; i++) {
         if (items[i].kind === 'file') {
@@ -338,20 +353,30 @@
     });
     function handleFile(file) {
       selectedFile = file;
+      const previewContainer = document.getElementById('filePreviewContainer');
+      const img = document.getElementById('imagePreview');
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = e => {
-          const img = document.getElementById('imagePreview');
           img.src = e.target.result;
-          img.style.display = 'block';
+          previewContainer.style.display = 'block';
         };
         reader.readAsDataURL(file);
       } else {
-        alert(`File ${file.name} đã được chọn (không phải hình ảnh).`);
+        // Với file không phải hình ảnh, hiển thị tên file
+        previewContainer.innerHTML = `<span>${file.name}</span> <button type="button" id="removeFileBtn">×</button>`;
+        previewContainer.style.display = 'block';
       }
     }
-
-    // 6. Upload ảnh qua /api/upload-image
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'removeFileBtn') {
+        selectedFile = null;
+        document.getElementById('filePreviewContainer').style.display = 'none';
+        document.getElementById('imagePreview').src = '#';
+      }
+    });
+    
+    // 6. Hàm upload ảnh qua /api/upload-image
     async function uploadImage(file) {
       try {
         const formData = new FormData();
@@ -363,8 +388,8 @@
         return { success: false, message: err?.message || "Unknown error" };
       }
     }
-
-    // 7. Upload attachment qua /api/tasks/:id/attachments
+    
+    // 7. Hàm upload attachment qua /api/tasks/:id/attachments
     async function uploadAttachment(taskId, file) {
       try {
         const formData = new FormData();
@@ -376,8 +401,8 @@
         return { success: false, message: err?.message || "Unknown error" };
       }
     }
-
-    // 8. Load danh sách nhiệm vụ
+    
+    // 8. Load danh sách nhiệm vụ (tìm kiếm, sắp xếp, lọc)
     async function loadTasks() {
       try {
         let url = '/api/tasks';
@@ -387,7 +412,6 @@
         }
         const res = await fetch(url);
         let tasks = await res.json();
-        // Lọc theo từ khóa (client-side)
         const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
         if (searchVal) {
           tasks = tasks.filter(task => {
@@ -395,7 +419,6 @@
                    (task.description && task.description.toLowerCase().includes(searchVal));
           });
         }
-        // Sắp xếp
         const sortVal = document.getElementById('sortSelect').value;
         if (sortVal === 'deadline') {
           tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
@@ -458,13 +481,12 @@
         console.error("Error loading tasks:", err);
       }
     }
-
-    // 9. Hàm lọc nhiệm vụ (gọi khi dropdown thay đổi)
+    
     function filterTasks() {
       loadTasks();
     }
-
-    // 10. Nhận nhiệm vụ
+    
+    // 9. Nhận nhiệm vụ
     async function startTask(taskId) {
       if (!confirm("Bạn có chắc nhận nhiệm vụ này không?")) return;
       try {
@@ -487,8 +509,8 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
-    // 11. Hoàn thành nhiệm vụ
+    
+    // 10. Hoàn thành nhiệm vụ
     async function completeTask(taskId) {
       if (!confirm("Đánh dấu nhiệm vụ này là 'Hoàn thành'?")) return;
       try {
@@ -511,8 +533,8 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
-    // 12. Bàn giao nhiệm vụ (admin)
+    
+    // 11. Bàn giao nhiệm vụ (admin)
     async function handoverTask(taskId) {
       const newAssignee = prompt("Nhập tên người nhận mới:");
       if (!newAssignee) return;
@@ -535,8 +557,8 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
-    // 13. Xóa nhiệm vụ (admin)
+    
+    // 12. Xóa nhiệm vụ (admin)
     async function deleteTask(taskId) {
       if (!confirm("Xóa nhiệm vụ này?")) return;
       try {
@@ -555,8 +577,8 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
-    // 14. Toggle comment
+    
+    // 13. Toggle và load comment
     async function toggleComments(taskId) {
       const container = document.getElementById(`comments-${taskId}`);
       if (container.style.display === 'none' || container.style.display === '') {
@@ -566,8 +588,6 @@
         container.style.display = 'none';
       }
     }
-
-    // 15. Load comment
     async function loadComments(taskId) {
       try {
         const res = await fetch(`/api/tasks/${taskId}/comments`);
@@ -583,8 +603,6 @@
         console.error("Error loading comments:", err);
       }
     }
-
-    // 16. Gửi comment
     async function postComment(taskId) {
       const textArea = document.getElementById(`new-comment-${taskId}`);
       const commentText = textArea.value.trim();
@@ -611,8 +629,8 @@
         showToast("Lỗi: " + (err?.message || "Xem log"));
       }
     }
-
-    // 17. Upload attachment cho nhiệm vụ
+    
+    // 14. Upload attachment cho nhiệm vụ
     async function uploadAttachmentPrompt(taskId) {
       const input = document.createElement('input');
       input.type = 'file';
@@ -645,8 +663,8 @@
         console.error("Error loading attachments:", err);
       }
     }
-
-    // 18. Toast notification (sử dụng Bootstrap Toast)
+    
+    // 15. Toast notification sử dụng Bootstrap Toast
     function showToast(message) {
       const toastContainer = document.querySelector('.toast-container');
       const toast = document.createElement('div');
@@ -655,20 +673,25 @@
       toast.setAttribute("aria-live", "assertive");
       toast.setAttribute("aria-atomic", "true");
       toast.style.minWidth = "200px";
-      toast.innerHTML = `
-        <div class="toast-body">
-          ${message}
-        </div>
-      `;
+      toast.innerHTML = `<div class="toast-body">${message}</div>`;
       toastContainer.appendChild(toast);
       $(toast).toast({ delay: 3000 });
       $(toast).toast('show');
-      setTimeout(() => {
-        toast.remove();
-      }, 3500);
+      setTimeout(() => { toast.remove(); }, 3500);
     }
-
-    // 19. Khi trang tải, khởi tạo tất cả
+    
+    // 16. Khi chuyển tab, load lại Calendar hoặc Report
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      const target = $(e.target).attr("href");
+      if (target === "#calendar-pane") {
+        loadCalendar();
+      }
+      if (target === "#report-pane") {
+        loadReport();
+      }
+    });
+    
+    // 17. Khởi tạo trang
     async function initPage() {
       await checkAuth();
       loadTasks();
