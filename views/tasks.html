@@ -11,11 +11,33 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    .preview-img {
-      max-width: 200px;
-      max-height: 200px;
+    .preview-item {
+      display: inline-block;
+      position: relative;
+      margin-right: 10px;
+      margin-bottom: 10px;
     }
-    /* Dropzone style */
+    .preview-item img, .preview-item span {
+      max-width: 150px;
+      max-height: 150px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .remove-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      line-height: 18px;
+      text-align: center;
+    }
     #dropzone {
       border: 2px dashed #ccc;
       padding: 20px;
@@ -41,23 +63,9 @@
     .filter-bar {
       margin-bottom: 20px;
     }
-    /* Container cho preview file đính kèm */
-    #filePreviewContainer {
-      display: none;
-      position: relative;
+    /* Container hiển thị danh sách file đã chọn */
+    #filePreviewList {
       margin-top: 10px;
-    }
-    #removeFileBtn {
-      position: absolute;
-      top: 0;
-      right: 0;
-      background: red;
-      border: none;
-      color: white;
-      border-radius: 50%;
-      width: 25px;
-      height: 25px;
-      cursor: pointer;
     }
   </style>
 </head>
@@ -152,12 +160,10 @@
                 <!-- Dropzone -->
                 <div id="dropzone">Kéo & thả file vào đây (hoặc dán khi bấm Ctrl+V)</div>
                 <div class="form-group">
-                  <label for="taskImage">Hoặc chọn file (ảnh/tài liệu):</label>
-                  <input type="file" class="form-control-file" id="taskImage" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                  <div id="filePreviewContainer">
-                    <img id="imagePreview" class="preview-img" src="#" alt="Preview">
-                    <button type="button" id="removeFileBtn">×</button>
-                  </div>
+                  <label for="taskImage">Chọn file (ảnh/tài liệu):</label>
+                  <!-- Cho phép chọn nhiều file -->
+                  <input type="file" class="form-control-file" id="taskImage" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple>
+                  <div id="filePreviewList"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
               </form>
@@ -210,7 +216,8 @@
   
   <script>
     let currentUser = null;
-    let selectedFile = null;
+    // Sử dụng mảng để lưu nhiều file đã chọn
+    let selectedFiles = [];
     
     // 1. Kiểm tra đăng nhập
     async function checkAuth() {
@@ -255,7 +262,7 @@
       }
     }
     
-    // 3. Load báo cáo nhiệm vụ với Chart.js
+    // 3. Load báo cáo với Chart.js
     async function loadReport() {
       try {
         const res = await fetch('/api/tasks');
@@ -299,7 +306,7 @@
           initialView: 'dayGridMonth',
           events,
           editable: true,
-          eventDrop: async (info) => {
+          eventDrop: async info => {
             const newDeadline = info.event.start.toISOString().split('T')[0];
             try {
               const res = await fetch(`/api/tasks/${info.event.id}`, {
@@ -328,10 +335,10 @@
       }
     }
     
-    // 5. Xử lý file: preview và lưu file
+    // 5. Xử lý file: cho phép chọn nhiều file, hiển thị danh sách file đã chọn
     document.getElementById('taskImage').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (file) handleFile(file);
+      const files = Array.from(e.target.files);
+      files.forEach(file => addSelectedFile(file));
     });
     const dropzone = document.getElementById('dropzone');
     dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
@@ -339,44 +346,56 @@
     dropzone.addEventListener('drop', e => {
       e.preventDefault();
       dropzone.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) handleFile(file);
+      const files = Array.from(e.dataTransfer.files);
+      files.forEach(file => addSelectedFile(file));
     });
     document.addEventListener('paste', e => {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (let i = 0; i < items.length; i++) {
         if (items[i].kind === 'file') {
           const file = items[i].getAsFile();
-          handleFile(file);
+          addSelectedFile(file);
         }
       }
     });
-    function handleFile(file) {
-      selectedFile = file;
-      const previewContainer = document.getElementById('filePreviewContainer');
-      const img = document.getElementById('imagePreview');
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          img.src = e.target.result;
-          previewContainer.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      } else {
-        // Với file không phải hình ảnh, hiển thị tên file
-        previewContainer.innerHTML = `<span>${file.name}</span> <button type="button" id="removeFileBtn">×</button>`;
-        previewContainer.style.display = 'block';
-      }
-    }
-    document.addEventListener('click', function(e) {
-      if (e.target && e.target.id === 'removeFileBtn') {
-        selectedFile = null;
-        document.getElementById('filePreviewContainer').style.display = 'none';
-        document.getElementById('imagePreview').src = '#';
-      }
-    });
     
-    // 6. Hàm upload ảnh qua /api/upload-image
+    function addSelectedFile(file) {
+      // Thêm file vào mảng selectedFiles
+      selectedFiles.push(file);
+      renderFilePreview();
+    }
+    
+    function renderFilePreview() {
+      const container = document.getElementById('filePreviewList');
+      container.innerHTML = '';
+      selectedFiles.forEach((file, index) => {
+        let previewHTML = '<div class="preview-item">';
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            previewHTML = `<div class="preview-item">
+              <img src="${e.target.result}" alt="${file.name}">
+              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>
+            </div>`;
+            container.innerHTML += previewHTML;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          previewHTML = `<div class="preview-item">
+              <span>${file.name}</span>
+              <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">×</button>
+            </div>`;
+          container.innerHTML += previewHTML;
+        }
+      });
+    }
+    
+    function removeSelectedFile(index) {
+      selectedFiles.splice(index, 1);
+      renderFilePreview();
+    }
+    
+    // 6. Hàm upload ảnh qua /api/upload-image (dành cho file ảnh riêng)
     async function uploadImage(file) {
       try {
         const formData = new FormData();
@@ -389,7 +408,7 @@
       }
     }
     
-    // 7. Hàm upload attachment qua /api/tasks/:id/attachments
+    // 7. Hàm upload attachment qua /api/tasks/:id/attachments (dành cho file tài liệu hoặc ảnh đính kèm)
     async function uploadAttachment(taskId, file) {
       try {
         const formData = new FormData();
@@ -558,10 +577,37 @@
       }
     }
     
-    // 12. Xóa nhiệm vụ (admin)
+    // 12. Xóa nhiệm vụ (admin) và xóa file trên storage
     async function deleteTask(taskId) {
       if (!confirm("Xóa nhiệm vụ này?")) return;
       try {
+        // Lấy thông tin nhiệm vụ
+        const { data: taskData, error: taskError } = await fetchAPI(`/api/tasks/${taskId}`);
+        if (taskError) throw taskError;
+        
+        // Nếu có ảnh nhiệm vụ, xóa file từ bucket 'tasks-images'
+        if (taskData.image_path) {
+          const { error: removeImageError } = await supabase
+            .storage
+            .from('tasks-images')
+            .remove([taskData.image_path]);
+          if (removeImageError) console.error("Error removing task image:", removeImageError);
+        }
+        
+        // Lấy danh sách file đính kèm và xóa chúng
+        const { data: attachments, error: attError } = await fetchAPI(`/api/tasks/${taskId}/attachments`);
+        if (attError) throw attError;
+        for (const att of attachments) {
+          if (att.file_path) {
+            const { error: removeAttError } = await supabase
+              .storage
+              .from('tasks-attachments')
+              .remove([att.file_path]);
+            if (removeAttError) console.error("Error removing attachment:", removeAttError);
+          }
+        }
+        
+        // Xóa nhiệm vụ (và các record đính kèm sẽ cascade nếu DB được cấu hình)
         const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
         const result = await res.json();
         if (result.success) {
@@ -578,7 +624,18 @@
       }
     }
     
-    // 13. Toggle và load comment
+    // Utility: fetchAPI helper (GET)
+    async function fetchAPI(url) {
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        return { data };
+      } catch (error) {
+        return { error };
+      }
+    }
+    
+    // 13. Toggle comment
     async function toggleComments(taskId) {
       const container = document.getElementById(`comments-${taskId}`);
       if (container.style.display === 'none' || container.style.display === '') {
@@ -680,18 +737,72 @@
       setTimeout(() => { toast.remove(); }, 3500);
     }
     
-    // 16. Khi chuyển tab, load lại Calendar hoặc Report
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-      const target = $(e.target).attr("href");
-      if (target === "#calendar-pane") {
-        loadCalendar();
+    // 16. Khi chuyển tab, load lại Calendar và Report
+    $(document).ready(function(){
+      $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+        const target = $(e.target).attr("href");
+        if (target === "#calendar-pane") {
+          loadCalendar();
+        }
+        if (target === "#report-pane") {
+          loadReport();
+        }
+      });
+    });
+    
+    // 17. Xử lý form tạo nhiệm vụ
+    document.getElementById('taskForm').addEventListener('submit', async function(e) {
+      e.preventDefault(); // Ngăn form reload trang
+      const task = {
+        title: document.getElementById('taskTitle').value,
+        assignedTo: document.getElementById('taskAssigned').value,
+        priority: document.getElementById('taskPriority').value,
+        deadline: document.getElementById('taskDeadline').value,
+        description: document.getElementById('taskDescription').value,
+        status: 'Chưa thực hiện'
+      };
+      // Nếu có file đính kèm đã chọn (mảng selectedFiles)
+      if (selectedFiles.length > 0) {
+        // Nếu file đầu tiên là ảnh, ta upload qua /api/upload-image để lấy imageURL và file path
+        // (Nếu nhiều file, bạn có thể chọn cách: file ảnh dùng /api/upload-image, còn tài liệu dùng /api/tasks/:id/attachments sau khi tạo nhiệm vụ)
+        // Ví dụ: Ta upload file ảnh đầu tiên để set imageURL cho nhiệm vụ
+        const firstFile = selectedFiles[0];
+        if (firstFile.type.startsWith('image/')) {
+          const uploadResult = await uploadImage(firstFile);
+          if (!uploadResult.success) {
+            showToast("Upload ảnh thất bại: " + uploadResult.message);
+            return;
+          }
+          task.imageURL = uploadResult.imageUrl;
+          task.image_path = uploadResult.filePath; // lưu filePath để xóa sau nếu cần
+        }
       }
-      if (target === "#report-pane") {
-        loadReport();
+      try {
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(task)
+        });
+        const result = await res.json();
+        if (result.success) {
+          showToast("Nhiệm vụ được giao thành công!");
+          loadTasks();
+          loadProgress();
+          loadReport();
+          // Reset form
+          document.getElementById('taskForm').reset();
+          document.getElementById('filePreviewList').innerHTML = '';
+          selectedFiles = [];
+        } else {
+          showToast("Lỗi tạo nhiệm vụ: " + result.message);
+        }
+      } catch (err) {
+        console.error("Error creating task:", err);
+        showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
       }
     });
     
-    // 17. Khởi tạo trang
+    // 18. Khởi tạo trang
     async function initPage() {
       await checkAuth();
       loadTasks();
@@ -700,6 +811,9 @@
       loadCalendar();
     }
     window.onload = initPage;
+    
+    // Sử dụng mảng để lưu file đã chọn (cho phép nhiều file)
+    let selectedFiles = [];
   </script>
 </body>
 </html>
