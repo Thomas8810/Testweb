@@ -228,7 +228,7 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
     if (taskData.image_path) {
       const { error: removeImageError } = await supabase
         .storage
-        .from('tasks-images')
+        .from('task-images')
         .remove([taskData.image_path]);
       if (removeImageError) console.error("Error removing task image:", removeImageError);
     }
