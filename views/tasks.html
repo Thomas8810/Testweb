@@ -821,6 +821,32 @@
       loadReport();
       loadCalendar();
     }
+    async function loadProgress() {
+  try {
+    // Gọi API /api/progress để lấy dữ liệu
+    const res = await fetch('/api/progress');
+    const progressData = await res.json();
+    // Giả sử bạn có 1 thẻ <div id="progress-bars"> để hiển thị
+    let html = '';
+    progressData.forEach(user => {
+      let percent = (user.completed / user.total) * 100;
+      html += `
+        <div class="mb-2">
+          <p>${user.name} (${user.completed}/${user.total} nhiệm vụ)</p>
+          <div class="progress">
+            <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%;"
+              aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
+              ${percent.toFixed(1)}%
+            </div>
+          </div>
+        </div>`;
+    });
+    document.getElementById('progress-bars').innerHTML = html;
+  } catch (err) {
+    console.error("Error loading progress:", err);
+  }
+}
+
     window.onload = initPage;
   </script>
 </body>
