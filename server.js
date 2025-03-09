@@ -2,27 +2,23 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
-const session = require('express-session');
+const cookieSession = require('cookie-session'); // Sử dụng cookie-session thay vì express-session
 const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Cấu hình Multer để upload file vào bộ nhớ
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Cấu hình cookie-session: dữ liệu phiên sẽ được lưu trong cookie của client
+app.use(cookieSession({
+  name: 'session',
+  keys: ['your-secret-key'], // Thay đổi chuỗi bí mật này cho phù hợp
+  maxAge: 24 * 60 * 60 * 1000 // 1 ngày
+}));
 
 // Middleware để parse JSON và dữ liệu form
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Cấu hình session (in-memory store)
-app.use(session({
-  secret: 'your-secret-key', // Thay đổi thành chuỗi bí mật của bạn
-  resave: false,
-  saveUninitialized: false
-}));
 
 // Serve file tĩnh từ thư mục "public"
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,6 +28,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// ----------------------- CẤU HÌNH UPLOAD FILE -----------------------
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
 // Dữ liệu tra cứu từ file data.json (nếu cần cho các API search/export)
@@ -107,10 +107,8 @@ app.post('/login', (req, res) => {
 
 // Đăng xuất
 app.get('/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) console.error("Lỗi xóa session:", err);
-    res.redirect('/login.html');
-  });
+  req.session = null;
+  res.redirect('/login.html');
 });
 
 // ----------------------- TRANG -----------------------
@@ -122,7 +120,7 @@ app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 
-// Route cho trang Tasks (để hiển thị tasks.html)
+// Route cho trang Tasks (trang này sẽ không bắt buộc đăng nhập lại nếu đã có phiên)
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
@@ -220,7 +218,7 @@ app.get('/export', (req, res) => {
 });
 
 // ----------------------- TASKS ENDPOINTS (Supabase) -----------------------
-// GET tasks (đã được xử lý bởi route /tasks để gửi tasks.html cho giao diện)
+// GET tasks
 app.get('/api/tasks', isAuthenticated, async (req, res) => {
   try {
     let { data, error } = await supabase
@@ -323,6 +321,7 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
+  // Sử dụng cột "user" trong bảng task_comments (đảm bảo đã tạo cột này)
   const userName = req.session.user.name || req.session.user.email;
   try {
     let { data, error } = await supabase
