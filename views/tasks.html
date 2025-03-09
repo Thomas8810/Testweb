@@ -285,8 +285,8 @@
       return;
     }
     const ctx = canvas.getContext('2d');
-    if (window.tasksChart) {
-      window.tasksChart.destroy();
+ if (window.tasksChart && typeof window.tasksChart.destroy === 'function') {
+  window.tasksChart.destroy();
     }
     window.tasksChart = new Chart(ctx, {
       type: 'bar',
