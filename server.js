@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
-const cookieSession = require('cookie-session'); // Sử dụng cookie-session để lưu session trong cookie
+const cookieSession = require('cookie-session');
 const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 
@@ -83,13 +83,13 @@ function isAdmin(req, res, next) {
 }
 
 // ----------------------- API XÁC THỰC -----------------------
-// Kiểm tra thông tin đăng nhập của user
+// GET /api/me - kiểm tra thông tin đăng nhập của user
 app.get('/api/me', (req, res) => {
   if (!req.session.user) return res.json({ success: false });
   res.json({ success: true, user: req.session.user });
 });
 
-// Đăng nhập
+// POST /login - đăng nhập
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -105,21 +105,22 @@ app.post('/login', (req, res) => {
   res.json({ success: true, message: "Login successful" });
 });
 
-// Đăng xuất
+// GET /logout - đăng xuất
 app.get('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login.html');
 });
 
 // ----------------------- TRANG -----------------------
-// Trang Home
+// GET /home và /home.html
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
-// Route cho trang Tasks – nếu người dùng đã đăng nhập, file tasks.html được gửi
+
+// GET /tasks - gửi file tasks.html
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
@@ -163,6 +164,7 @@ app.get('/filters', (req, res) => {
     "Note": getDistinct("Note")
   });
 });
+
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -184,6 +186,7 @@ app.get('/search', (req, res) => {
   const paginatedData = filtered.slice(pageOffset, pageOffset + pageLimit);
   res.json({ total, data: paginatedData });
 });
+
 app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -216,13 +219,21 @@ app.get('/export', (req, res) => {
 });
 
 // ----------------------- TASKS ENDPOINTS (Supabase) -----------------------
-// GET tasks (API)
+// GET /api/tasks
+// Nếu user không phải admin, chỉ trả về nhiệm vụ của chính họ.
+// Nếu admin, có thể truyền query parameter assignedTo để lọc nhiệm vụ.
 app.get('/api/tasks', isAuthenticated, async (req, res) => {
   try {
-    let { data, error } = await supabase
+    let query = supabase
       .from('tasks')
       .select('*')
       .order('id', { ascending: true });
+    if (req.session.user.role !== 'admin') {
+      query = query.eq('assignedTo', req.session.user.name);
+    } else if (req.query.assignedTo) {
+      query = query.eq('assignedTo', req.query.assignedTo);
+    }
+    let { data, error } = await query;
     if (error) throw error;
     res.json(data);
   } catch (error) {
@@ -319,7 +330,7 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
-  // Sử dụng cột "user" trong bảng task_comments (đảm bảo bảng có cột này)
+  // Sử dụng cột "user" trong bảng task_comments (hãy đảm bảo bảng có cột này)
   const userName = req.session.user.name || req.session.user.email;
   try {
     let { data, error } = await supabase
