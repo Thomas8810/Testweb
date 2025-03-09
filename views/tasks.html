@@ -131,6 +131,11 @@
         <img id="imagePreview" class="preview-img" src="#" alt="Preview" style="display:none;">
       </div>
       <button type="submit" class="btn btn-primary">Giao nhiệm vụ</button>
+      document.getElementById('taskForm').addEventListener('submit', async function(e) {
+  e.preventDefault(); // Ngăn chặn hành vi gửi form mặc định
+  // Xử lý giao nhiệm vụ qua AJAX ở đây...
+});
+
     </form>
 
     <hr>
