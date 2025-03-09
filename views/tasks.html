@@ -706,52 +706,79 @@
     });
     
     // 17. Xử lý form tạo nhiệm vụ
-    document.getElementById('taskForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // Ngăn reload trang
-      const task = {
-        title: document.getElementById('taskTitle').value,
-        assignedTo: document.getElementById('taskAssigned').value,
-        priority: document.getElementById('taskPriority').value,
-        deadline: document.getElementById('taskDeadline').value,
-        description: document.getElementById('taskDescription').value,
-        status: 'Chưa thực hiện'
-      };
-      // Nếu có file được chọn, upload file ảnh đầu tiên để set imageURL (các file khác có thể upload sau dưới dạng attachment)
-      if (selectedFiles.length > 0) {
-        const firstFile = selectedFiles[0];
-        if (firstFile.type.startsWith('image/')) {
-          const uploadResult = await uploadImage(firstFile);
-          if (!uploadResult.success) {
-            showToast("Upload ảnh thất bại: " + uploadResult.message);
-            return;
+  document.getElementById('taskForm').addEventListener('submit', async function(e) {
+    e.preventDefault(); // Ngăn form reload trang
+
+    // 1) Tạo nhiệm vụ (không kèm ảnhURL)
+    const task = {
+      title: document.getElementById('taskTitle').value,
+      assignedTo: document.getElementById('taskAssigned').value,
+      priority: document.getElementById('taskPriority').value,
+      deadline: document.getElementById('taskDeadline').value,
+      description: document.getElementById('taskDescription').value,
+      status: 'Chưa thực hiện'
+    };
+
+    try {
+      // Gọi API tạo nhiệm vụ
+      const createRes = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      });
+      const createResult = await createRes.json();
+      if (!createResult.success) {
+        showToast("Lỗi tạo nhiệm vụ: " + createResult.message);
+        return;
+      }
+      const createdTask = createResult.task; // Chứa id, title, v.v.
+
+      // 2) Upload các file trong selectedFiles
+      // Nếu file đầu tiên (hoặc một file nào đó) là ảnh bạn muốn gán cho cột imageURL
+      // thì uploadImage -> PUT tasks. Còn lại uploadAttachment.
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        if (file.type.startsWith('image/') && i === 0) {
+          // Ví dụ: Lấy file đầu tiên là ảnh để gán cho cột imageURL
+          const uploadRes = await uploadImage(file);
+          if (uploadRes.success) {
+            // Cập nhật cột imageURL, image_path cho nhiệm vụ
+            await fetch(`/api/tasks/${createdTask.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageURL: uploadRes.imageUrl,
+                image_path: uploadRes.filePath
+              })
+            });
+          } else {
+            showToast("Upload ảnh thất bại: " + uploadRes.message);
           }
-          task.imageURL = uploadResult.imageUrl;
-          task.image_path = uploadResult.filePath; // lưu filePath để xóa nếu cần
-        }
-      }
-      try {
-        const res = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(task)
-        });
-        const result = await res.json();
-        if (result.success) {
-          showToast("Nhiệm vụ được giao thành công!");
-          loadTasks();
-          loadProgress();
-          loadReport();
-          document.getElementById('taskForm').reset();
-          document.getElementById('filePreviewList').innerHTML = '';
-          selectedFiles = [];
         } else {
-          showToast("Lỗi tạo nhiệm vụ: " + result.message);
+          // Còn lại thì upload dưới dạng file đính kèm
+          const attachRes = await uploadAttachment(createdTask.id, file);
+          if (!attachRes.success) {
+            showToast("Lỗi upload file: " + attachRes.message);
+          }
         }
-      } catch (err) {
-        console.error("Error creating task:", err);
-        showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
       }
-    });
+
+      // 3) Sau khi upload xong, loadTasks() để hiển thị
+      showToast("Nhiệm vụ được tạo và upload file thành công!");
+      loadTasks();
+      loadProgress();
+      loadReport();
+
+      // Reset form
+      document.getElementById('taskForm').reset();
+      document.getElementById('filePreviewList').innerHTML = '';
+      selectedFiles = [];
+
+    } catch (err) {
+      console.error("Error creating task:", err);
+      showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
+    }
+  });
     
     // 18. Khởi tạo trang
     async function initPage() {
