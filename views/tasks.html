@@ -260,32 +260,63 @@
     }
     
     // 3. Load báo cáo với Chart.js
-    async function loadReport() {
-      try {
-        const res = await fetch('/api/tasks');
-        const tasks = await res.json();
-        let counts = { "Chưa thực hiện": 0, "Đang thực hiện": 0, "Hoàn thành": 0 };
-        tasks.forEach(task => {
-          if (counts[task.status] !== undefined) counts[task.status]++;
-        });
-        const ctx = document.getElementById('tasksChart').getContext('2d');
-        if (window.tasksChart) window.tasksChart.destroy();
-        window.tasksChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: Object.keys(counts),
-            datasets: [{
-              label: 'Số lượng nhiệm vụ',
-              data: Object.values(counts),
-              backgroundColor: ['#dc3545', '#ffc107', '#28a745']
-            }]
-          },
-          options: { scales: { y: { beginAtZero: true, precision: 0 } } }
-        });
-      } catch (err) {
-        console.error("Error loading report:", err);
+ async function loadReport() {
+  try {
+    // Gọi API lấy danh sách nhiệm vụ
+    const res = await fetch('/api/tasks');
+    const tasks = await res.json();
+    console.log("Tasks for report:", tasks);
+
+    // Đếm số nhiệm vụ theo 3 trạng thái mong đợi
+    let counts = { "Chưa thực hiện": 0, "Đang thực hiện": 0, "Hoàn thành": 0 };
+    tasks.forEach(task => {
+      if (task.status in counts) {
+        counts[task.status]++;
+      } else {
+        console.warn("Unexpected status:", task.status);
       }
+    });
+    console.log("Counts:", counts);
+
+    // Lấy canvas và vẽ biểu đồ
+    const canvas = document.getElementById('tasksChart');
+    if (!canvas) {
+      console.error("Không tìm thấy canvas với id 'tasksChart'");
+      return;
     }
+    const ctx = canvas.getContext('2d');
+    if (window.tasksChart) {
+      window.tasksChart.destroy();
+    }
+    window.tasksChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(counts),
+        datasets: [{
+          label: 'Số lượng nhiệm vụ',
+          data: Object.values(counts),
+          backgroundColor: ['#dc3545', '#ffc107', '#28a745']
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  } catch (err) {
+    console.error("Error loading report:", err);
+  }
+}
+
+// Nếu dùng Bootstrap tabs, bạn có thể gọi loadReport khi tab báo cáo được hiển thị:
+$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+  const target = $(e.target).attr("href");
+  if (target === "#report-pane") {
+    loadReport();
+  }
+});
+
     
     // 4. Load FullCalendar
     async function loadCalendar() {
