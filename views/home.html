@@ -37,6 +37,21 @@
       padding: 10px;
       position: relative;
     }
+    .btn btn-info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #fff;
+  background: #007bff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.btn btn-info:hover {
+  background: #0056b3;
+}
     .header h1 { margin: 0; font-size: 28px; color: white; }
     .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
     /* Language switcher ở góc trên bên phải */
@@ -265,6 +280,9 @@
   <div class="page-container">
     <div class="top-container">
       <div class="header">
+              <!-- tự thêm nút task -->
+      <!-- Nút chuyển đến trang Quản lý Nhiệm vụ -->
+        <a href="/tasks" class="btn btn-info" style="margin: 10px;">Tasks</a>
         <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
         <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
         <!-- Nút chuyển đổi ngôn ngữ ở góc trên bên phải -->
@@ -274,9 +292,7 @@
           <button onclick="changeLanguage('ko')">Ko</button>
         </div>
       </div>
-      <!-- tự thêm nút task -->
-      <!-- Nút chuyển đến trang Quản lý Nhiệm vụ -->
-<a href="/tasks" class="btn btn-info" style="margin: 10px;">Tasks</a>
+
 
       <!-- Phần tiêu chí lọc -->
       <div class="filter-bar">
