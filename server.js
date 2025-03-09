@@ -2,17 +2,17 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
-const cookieSession = require('cookie-session'); // Sử dụng cookie-session thay vì express-session
+const cookieSession = require('cookie-session'); // Sử dụng cookie-session thay cho express-session
 const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Cấu hình cookie-session: dữ liệu phiên sẽ được lưu trong cookie của client
+// Cấu hình cookie-session: dữ liệu phiên được lưu trong cookie của client
 app.use(cookieSession({
   name: 'session',
-  keys: ['your-secret-key'], // Thay đổi chuỗi bí mật này cho phù hợp
+  keys: ['your-secret-key'], // Thay đổi chuỗi bí mật này
   maxAge: 24 * 60 * 60 * 1000 // 1 ngày
 }));
 
@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ----------------------- SUPABASE KHỞI TẠO -----------------------
-// Các biến môi trường SUPABASE_URL và SUPABASE_KEY phải được cấu hình trên Vercel
+// Các biến môi trường SUPABASE_URL và SUPABASE_KEY phải được cấu hình trên Vercel hoặc file .env
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -34,7 +34,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
-// Dữ liệu tra cứu từ file data.json (nếu cần cho các API search/export)
+// Load dữ liệu tra cứu từ file data.json (nếu cần cho các API search/export)
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
 function loadDataFromFile() {
@@ -45,14 +45,14 @@ function loadDataFromFile() {
     } else {
       cachedData = [];
     }
-    console.log("Dữ liệu tra cứu đã được tải thành công.");
+    console.log("Data loaded from data.json");
   } catch (err) {
-    console.error("Lỗi đọc data.json:", err);
+    console.error("Error reading data.json:", err);
   }
 }
 loadDataFromFile();
 
-// Dữ liệu người dùng từ file users.json
+// Load dữ liệu người dùng từ file users.json
 const usersFilePath = path.join(__dirname, 'users.json');
 let usersData = [];
 function loadUsersData() {
@@ -63,9 +63,9 @@ function loadUsersData() {
     } else {
       usersData = [];
     }
-    console.log("Dữ liệu người dùng đã được tải thành công.");
+    console.log("Users data loaded");
   } catch (err) {
-    console.error("Lỗi đọc users.json:", err);
+    console.error("Error reading users.json:", err);
     usersData = [];
   }
 }
@@ -79,7 +79,7 @@ function isAuthenticated(req, res, next) {
 
 function isAdmin(req, res, next) {
   if (req.session && req.session.user && req.session.user.role === 'admin') return next();
-  res.status(403).json({ success: false, message: "Chỉ admin mới có quyền thực hiện thao tác này." });
+  res.status(403).json({ success: false, message: "Admin privileges required" });
 }
 
 // ----------------------- API XÁC THỰC -----------------------
@@ -93,16 +93,16 @@ app.get('/api/me', (req, res) => {
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
-    return res.json({ success: false, message: "Vui lòng nhập đủ tên/email và mật khẩu." });
+    return res.json({ success: false, message: "Missing identifier or password" });
   }
   const user = usersData.find(u =>
     u.email.toLowerCase() === identifier.toLowerCase() ||
     u.name.toLowerCase() === identifier.toLowerCase()
   );
-  if (!user) return res.json({ success: false, message: "Người dùng không tồn tại." });
-  if (user.password !== password) return res.json({ success: false, message: "Sai mật khẩu." });
+  if (!user) return res.json({ success: false, message: "User not found" });
+  if (user.password !== password) return res.json({ success: false, message: "Incorrect password" });
   req.session.user = { name: user.name, email: user.email, role: user.role };
-  return res.json({ success: true, message: "Đăng nhập thành công." });
+  res.json({ success: true, message: "Login successful" });
 });
 
 // Đăng xuất
@@ -119,14 +119,12 @@ app.get('/home', isAuthenticated, (req, res) => {
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
-
-// Route cho trang Tasks (trang này sẽ không bắt buộc đăng nhập lại nếu đã có phiên)
+// Route cho trang Tasks (nếu đã đăng nhập, người dùng sẽ không bị chuyển hướng về login)
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
 
 // ----------------------- API TRA CỨU & XUẤT (data.json) -----------------------
-// (Giữ nguyên nếu cần)
 app.get('/filters', (req, res) => {
   const getDistinct = (col) => {
     const values = cachedData.map(row => row[col]).filter(v => v != null);
@@ -165,6 +163,7 @@ app.get('/filters', (req, res) => {
     "Note": getDistinct("Note")
   });
 });
+
 app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -186,6 +185,7 @@ app.get('/search', (req, res) => {
   const paginatedData = filtered.slice(pageOffset, pageOffset + pageLimit);
   res.json({ total, data: paginatedData });
 });
+
 app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -218,7 +218,7 @@ app.get('/export', (req, res) => {
 });
 
 // ----------------------- TASKS ENDPOINTS (Supabase) -----------------------
-// GET tasks
+// GET tasks (API)
 app.get('/api/tasks', isAuthenticated, async (req, res) => {
   try {
     let { data, error } = await supabase
@@ -321,7 +321,6 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
-  // Sử dụng cột "user" trong bảng task_comments (đảm bảo đã tạo cột này)
   const userName = req.session.user.name || req.session.user.email;
   try {
     let { data, error } = await supabase
