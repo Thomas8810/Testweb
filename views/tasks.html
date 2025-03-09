@@ -24,13 +24,20 @@
     #dropzone.dragover {
       background-color: #eee;
     }
+    .comments-container {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
   </style>
 </head>
 <body>
   <div class="container mt-4">
     <h1>Quản lý Nhiệm vụ</h1>
     <hr>
-    <!-- Form tạo nhiệm vụ (chỉ admin được phép tạo mới) -->
+    <!-- Form tạo nhiệm vụ (chỉ admin mới được phép tạo) -->
     <form id="taskForm">
       <div class="form-group">
         <label for="taskTitle">Tên nhiệm vụ:</label>
@@ -40,7 +47,7 @@
         <label for="taskAssigned">Giao cho:</label>
         <select class="form-control" id="taskAssigned" required>
           <option value="">Chọn người nhận</option>
-          <!-- Danh sách người nhận có thể được load động -->
+          <!-- Danh sách người nhận -->
           <option value="Thiet">Thiet</option>
           <option value="Son">Son</option>
           <option value="Hai">Hai</option>
@@ -93,20 +100,18 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Danh sách nhiệm vụ sẽ được load qua API -->
+        <!-- Nhiệm vụ sẽ được load qua API -->
       </tbody>
     </table>
   </div>
 
   <script>
-    let selectedImageFile = null; // Biến lưu file ảnh chọn từ input/drag&drop/paste
+    let selectedImageFile = null; // Lưu file ảnh từ input/drag/paste
 
     // Hiển thị preview khi chọn file qua input
     document.getElementById('taskImage').addEventListener('change', function(event) {
       const file = event.target.files[0];
-      if (file) {
-        handleFile(file);
-      }
+      if (file) handleFile(file);
     });
 
     // Drag & Drop
@@ -122,9 +127,7 @@
       e.preventDefault();
       dropzone.classList.remove('dragover');
       const file = e.dataTransfer.files[0];
-      if (file) {
-        handleFile(file);
-      }
+      if (file) handleFile(file);
     });
 
     // Paste ảnh
@@ -139,7 +142,7 @@
       }
     });
 
-    // Hàm xử lý file ảnh: hiển thị preview và lưu file vào biến global
+    // Hàm xử lý file ảnh: preview & lưu file vào biến global
     function handleFile(file) {
       if (file && file.type.startsWith('image/')) {
         selectedImageFile = file;
@@ -148,14 +151,14 @@
           const img = document.getElementById('imagePreview');
           img.src = e.target.result;
           img.style.display = 'block';
-        }
+        };
         reader.readAsDataURL(file);
       } else {
         alert('File không phải hình ảnh!');
       }
     }
 
-    // Hàm upload ảnh qua API /api/upload-image
+    // Upload ảnh qua API /api/upload-image
     async function uploadImage(file) {
       const formData = new FormData();
       formData.append('image', file);
@@ -163,10 +166,10 @@
         method: 'POST',
         body: formData
       });
-      return await response.json(); // Kỳ vọng trả về { success: boolean, imageUrl: string }
+      return await response.json(); // { success: boolean, imageUrl: string }
     }
 
-    // Hàm load danh sách nhiệm vụ từ API /api/tasks
+    // Load danh sách nhiệm vụ qua API /api/tasks
     async function loadTasks() {
       try {
         const response = await fetch('/api/tasks');
@@ -195,6 +198,12 @@
             <td>
               ${ task.status !== "Hoàn thành" ? `<button class="btn btn-success btn-sm" onclick="completeTask(${task.id})">Hoàn thành</button>` : '' }
               <button class="btn btn-warning btn-sm" onclick="handoverTask(${task.id})">Bàn giao</button>
+              <button class="btn btn-info btn-sm" onclick="toggleComments(${task.id})">Xem Comment</button>
+              <div id="comments-${task.id}" class="comments-container" style="display:none;">
+                <div id="comments-list-${task.id}"></div>
+                <textarea id="new-comment-${task.id}" class="form-control" rows="2" placeholder="Nhập comment..."></textarea>
+                <button class="btn btn-primary btn-sm mt-2" onclick="postComment(${task.id})">Gửi</button>
+              </div>
             </td>
           `;
           tbody.appendChild(tr);
@@ -204,7 +213,7 @@
       }
     }
 
-    // Hàm đánh dấu nhiệm vụ là "Hoàn thành"
+    // Đánh dấu nhiệm vụ là "Hoàn thành"
     async function completeTask(taskId) {
       if (!confirm("Bạn có chắc muốn đánh dấu nhiệm vụ này là 'Hoàn thành'?")) return;
       try {
@@ -225,7 +234,7 @@
       }
     }
 
-    // Hàm bàn giao nhiệm vụ: cho phép admin nhập tên người nhận mới
+    // Bàn giao nhiệm vụ: admin nhập tên người nhận mới
     async function handoverTask(taskId) {
       const newAssignee = prompt("Nhập tên người nhận mới:");
       if (!newAssignee) return;
@@ -244,6 +253,61 @@
         }
       } catch (err) {
         console.error("Error handing over task:", err);
+      }
+    }
+
+    // Toggle hiển thị/ẩn comment cho nhiệm vụ
+    async function toggleComments(taskId) {
+      const container = document.getElementById(`comments-${taskId}`);
+      if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+        await loadComments(taskId);
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    // Load comment cho nhiệm vụ
+    async function loadComments(taskId) {
+      try {
+        const response = await fetch(`/api/tasks/${taskId}/comments`);
+        const comments = await response.json();
+        const list = document.getElementById(`comments-list-${taskId}`);
+        list.innerHTML = '';
+        comments.forEach(comment => {
+          const p = document.createElement('p');
+          p.innerHTML = `<strong>${comment.user}</strong>: ${comment.comment_text}<br><small>${new Date(comment.created_at).toLocaleString()}</small>`;
+          list.appendChild(p);
+        });
+      } catch (err) {
+        console.error("Error loading comments:", err);
+      }
+    }
+
+    // Gửi comment mới cho nhiệm vụ
+    async function postComment(taskId) {
+      const textArea = document.getElementById(`new-comment-${taskId}`);
+      const commentText = textArea.value.trim();
+      if (!commentText) {
+        alert("Vui lòng nhập nội dung comment.");
+        return;
+      }
+      try {
+        const response = await fetch(`/api/tasks/${taskId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ comment_text: commentText })
+        });
+        const result = await response.json();
+        if (result.success) {
+          alert("Comment đã được gửi!");
+          textArea.value = '';
+          await loadComments(taskId);
+        } else {
+          alert("Lỗi: " + result.message);
+        }
+      } catch (err) {
+        console.error("Error posting comment:", err);
       }
     }
 
