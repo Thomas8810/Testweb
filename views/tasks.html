@@ -72,7 +72,7 @@
       </div>
 
       <!-- Khu vực kéo thả ảnh -->
-      <div id="dropzone">Kéo & thả ảnh vào đây (hoặc paste ảnh khi bấm Ctrl+V)</div>
+      <div id="dropzone">Kéo & thả ảnh vào đây (hoặc dán ảnh khi bấm Ctrl+V)</div>
 
       <div class="form-group">
         <label for="taskImage">Hoặc chọn file ảnh (tùy chọn):</label>
@@ -190,7 +190,15 @@
             <td>${task.deadline}</td>
             <td>${task.description || ''}</td>
             <td>${task.status}</td>
-            <td>${task.imageURL ? `<img src="${task.imageURL}" style="max-width:100px;">` : 'N/A'}</td>
+            <td>
+              ${
+                task.imageURL
+                  ? `<a href="${task.imageURL}" target="_blank" download>
+                       <img src="${task.imageURL}" style="max-width:100px;" alt="thumbnail">
+                     </a>`
+                  : 'N/A'
+              }
+            </td>
           `;
           tbody.appendChild(tr);
         });
