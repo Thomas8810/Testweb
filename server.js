@@ -9,14 +9,14 @@ const multer = require('multer');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Cấu hình cookie-session: dữ liệu phiên được lưu trong cookie của client
+// Cấu hình cookie-session: lưu session trong cookie của client
 app.use(cookieSession({
   name: 'session',
-  keys: ['your-secret-key'], // Thay đổi chuỗi bí mật này
+  keys: ['your-secret-key'], // Thay đổi chuỗi bí mật
   maxAge: 24 * 60 * 60 * 1000 // 1 ngày
 }));
 
-// Middleware để parse JSON và dữ liệu form
+// Middleware parse JSON & form data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ----------------------- SUPABASE KHỞI TẠO -----------------------
-// Các biến môi trường SUPABASE_URL và SUPABASE_KEY phải được cấu hình trên Vercel hoặc file .env
+// Các biến môi trường SUPABASE_URL và SUPABASE_KEY phải được thiết lập
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -34,7 +34,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // ----------------------- PHẦN DỮ LIỆU -----------------------
-// Load dữ liệu tra cứu từ file data.json (nếu cần cho các API search/export)
+// Load dữ liệu từ data.json (nếu cần)
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
 function loadDataFromFile() {
@@ -52,7 +52,7 @@ function loadDataFromFile() {
 }
 loadDataFromFile();
 
-// Load dữ liệu người dùng từ file users.json
+// Load dữ liệu người dùng từ users.json
 const usersFilePath = path.join(__dirname, 'users.json');
 let usersData = [];
 function loadUsersData() {
@@ -76,20 +76,19 @@ function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) return next();
   res.redirect('/login.html');
 }
-
 function isAdmin(req, res, next) {
   if (req.session && req.session.user && req.session.user.role === 'admin') return next();
   res.status(403).json({ success: false, message: "Admin privileges required" });
 }
 
 // ----------------------- API XÁC THỰC -----------------------
-// GET /api/me - kiểm tra thông tin đăng nhập của user
+// Kiểm tra thông tin user
 app.get('/api/me', (req, res) => {
   if (!req.session.user) return res.json({ success: false });
   res.json({ success: true, user: req.session.user });
 });
 
-// POST /login - đăng nhập
+// Đăng nhập
 app.post('/login', (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -105,27 +104,27 @@ app.post('/login', (req, res) => {
   res.json({ success: true, message: "Login successful" });
 });
 
-// GET /logout - đăng xuất
+// Đăng xuất
 app.get('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login.html');
 });
 
 // ----------------------- TRANG -----------------------
-// GET /home và /home.html
+// Home
 app.get('/home', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 app.get('/home.html', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
-
-// GET /tasks - gửi file tasks.html
+// Tasks page
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
 
 // ----------------------- API TRA CỨU & XUẤT (data.json) -----------------------
+// (Giữ nguyên nếu cần)
 app.get('/filters', (req, res) => {
   const getDistinct = (col) => {
     const values = cachedData.map(row => row[col]).filter(v => v != null);
@@ -220,8 +219,7 @@ app.get('/export', (req, res) => {
 
 // ----------------------- TASKS ENDPOINTS (Supabase) -----------------------
 // GET /api/tasks
-// Nếu user không phải admin, chỉ trả về nhiệm vụ của chính họ.
-// Nếu admin, có thể truyền query parameter assignedTo để lọc nhiệm vụ.
+// Nếu user không phải admin, chỉ trả về nhiệm vụ của chính họ; nếu admin, có thể truyền query assignedTo.
 app.get('/api/tasks', isAuthenticated, async (req, res) => {
   try {
     let query = supabase
@@ -242,7 +240,7 @@ app.get('/api/tasks', isAuthenticated, async (req, res) => {
   }
 });
 
-// POST new task (chỉ admin)
+// POST /api/tasks - Tạo nhiệm vụ (chỉ admin)
 app.post('/api/tasks', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const { title, assignedTo, priority, deadline, description, status, imageURL } = req.body;
@@ -261,7 +259,17 @@ app.post('/api/tasks', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
-// PUT update task (admin có thể cập nhật mọi trường; user chỉ cập nhật nếu nhiệm vụ được giao)
+// Hàm ghi log lịch sử thay đổi nhiệm vụ
+async function logTaskHistory(taskId, changedBy, action, oldValue, newValue) {
+  const { data, error } = await supabase
+    .from('task_history')
+    .insert([{ task_id: taskId, changed_by: changedBy, action, old_value: oldValue, new_value: newValue }])
+    .select();
+  if (error) console.error("Error logging task history:", error);
+  return data;
+}
+
+// PUT /api/tasks/:id - Cập nhật nhiệm vụ (admin có thể cập nhật mọi trường; user chỉ cập nhật nếu được giao)
 app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   try {
@@ -278,12 +286,18 @@ app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
     if (req.session.user.role !== 'admin') {
       delete updateData.assignedTo;
     }
+    // Ghi log thay đổi nếu có (ví dụ thay đổi trạng thái)
+    const oldStatus = taskData.status;
+    const newStatus = updateData.status;
     let { data, error: updateError } = await supabase
       .from('tasks')
       .update(updateData)
       .eq('id', taskId)
       .select();
     if (updateError) throw updateError;
+    if (newStatus && newStatus !== oldStatus) {
+      await logTaskHistory(taskId, req.session.user.name, 'Status change', oldStatus, newStatus);
+    }
     res.json({ success: true, task: data[0] });
   } catch (error) {
     console.error("Error in PUT /api/tasks/:id:", error);
@@ -291,7 +305,7 @@ app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-// DELETE task (chỉ admin)
+// DELETE /api/tasks/:id - Xóa nhiệm vụ (chỉ admin)
 app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
   const taskId = req.params.id;
   try {
@@ -308,8 +322,61 @@ app.delete('/api/tasks/:id', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
+// ----------------------- ATTACHMENTS ENDPOINTS -----------------------
+// POST /api/tasks/:id/attachments - Upload file đính kèm cho nhiệm vụ
+app.post('/api/tasks/:id/attachments', isAuthenticated, upload.single('file'), async (req, res) => {
+  const taskId = req.params.id;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file provided' });
+    }
+    const fileName = `attachments/${Date.now()}_${req.file.originalname}`;
+    let { data, error } = await supabase
+      .storage
+      .from('tasks-attachments')
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
+    if (error) throw error;
+    const { data: publicUrlData, error: publicUrlError } = supabase
+      .storage
+      .from('tasks-attachments')
+      .getPublicUrl(data.path);
+    if (publicUrlError) throw publicUrlError;
+    let { data: attachData, error: dbError } = await supabase
+      .from('task_attachments')
+      .insert([{
+        task_id: taskId,
+        file_name: req.file.originalname,
+        file_url: publicUrlData.publicUrl,
+        file_type: req.file.mimetype
+      }])
+      .select();
+    if (dbError) throw dbError;
+    res.json({ success: true, attachment: attachData[0] });
+  } catch (error) {
+    console.error("Error uploading attachment:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET /api/tasks/:id/attachments - Lấy danh sách file đính kèm cho nhiệm vụ
+app.get('/api/tasks/:id/attachments', isAuthenticated, async (req, res) => {
+  const taskId = req.params.id;
+  try {
+    let { data, error } = await supabase
+      .from('task_attachments')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching attachments:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ----------------------- COMMENTS ENDPOINTS -----------------------
-// GET comments cho nhiệm vụ
+// GET /api/tasks/:id/comments - Lấy comment cho nhiệm vụ
 app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   try {
@@ -326,11 +393,10 @@ app.get('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   }
 });
 
-// POST new comment cho nhiệm vụ
+// POST /api/tasks/:id/comments - Tạo comment cho nhiệm vụ
 app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
   const taskId = req.params.id;
   const { comment_text } = req.body;
-  // Sử dụng cột "user" trong bảng task_comments (hãy đảm bảo bảng có cột này)
   const userName = req.session.user.name || req.session.user.email;
   try {
     let { data, error } = await supabase
@@ -346,6 +412,7 @@ app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
 });
 
 // ----------------------- IMAGE UPLOAD ENDPOINT -----------------------
+// POST /api/upload-image - Upload ảnh cho nhiệm vụ
 app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
@@ -354,18 +421,12 @@ app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (re
       .storage
       .from('tasks-images')
       .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
-    if (error) {
-      console.error("Error uploading image:", error);
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    if (error) throw error;
     const { data: publicUrlData, error: publicUrlError } = supabase
       .storage
       .from('tasks-images')
       .getPublicUrl(data.path);
-    if (publicUrlError) {
-      console.error("Error getting public URL:", publicUrlError);
-      return res.status(500).json({ success: false, message: publicUrlError.message });
-    }
+    if (publicUrlError) throw publicUrlError;
     res.json({ success: true, imageUrl: publicUrlData.publicUrl });
   } catch (error) {
     console.error("Error in POST /api/upload-image:", error);
@@ -374,7 +435,7 @@ app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (re
 });
 
 // ----------------------- PROGRESS ENDPOINT -----------------------
-// API lấy tiến độ công việc của từng user (dựa trên nhiệm vụ)
+// GET /api/progress - Lấy tiến độ công việc của từng user
 app.get('/api/progress', isAuthenticated, async (req, res) => {
   try {
     let { data, error } = await supabase
