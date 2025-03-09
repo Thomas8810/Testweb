@@ -262,6 +262,7 @@ app.post('/api/tasks', isAuthenticated, async (req, res) => {
     let { data, error } = await supabase
       .from('tasks')
       .insert([{ title, assignedTo, priority, deadline, description, status }]);
+      .select(); // <--- BẮT BUỘC CÓ ĐỂ LẤY BẢN GHI VỪA THÊM
     if (error) throw error;
     res.json({ success: true, task: data[0] });
   } catch (error) {
