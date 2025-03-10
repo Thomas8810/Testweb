@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -27,9 +29,9 @@
     .home-link:hover {
       background: #0056b3;
     }
-    
-    /* Mobile optimization cho nút Home */
-    @media (max-width: 480px) {
+
+    /* Mobile optimization */
+    @media (max-width: 576px) {
       .home-link {
         position: relative;
         top: 0;
@@ -40,8 +42,29 @@
         padding: 10px 0;
         font-size: 16px;
       }
+      .comments-container {
+    width: 80%; /* hoặc giá trị cụ thể bạn mong muốn */
+    padding: 10px; /* điều chỉnh padding nếu cần */
+      }
+      #welcome {
+        text-align: center;
+        font-size: 14px;
+      }
+      
+      .comment-input-area textarea {
+        height: 60px;
+      }
+      
+      #tasksTable th, #tasksTable td {
+        padding: 8px 4px;
+      }
+      
+      .btn-sm {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+      }
     }
-    
+
     /* Responsive Nav Tabs */
     @media (max-width: 576px) {
       .nav-tabs {
@@ -56,7 +79,7 @@
         font-size: 12px;
       }
     }
-    
+
     /* Dropzone styles */
     #dropzone {
       border: 2px dashed #ccc;
@@ -70,7 +93,7 @@
     #dropzone.dragover {
       background-color: #eee;
     }
-    
+
     /* File preview styles */
     #filePreviewList { margin-top: 10px; }
     .preview-item {
@@ -113,7 +136,7 @@
       right: 20px;
       z-index: 9999;
     }
-    
+
     /* Cố định tiêu đề bảng */
     thead th {
       position: sticky;
@@ -121,23 +144,191 @@
       background: #fff;
       z-index: 10;
     }
-    
+
     /* Đặt chiều cao tối đa cho vùng table-responsive để cuộn dọc */
     .table-responsive {
       max-height: calc(100vh - 250px);
       overflow-y: auto;
     }
-    
+
     /* Căn giữa chữ trong bảng */
     #tasksTable th,
     #tasksTable td {
       text-align: center;
       vertical-align: middle;
     }
-     /* Tăng độ rộng cột Hành động (10) */
-#tasksTable th:nth-child(10),
-#tasksTable td:nth-child(10) {
-    width: 300px;
+     /* Đặt kích thước cố định cho các cột để tránh co nhỏ */
+  #tasksTable {
+    table-layout: fixed !important;
+    min-width: 1500px !important; /* Tổng chiều rộng tối thiểu của bảng */
+  }
+
+  /* Định nghĩa chiều rộng cho từng cột */
+  #tasksTable th:nth-child(1), #tasksTable td:nth-child(1) { width: 50px; min-width: 50px; } /* STT */
+  #tasksTable th:nth-child(2), #tasksTable td:nth-child(2) { width: 180px; min-width: 180px; } /* Tên nhiệm vụ */
+  #tasksTable th:nth-child(3), #tasksTable td:nth-child(3) { width: 100px; min-width: 100px; } /* Người nhận */
+  #tasksTable th:nth-child(4), #tasksTable td:nth-child(4) { width: 100px; min-width: 100px; } /* Mức ưu tiên */
+  #tasksTable th:nth-child(5), #tasksTable td:nth-child(5) { width: 100px; min-width: 100px; } /* Thời hạn */
+  #tasksTable th:nth-child(6), #tasksTable td:nth-child(6) { width: 200px; min-width: 200px; } /* Mô tả */
+  #tasksTable th:nth-child(7), #tasksTable td:nth-child(7) { width: 120px; min-width: 120px; } /* Trạng thái */
+  #tasksTable th:nth-child(8), #tasksTable td:nth-child(8) { width: 120px; min-width: 120px; } /* File đính kèm */
+  #tasksTable th:nth-child(9), #tasksTable td:nth-child(9) { width: 120px; min-width: 120px; } /* Hình ảnh */
+  #tasksTable th:nth-child(10), #tasksTable td:nth-child(10) { 
+    width: 550px; 
+    min-width: 550px; 
+    max-width: 550px;
+  } /* Hành động */
+
+  /* Cải thiện hiển thị phần comments */
+  .comments-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .comments-list p {
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .comments-list p:last-child {
+    margin-bottom: 5px;
+  }
+
+  .comment-user {
+    font-weight: bold;
+    color: #0056b3;
+  }
+
+  .comment-date {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-left: 5px;
+  }
+
+  .comment-input-area {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    border-top: 1px solid #dee2e6;
+    padding-top: 10px;
+  }
+
+  .comment-input-area textarea {
+    resize: none;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 8px;
+    background-color: white;
+  }
+
+  .comment-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .comment-count {
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    margin-left: 5px;
+  }
+  
+  /* Task Statistics */
+  .task-stat {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Task Detail Modal */
+  .task-detail-item {
+    margin-bottom: 15px;
+  }
+  
+  .task-detail-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #495057;
+  }
+  
+  .task-detail-comments {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-weight: bold;
+  }
+  
+  .status-pending {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .status-progress {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .status-completed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  /* Priority badges */
+  .priority-cao {
+    color: #dc3545;
+    font-weight: bold;
+  }
+  
+  .priority-trungbinh {
+    color: #fd7e14;
+  }
+  
+  .priority-thap {
+    color: #6c757d;
+  }
+  
+  /* Overdue task highlight */
+  .task-overdue {
+    background-color: #ffe6e6 !important;
+  }
+
+  /* Cho phép nội dung wrapping trong từng ô */
+  #tasksTable td {
+    white-space: normal !important;
+    word-wrap: break-word;
+    vertical-align: middle;
+  }
+
+  /* Cải thiện thanh cuộn ngang cho bảng */
+  .table-responsive {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
   }
   </style>
 </head>
@@ -146,7 +337,7 @@
     <!-- User Welcome Section -->
     <div id="welcome" class="mb-3"></div>
     <a href="/home" class="home-link">Home</a>
-    
+
     <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="tasksTab" role="tablist">
       <li class="nav-item">
@@ -159,25 +350,70 @@
         <a class="nav-link" id="report-tab" data-toggle="tab" href="#report-pane" role="tab" aria-controls="report-pane" aria-selected="false">Báo cáo</a>
       </li>
     </ul>
-    
+
     <div class="tab-content" id="tasksTabContent">
       <!-- Tab Danh sách nhiệm vụ -->
       <div class="tab-pane fade show active" id="list-pane" role="tabpanel" aria-labelledby="list-tab">
         <div class="mt-3">
-          <!-- Tìm kiếm & Sắp xếp -->
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm nhiệm vụ...">
+          <!-- Task Statistics Dashboard -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body p-2">
+                    <div class="row">
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat" id="total-tasks">
+                                <h4 class="m-0">0</h4>
+                                <small>Tổng nhiệm vụ</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat bg-danger text-white">
+                                <h4 class="m-0" id="pending-tasks">0</h4>
+                                <small>Chưa thực hiện</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat bg-warning text-dark">
+                                <h4 class="m-0" id="progress-tasks">0</h4>
+                                <small>Đang thực hiện</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat bg-success text-white">
+                                <h4 class="m-0" id="completed-tasks">0</h4>
+                                <small>Hoàn thành</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4">
-              <select id="sortSelect" class="form-control">
+        </div>
+    </div>
+
+    <!-- Tìm kiếm & Sắp xếp -->
+    <div class="row mb-3">
+        <div class="col-md-4 col-sm-12 mb-2">
+            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm nhiệm vụ...">
+        </div>
+        <div class="col-md-4 col-sm-6 mb-2">
+            <select id="sortSelect" class="form-control">
                 <option value="">Sắp xếp theo...</option>
                 <option value="deadline">Deadline</option>
                 <option value="priority">Ưu tiên</option>
-              </select>
+                <option value="status">Trạng thái</option>
+            </select>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-2">
+            <div class="btn-group btn-block" role="group">
+                <button type="button" class="btn btn-outline-secondary" onclick="filterByStatus('all')">Tất cả</button>
+                <button type="button" class="btn btn-outline-danger" onclick="filterByStatus('Chưa thực hiện')">Chưa làm</button>
+                <button type="button" class="btn btn-outline-warning" onclick="filterByStatus('Đang thực hiện')">Đang làm</button>
+                <button type="button" class="btn btn-outline-success" onclick="filterByStatus('Hoàn thành')">Hoàn thành</button>
             </div>
-          </div>
-          
+        </div>
+    </div>
+
           <!-- Lọc theo người (admin) -->
           <div id="filter-section" style="display: none;" class="mb-3">
             <label for="filterAssigned">Lọc theo người nhận:</label>
@@ -192,7 +428,7 @@
               <option value="Ha">Ha</option>
             </select>
           </div>
-          
+
           <!-- Phần tạo nhiệm vụ mới chỉ dành cho admin -->
           <div id="createTaskContainer" class="mb-3">
             <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#createTaskForm" aria-expanded="false" aria-controls="createTaskForm">
@@ -244,7 +480,7 @@
               </form>
             </div>
           </div>
-          
+
           <!-- Bảng nhiệm vụ (bao bọc trong .table-responsive) -->
           <div class="table-responsive">
             <table class="table table-bordered" id="tasksTable">
@@ -265,12 +501,12 @@
               <tbody></tbody>
             </table>
           </div>
-          
+
           <!-- Khu vực hiển thị tiến độ (nếu cần) -->
           <div id="progress-bars"></div>
         </div>
       </div>
-      
+
       <!-- Tab Lịch nhiệm vụ -->
       <div class="tab-pane fade" id="calendar-pane" role="tabpanel" aria-labelledby="calendar-tab">
         <div class="mt-3">
@@ -278,7 +514,7 @@
           <div id="calendar"></div>
         </div>
       </div>
-      
+
       <!-- Tab Báo cáo -->
       <div class="tab-pane fade" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
         <div class="mt-3">
@@ -288,22 +524,90 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Toast container -->
   <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
-  
+
+  <!-- Task Detail Modal -->
+  <div class="modal fade" id="taskDetailModal" tabindex="-1" role="dialog" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskDetailModalLabel">Chi tiết nhiệm vụ</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="task-detail-item">
+                <strong>Tên nhiệm vụ:</strong>
+                <div id="detail-title"></div>
+              </div>
+              <div class="task-detail-item">
+                <strong>Người nhận:</strong>
+                <div id="detail-assigned"></div>
+              </div>
+              <div class="task-detail-item">
+                <strong>Mức ưu tiên:</strong>
+                <div id="detail-priority"></div>
+              </div>
+              <div class="task-detail-item">
+                <strong>Thời hạn:</strong>
+                <div id="detail-deadline"></div>
+              </div>
+              <div class="task-detail-item">
+                <strong>Trạng thái:</strong>
+                <div id="detail-status"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="task-detail-item">
+                <strong>Mô tả:</strong>
+                <div id="detail-description"></div>
+              </div>
+              <div class="task-detail-item">
+                <strong>File đính kèm:</strong>
+                <div id="detail-attachments"></div>
+              </div>
+              <div class="task-detail-item">
+                <strong>Hình ảnh:</strong>
+                <div id="detail-image"></div>
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div class="task-detail-comments">
+            <h6><i class="fa fa-comments"></i> Bình luận</h6>
+            <div id="detail-comments-list" class="comments-list"></div>
+            <div class="comment-input-area mt-3">
+              <textarea id="detail-new-comment" class="form-control" rows="2" placeholder="Nhập bình luận của bạn..."></textarea>
+              <button class="btn btn-primary btn-sm mt-2" id="detail-post-comment">
+                <i class="fa fa-paper-plane"></i> Gửi
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div id="detail-action-buttons" class="text-right w-100"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts: jQuery, Popper, Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <!-- FullCalendar JS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
-  
+
   <script>
     let currentUser = null;
     let selectedFiles = [];
     window.tasksChart = null;
-  
+
     // 1) Kiểm tra đăng nhập
     async function checkAuth() {
       try {
@@ -329,7 +633,7 @@
         window.location.href = '/login.html';
       }
     }
-  
+
     // 2) Hàm load Report
     async function loadReport() {
       try {
@@ -344,7 +648,7 @@
         const canvas = document.getElementById('tasksChart');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-  
+
         if (window.tasksChart && typeof window.tasksChart.destroy === 'function') {
           window.tasksChart.destroy();
         }
@@ -368,7 +672,7 @@
         console.error("Error loading report:", err);
       }
     }
-  
+
     // 3) Hàm load Calendar
     async function loadCalendar() {
       try {
@@ -441,7 +745,7 @@ Mô tả: ${ext.description || ''}
         console.error("Error loading calendar:", err);
       }
     }
-  
+
     // 4) Drag & Drop và Preview file
     document.getElementById('taskImage').addEventListener('change', e => {
       const files = Array.from(e.target.files);
@@ -503,7 +807,204 @@ Mô tả: ${ext.description || ''}
       selectedFiles.splice(index, 1);
       renderFilePreviews();
     }
-  
+
+    // Status variable for quick filtering
+    let currentStatusFilter = 'all';
+    
+    // Function to filter tasks by status
+    function filterByStatus(status) {
+      currentStatusFilter = status;
+      loadTasks();
+    }
+    
+    // Function to open task detail modal
+    function openTaskDetail(taskId) {
+      try {
+        const rows = document.querySelectorAll('#tasksTable tbody tr');
+        let taskData = null;
+        
+        // Find the task in the displayed rows
+        for (const row of rows) {
+          const cells = row.querySelectorAll('td');
+          if (cells[0] && row.querySelector(`button[onclick*="${taskId}"]`)) {
+            taskData = {
+              id: taskId,
+              title: cells[1].textContent,
+              assignedTo: cells[2].textContent,
+              priority: cells[3].textContent,
+              deadline: cells[4].textContent,
+              description: cells[5].textContent,
+              status: cells[6].textContent,
+              attachments: cells[7].innerHTML,
+              imageURL: cells[8].querySelector('img') ? cells[8].querySelector('img').src : null
+            };
+            break;
+          }
+        }
+        
+        if (!taskData) {
+          console.error('Task data not found for ID:', taskId);
+          return;
+        }
+        
+        // Populate the modal with task data
+        document.getElementById('detail-title').textContent = taskData.title;
+        document.getElementById('detail-assigned').textContent = taskData.assignedTo;
+        
+        // Style the priority
+        const priorityElement = document.getElementById('detail-priority');
+        priorityElement.textContent = taskData.priority;
+        priorityElement.className = `priority-${taskData.priority.toLowerCase()}`;
+        
+        document.getElementById('detail-deadline').textContent = taskData.deadline;
+        
+        // Style the status
+        const statusElement = document.getElementById('detail-status');
+        let statusClass = '';
+        if (taskData.status === 'Chưa thực hiện') statusClass = 'status-pending';
+        else if (taskData.status === 'Đang thực hiện') statusClass = 'status-progress';
+        else if (taskData.status === 'Hoàn thành') statusClass = 'status-completed';
+        
+        statusElement.innerHTML = `<span class="status-badge ${statusClass}">${taskData.status}</span>`;
+        document.getElementById('detail-description').textContent = taskData.description || 'Không có mô tả';
+        
+        // Attachments
+        document.getElementById('detail-attachments').innerHTML = taskData.attachments;
+        
+        // Image
+        const imageContainer = document.getElementById('detail-image');
+        if (taskData.imageURL) {
+          imageContainer.innerHTML = `<a href="${taskData.imageURL}" target="_blank">
+            <img src="${taskData.imageURL}" style="max-width:100%; max-height:200px;" alt="Task image">
+          </a>`;
+        } else {
+          imageContainer.innerHTML = '<span class="text-muted">Không có hình ảnh</span>';
+        }
+        
+        // Load comments
+        loadDetailComments(taskId);
+        
+        // Set up action buttons
+        setupDetailActionButtons(taskData);
+        
+        // Set up comment submission
+        document.getElementById('detail-post-comment').onclick = () => {
+          const commentText = document.getElementById('detail-new-comment').value.trim();
+          if (commentText) {
+            postDetailComment(taskId, commentText);
+          }
+        };
+        
+        // Show the modal
+        $('#taskDetailModal').modal('show');
+        
+      } catch (error) {
+        console.error('Error opening task detail:', error);
+        showToast('Không thể mở chi tiết nhiệm vụ. Lỗi: ' + error.message);
+      }
+    }
+    
+    // Load comments for the detail view
+    async function loadDetailComments(taskId) {
+      try {
+        const res = await fetch(`/api/tasks/${taskId}/comments`);
+        const comments = await res.json();
+        const list = document.getElementById('detail-comments-list');
+        
+        list.innerHTML = '';
+        
+        if (comments.length === 0) {
+          list.innerHTML = '<p class="text-center text-muted"><i>Chưa có bình luận nào</i></p>';
+        } else {
+          comments.forEach(c => {
+            const p = document.createElement('p');
+            const formattedDate = new Date(c.created_at).toLocaleString('vi-VN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            
+            p.innerHTML = `
+              <span class="comment-user">${c.user}</span>
+              <span class="comment-date">${formattedDate}</span><br>
+              ${c.comment_text.replace(/\n/g, '<br>')}
+            `;
+            list.appendChild(p);
+          });
+        }
+      } catch (err) {
+        console.error("Error loading detail comments:", err);
+      }
+    }
+    
+    // Post comment from detail view
+    async function postDetailComment(taskId, commentText) {
+      try {
+        const submitBtn = document.getElementById('detail-post-comment');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang gửi...';
+        
+        const res = await fetch(`/api/tasks/${taskId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ comment_text: commentText })
+        });
+        
+        const result = await res.json();
+        if (result.success) {
+          document.getElementById('detail-new-comment').value = '';
+          await loadDetailComments(taskId);
+          await loadCommentCount(taskId); // Update comment count badge in the list
+        } else {
+          showToast("Lỗi: " + result.message);
+        }
+      } catch (err) {
+        console.error("Error posting detail comment:", err);
+        showToast("Lỗi kết nối: Không thể gửi bình luận");
+      } finally {
+        const submitBtn = document.getElementById('detail-post-comment');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa fa-paper-plane"></i> Gửi';
+      }
+    }
+    
+    // Setup action buttons in detail view
+    function setupDetailActionButtons(taskData) {
+      const container = document.getElementById('detail-action-buttons');
+      container.innerHTML = '';
+      
+      let buttons = '';
+      
+      // Close button
+      buttons += `<button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button> `;
+      
+      // Action buttons based on task status and user role
+      if (taskData.status === "Chưa thực hiện" && currentUser.name === taskData.assignedTo) {
+        buttons += `<button class="btn btn-info" onclick="startTask(${taskData.id})">Nhận nhiệm vụ</button> `;
+      }
+      
+      if (taskData.status !== "Hoàn thành" && (currentUser.role === 'admin' || currentUser.name === taskData.assignedTo)) {
+        buttons += `<button class="btn btn-success" onclick="completeTask(${taskData.id})">Hoàn thành</button> `;
+      }
+      
+      if (currentUser.role === 'admin') {
+        buttons += `<button class="btn btn-warning" onclick="handoverTask(${taskData.id})">Bàn giao</button> `;
+      }
+      
+      if (currentUser.role === 'admin' || currentUser.name === taskData.assignedTo) {
+        buttons += `<button class="btn btn-secondary" onclick="uploadAttachmentPrompt(${taskData.id})">Upload File</button> `;
+      }
+      
+      if (currentUser.role === 'admin') {
+        buttons += `<button class="btn btn-danger" onclick="deleteTask(${taskData.id})">Xóa</button>`;
+      }
+      
+      container.innerHTML = buttons;
+    }
+    
     // 5) Upload image
     async function uploadImage(file) {
       try {
@@ -519,7 +1020,7 @@ Mô tả: ${ext.description || ''}
         return { success: false, message: err?.message || "Unknown error" };
       }
     }
-  
+
     // 6) Upload attachment
     async function uploadAttachment(taskId, file) {
       try {
@@ -535,12 +1036,12 @@ Mô tả: ${ext.description || ''}
         return { success: false, message: err?.message || "Unknown error" };
       }
     }
-  
+
     // 7) Load danh sách nhiệm vụ
     async function loadTasks() {
       try {
         if (!currentUser) return;
-  
+
         let url = '/api/tasks';
         if (currentUser.role === 'admin') {
           const assigned = document.getElementById('filterAssigned').value;
@@ -548,27 +1049,56 @@ Mô tả: ${ext.description || ''}
         }
         const res = await fetch(url);
         let tasks = await res.json();
-  
+
+        // Update task statistics
+        const taskStats = {
+          total: tasks.length,
+          pending: tasks.filter(t => t.status === 'Chưa thực hiện').length,
+          progress: tasks.filter(t => t.status === 'Đang thực hiện').length,
+          completed: tasks.filter(t => t.status === 'Hoàn thành').length
+        };
+        
+        document.getElementById('total-tasks').querySelector('h4').textContent = taskStats.total;
+        document.getElementById('pending-tasks').textContent = taskStats.pending;
+        document.getElementById('progress-tasks').textContent = taskStats.progress;
+        document.getElementById('completed-tasks').textContent = taskStats.completed;
+
         const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
         if (searchVal) {
           tasks = tasks.filter(task => {
             return (task.title && task.title.toLowerCase().includes(searchVal)) ||
-                   (task.description && task.description.toLowerCase().includes(searchVal));
+                   (task.description && task.description.toLowerCase().includes(searchVal)) ||
+                   (task.assignedTo && task.assignedTo.toLowerCase().includes(searchVal));
           });
         }
-  
+
+        // Filter by status if needed
+        if (currentStatusFilter !== 'all') {
+          tasks = tasks.filter(task => task.status === currentStatusFilter);
+        }
+
         const sortVal = document.getElementById('sortSelect').value;
         if (sortVal === 'deadline') {
           tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
         } else if (sortVal === 'priority') {
           const order = { 'cao': 1, 'trungbinh': 2, 'thap': 3 };
           tasks.sort((a, b) => order[a.priority] - order[b.priority]);
+        } else if (sortVal === 'status') {
+          const order = { 'Chưa thực hiện': 1, 'Đang thực hiện': 2, 'Hoàn thành': 3 };
+          tasks.sort((a, b) => order[a.status] - order[b.status]);
         }
-  
+
         const tbody = document.querySelector('#tasksTable tbody');
         tbody.innerHTML = '';
         let stt = 1;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         for (const task of tasks) {
+          // Check if task is overdue
+          const deadlineDate = new Date(task.deadline);
+          deadlineDate.setHours(0, 0, 0, 0);
+          const isOverdue = deadlineDate < today && task.status !== 'Hoàn thành';
           let actionButtons = '';
           if (task.status === "Chưa thực hiện" && currentUser.name === task.assignedTo) {
             actionButtons += `<button class="btn btn-info btn-sm" onclick="startTask(${task.id})">Nhận</button> `;
@@ -582,20 +1112,55 @@ Mô tả: ${ext.description || ''}
           if (currentUser.role === 'admin' || currentUser.name === task.assignedTo) {
             actionButtons += `<button class="btn btn-secondary btn-sm" onclick="uploadAttachmentPrompt(${task.id})">Upload File</button> `;
           }
-          actionButtons += `<button class="btn btn-info btn-sm" onclick="toggleComments(${task.id})">Comment</button> `;
+          // Get comment count for this task
+          actionButtons += `<button class="btn btn-info btn-sm comment-btn" onclick="toggleComments(${task.id})">
+            <i class="fa fa-comment"></i> Comment <span id="comment-count-${task.id}" class="comment-count">0</span>
+          </button> `;
+          actionButtons += `<button class="btn btn-primary btn-sm" onclick="openTaskDetail(${task.id})">
+            <i class="fa fa-eye"></i> Chi tiết
+          </button> `;
           if (currentUser.role === 'admin') {
             actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Xóa</button>`;
           }
-  
+
           const tr = document.createElement('tr');
+          if (isOverdue) {
+            tr.classList.add('task-overdue');
+          }
+          
+          // Format priority with appropriate styling
+          let priorityDisplay = '';
+          if (task.priority === 'cao') {
+            priorityDisplay = '<span class="priority-cao">Ưu tiên cao</span>';
+          } else if (task.priority === 'trungbinh') {
+            priorityDisplay = '<span class="priority-trungbinh">Trung bình</span>';
+          } else {
+            priorityDisplay = '<span class="priority-thap">Không ưu tiên</span>';
+          }
+          
+          // Format status with badges
+          let statusDisplay = '';
+          if (task.status === 'Chưa thực hiện') {
+            statusDisplay = '<span class="status-badge status-pending">Chưa thực hiện</span>';
+          } else if (task.status === 'Đang thực hiện') {
+            statusDisplay = '<span class="status-badge status-progress">Đang thực hiện</span>';
+          } else {
+            statusDisplay = '<span class="status-badge status-completed">Hoàn thành</span>';
+          }
+          
+          // Format the deadline with highlight if overdue
+          const deadlineDisplay = isOverdue ? 
+            `<span class="text-danger font-weight-bold">${task.deadline}</span>` : 
+            task.deadline;
+          
           tr.innerHTML = `
             <td>${stt}</td>
             <td>${task.title}</td>
             <td>${task.assignedTo}</td>
-            <td>${task.priority}</td>
-            <td>${task.deadline}</td>
+            <td>${priorityDisplay}</td>
+            <td>${deadlineDisplay}</td>
             <td>${task.description || ''}</td>
-            <td>${task.status}</td>
+            <td>${statusDisplay}</td>
             <td id="attachments-${task.id}"></td>
             <td>
               ${
@@ -609,60 +1174,149 @@ Mô tả: ${ext.description || ''}
             <td>
               ${actionButtons}
               <div id="comments-${task.id}" class="comments-container" style="display:none;">
-                <div id="comments-list-${task.id}"></div>
-                <textarea id="new-comment-${task.id}" class="form-control" rows="2" placeholder="Nhập comment..."></textarea>
-                <button class="btn btn-primary btn-sm mt-2" onclick="postComment(${task.id})">Gửi</button>
+                <h6><i class="fa fa-comments"></i> Bình luận</h6>
+                <div id="comments-list-${task.id}" class="comments-list"></div>
+                <div class="comment-input-area">
+                  <textarea id="new-comment-${task.id}" class="form-control" rows="2" placeholder="Nhập bình luận của bạn..."></textarea>
+                  <div class="comment-actions">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="hideComments(${task.id})">Đóng</button>
+                    <button class="btn btn-primary btn-sm" onclick="postComment(${task.id})">
+                      <i class="fa fa-paper-plane"></i> Gửi
+                    </button>
+                  </div>
+                </div>
               </div>
             </td>
           `;
           tbody.appendChild(tr);
           stt++;
           loadAttachments(task.id);
+          // Load comment counts for each task
+          loadCommentCount(task.id);
         }
       } catch (err) {
         console.error("Error loading tasks:", err);
       }
     }
+
+    // Function to load just the comment count for a task
+    async function loadCommentCount(taskId) {
+      try {
+        const res = await fetch(`/api/tasks/${taskId}/comments`);
+        const comments = await res.json();
+        const countBadge = document.getElementById(`comment-count-${taskId}`);
+
+        if (countBadge) {
+          countBadge.textContent = comments.length;
+        }
+      } catch (err) {
+        console.error(`Error loading comment count for task ${taskId}:`, err);
+      }
+    }
     function filterTasks() {
       loadTasks();
     }
-  
-    // 8) Xử lý submit form giao nhiệm vụ
-    document.getElementById('taskForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // Ngăn reload trang
-      const task = {
-        title: document.getElementById('taskTitle').value,
-        assignedTo: document.getElementById('taskAssigned').value,
-        priority: document.getElementById('taskPriority').value,
-        deadline: document.getElementById('taskDeadline').value,
-        description: document.getElementById('taskDescription').value,
-        status: 'Chưa thực hiện'
-      };
-      try {
-        const createRes = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(task)
-        });
-        const createResult = await createRes.json();
-        console.log("Phản hồi từ API tạo nhiệm vụ:", createResult);
-        if (!createResult.success) {
-          showToast("Lỗi tạo nhiệm vụ: " + createResult.message);
-          return;
-        }
-        showToast("Nhiệm vụ đã được tạo thành công!");
-        loadTasks();
-        loadReport();
-  
-        document.getElementById('taskForm').reset();
-        document.getElementById('filePreviewList').innerHTML = '';
-        selectedFiles = [];
-      } catch (err) {
-        console.error("Error creating task:", err);
-        showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
-      }
+
+// 8) Xử lý submit form giao nhiệm vụ
+document.getElementById('taskForm').addEventListener('submit', async function(e) {
+  e.preventDefault(); // Ngăn reload trang
+
+  const task = {
+    title: document.getElementById('taskTitle').value,
+    assignedTo: document.getElementById('taskAssigned').value,
+    priority: document.getElementById('taskPriority').value,
+    deadline: document.getElementById('taskDeadline').value,
+    description: document.getElementById('taskDescription').value,
+    status: 'Chưa thực hiện'
+  };
+
+  try {
+    // Gọi API tạo nhiệm vụ
+    const createRes = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task)
     });
-  
+    const createResult = await createRes.json();
+    console.log("Phản hồi từ API tạo nhiệm vụ:", createResult);
+    if (!createResult.success) {
+      showToast("Lỗi tạo nhiệm vụ: " + createResult.message);
+      return;
+    }
+    
+    // Lấy ID của nhiệm vụ vừa tạo (theo cấu trúc trả về từ server: { success: true, task: { id: ... } })
+    const newTaskId = createResult.task && createResult.task.id;
+    if (!newTaskId) {
+      showToast("Không tìm thấy ID của nhiệm vụ vừa tạo!");
+      return;
+    }
+    
+    // Xử lý upload file nếu có
+    let mainImageUpdated = false; // dùng để chỉ cập nhật hình chính một lần
+    if (selectedFiles.length > 0) {
+      for (const file of selectedFiles) {
+        if (file.type.startsWith('image/')) {
+          // Upload hình ảnh qua API /api/upload-image
+          const uploadResult = await uploadImage(file);
+          if (!uploadResult.success) {
+            showToast("Lỗi upload hình ảnh: " + uploadResult.message);
+          } else {
+            if (!mainImageUpdated) {
+              // Cập nhật nhiệm vụ với imageURL và image_path
+              await updateTaskImage(newTaskId, uploadResult.imageUrl, uploadResult.filePath);
+              mainImageUpdated = true;
+            } else {
+              // Nếu có thêm hình khác, có thể upload chúng dưới dạng file đính kèm (nếu cần)
+              const attResult = await uploadAttachment(newTaskId, file);
+              if (!attResult.success) {
+                showToast("Lỗi upload file đính kèm: " + attResult.message);
+              }
+            }
+          }
+        } else {
+          // Các file không phải hình ảnh sẽ được upload dưới dạng đính kèm
+          const uploadResult = await uploadAttachment(newTaskId, file);
+          if (!uploadResult.success) {
+            showToast("Lỗi upload file đính kèm: " + uploadResult.message);
+          }
+        }
+      }
+    }
+    
+    showToast("Nhiệm vụ và file đính kèm đã được tạo thành công!");
+    loadTasks();
+    loadReport();
+    
+    // Reset form và mảng file đã chọn
+    document.getElementById('taskForm').reset();
+    document.getElementById('filePreviewList').innerHTML = '';
+    selectedFiles = [];
+  } catch (err) {
+    console.error("Error creating task:", err);
+    showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
+  }
+});
+
+// Hàm cập nhật hình ảnh cho nhiệm vụ
+async function updateTaskImage(taskId, imageUrl, imagePath) {
+  try {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageURL: imageUrl, image_path: imagePath })
+    });
+    const result = await res.json();
+    if (!result.success) {
+      showToast("Lỗi cập nhật hình ảnh nhiệm vụ: " + result.message);
+    }
+    return result;
+  } catch (error) {
+    console.error("Error updating task image:", error);
+    showToast("Lỗi cập nhật hình ảnh nhiệm vụ: " + error.message);
+  }
+}
+
+
     // 9) Nhận nhiệm vụ
     async function startTask(taskId) {
       if (!confirm("Nhận nhiệm vụ này?")) return;
@@ -684,7 +1338,7 @@ Mô tả: ${ext.description || ''}
         console.error("Error startTask:", err);
       }
     }
-  
+
     // 10) Hoàn thành nhiệm vụ
     async function completeTask(taskId) {
       if (!confirm("Đánh dấu là 'Hoàn thành'?")) return;
@@ -706,7 +1360,7 @@ Mô tả: ${ext.description || ''}
         console.error("Error completing task:", err);
       }
     }
-  
+
     // 11) Bàn giao nhiệm vụ (admin)
     async function handoverTask(taskId) {
       const newAssignee = prompt("Nhập tên người nhận mới:");
@@ -729,7 +1383,7 @@ Mô tả: ${ext.description || ''}
         console.error("Error handoverTask:", err);
       }
     }
-  
+
     // 12) Xóa nhiệm vụ (admin)
     async function deleteTask(taskId) {
       if (!confirm("Xóa nhiệm vụ này?")) return;
@@ -747,15 +1401,35 @@ Mô tả: ${ext.description || ''}
         console.error("Error deleting task:", err);
       }
     }
-  
+
     // 13) Toggle comments
     async function toggleComments(taskId) {
       const container = document.getElementById(`comments-${taskId}`);
-      if (container.style.display === 'none' || container.style.display === '') {
-        container.style.display = 'block';
+      if (!container) {
+        console.error(`Comment container for task ${taskId} not found`);
+        return;
+      }
+
+      // Always load the latest comments when toggling
+      try {
         await loadComments(taskId);
-      } else {
-        container.style.display = 'none';
+
+        if (container.style.display === 'none' || container.style.display === '') {
+          // Show with standard JavaScript
+          container.style.display = 'block';
+          // Focus on comment textarea
+          setTimeout(() => {
+            const textarea = document.getElementById(`new-comment-${taskId}`);
+            if (textarea) textarea.focus();
+          }, 100);
+        } else {
+          // Hide with standard JavaScript
+          container.style.display = 'none';
+        }
+      } catch (error) {
+        console.error("Error toggling comments:", error);
+        // Fallback just in case
+        container.style.display = container.style.display === 'none' || container.style.display === '' ? 'block' : 'none';
       }
     }
     async function loadComments(taskId) {
@@ -763,23 +1437,63 @@ Mô tả: ${ext.description || ''}
         const res = await fetch(`/api/tasks/${taskId}/comments`);
         const comments = await res.json();
         const list = document.getElementById(`comments-list-${taskId}`);
+        const countBadge = document.getElementById(`comment-count-${taskId}`);
+
+        // Update comment count
+        if (countBadge) {
+          countBadge.textContent = comments.length;
+        }
+
         list.innerHTML = '';
-        comments.forEach(c => {
-          const p = document.createElement('p');
-          p.innerHTML = `<strong>${c.user}</strong>: ${c.comment_text}<br><small>${new Date(c.created_at).toLocaleString()}</small>`;
-          list.appendChild(p);
-        });
+
+        if (comments.length === 0) {
+          list.innerHTML = '<p class="text-center text-muted"><i>Chưa có bình luận nào</i></p>';
+        } else {
+          comments.forEach(c => {
+            const p = document.createElement('p');
+            const formattedDate = new Date(c.created_at).toLocaleString('vi-VN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            p.innerHTML = `
+              <span class="comment-user">${c.user}</span>
+              <span class="comment-date">${formattedDate}</span><br>
+              ${c.comment_text.replace(/\n/g, '<br>')}
+            `;
+            list.appendChild(p);
+          });
+        }
       } catch (err) {
         console.error("Error loadComments:", err);
       }
     }
+    // Function to hide comment section
+    function hideComments(taskId) {
+      const commentsDiv = document.getElementById(`comments-${taskId}`);
+      if (commentsDiv) {
+        commentsDiv.style.display = 'none';
+      }
+    }
+
     async function postComment(taskId) {
       const textArea = document.getElementById(`new-comment-${taskId}`);
       const commentText = textArea.value.trim();
       if (!commentText) {
-        showToast("Vui lòng nhập nội dung comment.");
+        showToast("Vui lòng nhập nội dung bình luận.");
+        textArea.focus();
         return;
       }
+
+      // Disable button while sending
+      const submitBtn = document.querySelector(`#comments-${taskId} .comment-actions .btn-primary`);
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang gửi...';
+
       try {
         const res = await fetch(`/api/tasks/${taskId}/comments`, {
           method: 'POST',
@@ -788,7 +1502,7 @@ Mô tả: ${ext.description || ''}
         });
         const result = await res.json();
         if (result.success) {
-          showToast("Comment đã được gửi!");
+          showToast("Bình luận đã được gửi thành công!");
           textArea.value = '';
           await loadComments(taskId);
         } else {
@@ -796,9 +1510,14 @@ Mô tả: ${ext.description || ''}
         }
       } catch (err) {
         console.error("Error postComment:", err);
+        showToast("Lỗi kết nối: Không thể gửi bình luận");
+      } finally {
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
       }
     }
-  
+
     // 14) Upload attachment
     async function uploadAttachmentPrompt(taskId) {
       const input = document.createElement('input');
@@ -832,7 +1551,7 @@ Mô tả: ${ext.description || ''}
         console.error("Error loadAttachments:", err);
       }
     }
-  
+
     // 15) Hàm hiển thị Toast
     function showToast(message) {
       const toastContainer = document.querySelector('.toast-container');
@@ -848,7 +1567,7 @@ Mô tả: ${ext.description || ''}
       $(toast).toast('show');
       setTimeout(() => { toast.remove(); }, 3500);
     }
-  
+
     // 16) Tabs - mỗi khi chuyển tab load Calendar hoặc Report
     async function onTabShown(e) {
       const target = $(e.target).attr("href");
@@ -859,20 +1578,40 @@ Mô tả: ${ext.description || ''}
         await loadReport();
       }
     }
-  
+
     // 17) Khởi tạo
     async function init() {
       await checkAuth();
       if (!currentUser) return;
       loadTasks();
     }
-  
+
     $(document).ready(async function(){
       $('a[data-toggle="tab"]').on('shown.bs.tab', onTabShown);
       await init();
       document.getElementById('searchInput').addEventListener('input', () => {
         loadTasks();
       });
+
+      // Đảm bảo hiển thị cột với kích thước tương đối hợp lý
+      $(window).on('resize', function() {
+        adjustTableLayout();
+      });
+
+      function adjustTableLayout() {
+        const tableWidth = $('.table-responsive').width();
+        const tableMinWidth = 1500; // Tổng chiều rộng tối thiểu của bảng
+
+        // Nếu bảng không đủ không gian, cho phép cuộn ngang
+        if (tableWidth < tableMinWidth) {
+          $('#tasksTable').css('width', tableMinWidth + 'px');
+        } else {
+          $('#tasksTable').css('width', '100%');
+        }
+      }
+
+      // Chạy một lần khi trang tải
+      setTimeout(adjustTableLayout, 500);
     });
   </script>
 </body>

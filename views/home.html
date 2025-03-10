@@ -610,7 +610,7 @@
       var labelValue3 = document.getElementById("label-filter-value-3");
       if (labelValue3) { labelValue3.innerText = i18next.t("choose_value"); }
       var tbodyCount = $('#results-table tbody').children().length;
-$('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: totalData }));
+      $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: totalData }));
 
 
       // Cập nhật lại các widget Select2 (để thay đổi placeholder mà vẫn giữ lựa chọn)
@@ -679,6 +679,7 @@ $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: tot
     function loadAllData() {
       $.getJSON('/search?limit=1000000', function(response) {
         allData = response.data;
+        totalData = response.total; // Update totalData here
       });
     }
 
@@ -696,6 +697,9 @@ $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: tot
         selectElem.trigger('change');
       });
     }
+
+
+
 
     $(document).ready(function() {
       loadAllData(); // Tải toàn bộ dữ liệu một lần
@@ -836,9 +840,16 @@ $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: tot
           $('#results-table').css('zoom', currentZoom);
         }
       });
+      // Check if colResizable is available before using it
+      try {
+        if (typeof $.fn.colResizable === 'function') {
+          $('#results-table').colResizable({ liveDrag: true });
+        }
+      } catch(e) {
+        console.log("colResizable not available:", e);
+      }
 
       applyFilters(true);
-      $('#results-table').colResizable({ liveDrag: true });
     });
 
     // Hàm cập nhật dropdown cho blockIndex dựa trên dữ liệu đã lọc
@@ -966,7 +977,14 @@ $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: tot
       });
       var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
       $('#results-count').text(totalText);
-      $('#results-table').colResizable({ liveDrag: true });
+      // Check if colResizable is available before using it
+      try {
+        if (typeof $.fn.colResizable === 'function') {
+          $('#results-table').colResizable({ liveDrag: true });
+        }
+      } catch(e) {
+        console.log("colResizable not available in updateTable:", e);
+      }
     }
 
     // Hàm xuất Excel
