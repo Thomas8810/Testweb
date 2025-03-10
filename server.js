@@ -173,6 +173,49 @@ app.post('/api/tasks', isAuthenticated, isAdmin, async (req, res) => {
     res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
   }
 });
+// ... [Các phần khởi tạo, middleware, cấu hình đã có] ...
+
+// Cập nhật nhiệm vụ (admin có thể cập nhật tất cả các trường)
+app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
+  const taskId = req.params.id;
+  try {
+    const { data: taskData, error: selectError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('id', taskId)
+      .single();
+    if (selectError) throw selectError;
+
+    // Chỉ admin mới được sửa toàn bộ thông tin nhiệm vụ
+    if (req.session.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: "Bạn không có quyền cập nhật nhiệm vụ này." });
+    }
+
+    // updateData chứa các trường có thể được cập nhật: title, assignedTo, priority, deadline, description, imageURL, image_path,...
+    let updateData = { ...req.body };
+
+    const oldStatus = taskData.status;
+    const newStatus = updateData.status;
+
+    const { data: updated, error: updateError } = await supabase
+      .from('tasks')
+      .update(updateData)
+      .eq('id', taskId)
+      .select();
+    if (updateError) throw updateError;
+
+    if (newStatus && newStatus !== oldStatus) {
+      await logTaskHistory(taskId, req.session.user.name, 'Status change', oldStatus, newStatus);
+    }
+    res.json({ success: true, task: updated[0] });
+  } catch (error) {
+    console.error("Error in PUT /api/tasks/:id:", error);
+    res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
+  }
+});
+
+// ... [Các endpoint khác giữ nguyên] ...
+
 
 // Cập nhật nhiệm vụ
 app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
