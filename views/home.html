@@ -37,7 +37,7 @@
       padding: 10px;
       position: relative;
     }
-    .btn btn-info {
+    .tasks-link {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -49,7 +49,7 @@
   font-weight: bold;
   transition: background 0.3s;
 }
-.btn btn-info:hover {
+.tasks-link:hover {
   background: #0056b3;
 }
     .header h1 { margin: 0; font-size: 28px; color: white; }
@@ -270,6 +270,16 @@
       }
     }
     @media (max-width: 480px) {
+      .tasks-link {
+    position: relative;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 16px;
+  }
       .header h1 { font-size: 20px; }
       .header p { font-size: 12px; }
       table, th, td { font-size: 9px; }
@@ -280,9 +290,7 @@
   <div class="page-container">
     <div class="top-container">
       <div class="header">
-              <!-- tự thêm nút task -->
-      <!-- Nút chuyển đến trang Quản lý Nhiệm vụ -->
-        <a href="/tasks" class="btn btn-info" style="margin: 10px;">Tasks</a>
+          <a href="/tasks" class="tasks-link">Tasks</a>
         <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
         <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
         <!-- Nút chuyển đổi ngôn ngữ ở góc trên bên phải -->
@@ -292,8 +300,6 @@
           <button onclick="changeLanguage('ko')">Ko</button>
         </div>
       </div>
-
-
       <!-- Phần tiêu chí lọc -->
       <div class="filter-bar">
         <!-- Filter Block Sheet -->
@@ -305,12 +311,12 @@
         <div class="filter-block" id="filter-block-1">
           <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
           <select id="filter-column-1">
+            <option value="Part Number" selected>Part Number</option>
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
             <option value="CE">CE</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
@@ -340,14 +346,14 @@
         </div>
         <!-- Filter Block 2 -->
         <div class="filter-block" id="filter-block-2">
-          <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2:</label>
+          <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
           <select id="filter-column-2">
+            <option value="Part Number" selected>Part Number</option>
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
             <option value="CE">CE</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
@@ -379,12 +385,12 @@
         <div class="filter-block" id="filter-block-3">
           <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
           <select id="filter-column-3">
+            <option value="Part Number" selected>Part Number</option>
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
             <option value="CE">CE</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
-            <option value="Part Number" selected>Part Number</option>
             <option value="REV">REV</option>
             <option value="Description">Description</option>
             <option value="Note Number">Note Number</option>
@@ -507,7 +513,7 @@
             "choose_project": "Choose Project",
             "choose_value": "Choose Value",
             "choose_criteria_1": "Select Criteria 1:",
-            "choose_criteria_2": "Select Criteria 2:",
+            "choose_criteria_2": "Select Criteria 2 (paste excel):",
             "choose_criteria_3": "Select Criteria 3:",
             "apply_filter": "Apply Filter",
             "clear_filter": "Clear Filter",
@@ -528,7 +534,7 @@
     "choose_project": "프로젝트 선택",
     "choose_value": "값 선택",
     "choose_criteria_1": "기준 1 선택:",
-    "choose_criteria_2": "기준 2 선택:",
+    "choose_criteria_2": "기준 2 선택 (엑셀 붙여넣기):",
     "choose_criteria_3": "기준 3 선택:",
     "apply_filter": "필터 적용",
     "clear_filter": "필터 지우기",
@@ -550,7 +556,7 @@
             "choose_project": "Chọn dự án",
             "choose_value": "Chọn giá trị",
             "choose_criteria_1": "Chọn tiêu chí số 1:",
-            "choose_criteria_2": "Chọn tiêu chí số 2:",
+            "choose_criteria_2": "Chọn tiêu chí số 2 (paste ex):",
             "choose_criteria_3": "Chọn tiêu chí số 3:",
             "apply_filter": "Áp dụng lọc",
             "clear_filter": "Xóa lọc",
