@@ -12,10 +12,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
-    /* ==== Các style chung, tối ưu hiển thị ==== */
-
+    /* Home link styling */
     .home-link {
       position: absolute;
       top: 10px;
@@ -32,61 +30,57 @@
       background: #0056b3;
     }
 
-    .task-stat {
-      padding: 10px;
-      border-radius: 5px;
-      background-color: #f8f9fa;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .comments-container {
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
-      background: #f9f9f9;
-    }
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
+    /* Mobile optimization */
+    @media (max-width: 576px) {
+      .home-link {
+        position: relative;
+        top: 0;
+        left: 0;
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 10px 0;
+        font-size: 16px;
+      }
+      .comments-container {
+    width: 80%; /* hoặc giá trị cụ thể bạn mong muốn */
+    padding: 10px; /* điều chỉnh padding nếu cần */
+      }
+      #welcome {
+        text-align: center;
+        font-size: 14px;
+      }
+      
+      .comment-input-area textarea {
+        height: 60px;
+      }
+      
+      #tasksTable th, #tasksTable td {
+        padding: 8px 4px;
+      }
+      
+      .btn-sm {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+      }
     }
 
-    /* ==== Bảng nhiệm vụ ==== */
-    thead th {
-      position: sticky;
-      top: 0;
-      background: #fff;
-      z-index: 10;
+    /* Responsive Nav Tabs */
+    @media (max-width: 576px) {
+      .nav-tabs {
+        flex-wrap: wrap;
+      }
+      .nav-tabs .nav-item {
+        flex: 1 1 100%;
+        text-align: center;
+        margin-bottom: 5px;
+      }
+      #tasksTable {
+        font-size: 12px;
+      }
     }
-    .table-responsive {
-      max-height: calc(100vh - 250px);
-      overflow-y: auto;
-    }
-    #tasksTable th,
-    #tasksTable td {
-      text-align: center;
-      vertical-align: middle;
-      white-space: normal;
-      word-wrap: break-word;
-    }
-    #tasksTable {
-      table-layout: fixed !important;
-      min-width: 1500px !important;
-    }
-    /* Định nghĩa kích thước cho các cột */
-    #tasksTable th:nth-child(1), #tasksTable td:nth-child(1) { width: 50px; }
-    #tasksTable th:nth-child(2), #tasksTable td:nth-child(2) { width: 180px; }
-    #tasksTable th:nth-child(3), #tasksTable td:nth-child(3) { width: 100px; }
-    #tasksTable th:nth-child(4), #tasksTable td:nth-child(4) { width: 100px; }
-    #tasksTable th:nth-child(5), #tasksTable td:nth-child(5) { width: 100px; }
-    #tasksTable th:nth-child(6), #tasksTable td:nth-child(6) { width: 200px; }
-    #tasksTable th:nth-child(7), #tasksTable td:nth-child(7) { width: 120px; }
-    #tasksTable th:nth-child(8), #tasksTable td:nth-child(8) { width: 120px; }
-    #tasksTable th:nth-child(9), #tasksTable td:nth-child(9) { width: 120px; }
-    #tasksTable th:nth-child(10), #tasksTable td:nth-child(10) { width: 550px; }
 
-    /* ==== Drag & Drop, Copy/Paste file ==== */
+    /* Dropzone styles */ 
     #dropzone {
       border: 2px dashed #ccc;
       padding: 20px;
@@ -99,6 +93,8 @@
     #dropzone.dragover {
       background-color: #eee;
     }
+
+    /* File preview styles */
     #filePreviewList { margin-top: 10px; }
     .preview-item {
       display: inline-block;
@@ -127,62 +123,222 @@
       line-height: 18px;
       text-align: center;
     }
-
-    /* ==== Modal chỉnh sửa nhiệm vụ ==== */
-    .editable-input {
-      width: 100%;
-      padding: 4px;
-      font-size: 1rem;
+    .comments-container {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
     }
 
-    /* ==== Badges ==== */
-    .status-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 3px;
-      font-size: 0.85em;
-      font-weight: bold;
+    /* Cố định tiêu đề bảng */
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 10;
     }
-    .status-pending {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-    .status-progress {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-    .status-completed {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    .priority-cao { color: #dc3545; font-weight: bold; }
-    .priority-trungbinh { color: #fd7e14; }
-    .priority-thap { color: #6c757d; }
-    .task-overdue { background-color: #ffe6e6 !important; }
 
-    /* ==== Mobile responsive tối giản ==== */
-    @media (max-width: 576px) {
-      .home-link {
-        position: relative;
-        top: 0;
-        left: 0;
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 10px 0;
-        font-size: 16px;
-      }
+    /* Đặt chiều cao tối đa cho vùng table-responsive để cuộn dọc */
+    .table-responsive {
+      max-height: calc(100vh - 250px);
+      overflow-y: auto;
     }
+
+    /* Căn giữa chữ trong bảng */
+    #tasksTable th,
+    #tasksTable td {
+      text-align: center;
+      vertical-align: middle;
+    }
+     /* Đặt kích thước cố định cho các cột để tránh co nhỏ */
+  #tasksTable {
+    table-layout: fixed !important;
+    min-width: 1500px !important; /* Tổng chiều rộng tối thiểu của bảng */
+  }
+
+  /* Định nghĩa chiều rộng cho từng cột */
+  #tasksTable th:nth-child(1), #tasksTable td:nth-child(1) { width: 50px; min-width: 50px; } /* STT */
+  #tasksTable th:nth-child(2), #tasksTable td:nth-child(2) { width: 180px; min-width: 180px; } /* Tên nhiệm vụ */
+  #tasksTable th:nth-child(3), #tasksTable td:nth-child(3) { width: 100px; min-width: 100px; } /* Người nhận */
+  #tasksTable th:nth-child(4), #tasksTable td:nth-child(4) { width: 100px; min-width: 100px; } /* Mức ưu tiên */
+  #tasksTable th:nth-child(5), #tasksTable td:nth-child(5) { width: 100px; min-width: 100px; } /* Thời hạn */
+  #tasksTable th:nth-child(6), #tasksTable td:nth-child(6) { width: 200px; min-width: 200px; } /* Mô tả */
+  #tasksTable th:nth-child(7), #tasksTable td:nth-child(7) { width: 120px; min-width: 120px; } /* Trạng thái */
+  #tasksTable th:nth-child(8), #tasksTable td:nth-child(8) { width: 120px; min-width: 120px; } /* File đính kèm */
+  #tasksTable th:nth-child(9), #tasksTable td:nth-child(9) { width: 120px; min-width: 120px; } /* Hình ảnh */
+  #tasksTable th:nth-child(10), #tasksTable td:nth-child(10) { 
+    width: 550px; 
+    min-width: 550px; 
+    max-width: 550px;
+  } /* Hành động */
+
+  /* Cải thiện hiển thị phần comments */
+  .comments-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .comments-list p {
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .comments-list p:last-child {
+    margin-bottom: 5px;
+  }
+
+  .comment-user {
+    font-weight: bold;
+    color: #0056b3;
+  }
+
+  .comment-date {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-left: 5px;
+  }
+
+  .comment-input-area {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    border-top: 1px solid #dee2e6;
+    padding-top: 10px;
+  }
+
+  .comment-input-area textarea {
+    resize: none;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 8px;
+    background-color: white;
+  }
+
+  .comment-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .comment-count {
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    margin-left: 5px;
+  }
+  
+  /* Task Statistics */
+  .task-stat {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Task Detail Modal */
+  .task-detail-item {
+    margin-bottom: 15px;
+  }
+  
+  .task-detail-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #495057;
+  }
+  
+  .task-detail-comments {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-weight: bold;
+  }
+  
+  .status-pending {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .status-progress {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .status-completed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  /* Priority badges */
+  .priority-cao {
+    color: #dc3545;
+    font-weight: bold;
+  }
+  
+  .priority-trungbinh {
+    color: #fd7e14;
+  }
+  
+  .priority-thap {
+    color: #6c757d;
+  }
+  
+  /* Overdue task highlight */
+  .task-overdue {
+    background-color: #ffe6e6 !important;
+  }
+
+  /* Cho phép nội dung wrapping trong từng ô */
+  #tasksTable td {
+    white-space: normal !important;
+    word-wrap: break-word;
+    vertical-align: middle;
+  }
+
+  /* Cải thiện thanh cuộn ngang cho bảng */
+  .table-responsive {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
   </style>
 </head>
 <body>
   <div class="container mt-4">
-    <!-- Link về Home -->
-    <a href="/home" class="home-link">Home</a>
-    <!-- Chào mừng user -->
+    <!-- User Welcome Section -->
     <div id="welcome" class="mb-3"></div>
+    <a href="/home" class="home-link">Home</a>
 
-    <!-- Tabs -->
+    <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="tasksTab" role="tablist">
       <li class="nav-item">
         <a class="nav-link active" id="list-tab" data-toggle="tab" href="#list-pane" role="tab" aria-controls="list-pane" aria-selected="true">Danh sách nhiệm vụ</a>
@@ -196,69 +352,69 @@
     </ul>
 
     <div class="tab-content" id="tasksTabContent">
-      <!-- TAB: Danh sách nhiệm vụ -->
+      <!-- Tab Danh sách nhiệm vụ -->
       <div class="tab-pane fade show active" id="list-pane" role="tabpanel" aria-labelledby="list-tab">
         <div class="mt-3">
-          <!-- Thống kê nhanh -->
-          <div class="row mb-3">
-            <div class="col-md-12">
-              <div class="card">
+          <!-- Task Statistics Dashboard -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card">
                 <div class="card-body p-2">
-                  <div class="row">
-                    <div class="col-md-3 col-6 text-center mb-2">
-                      <div class="task-stat" id="total-tasks">
-                        <h4 class="m-0">0</h4>
-                        <small>Tổng nhiệm vụ</small>
-                      </div>
+                    <div class="row">
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat" id="total-tasks">
+                                <h4 class="m-0">0</h4>
+                                <small>Tổng nhiệm vụ</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat bg-danger text-white">
+                                <h4 class="m-0" id="pending-tasks">0</h4>
+                                <small>Chưa thực hiện</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat bg-warning text-dark">
+                                <h4 class="m-0" id="progress-tasks">0</h4>
+                                <small>Đang thực hiện</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 text-center mb-2">
+                            <div class="task-stat bg-success text-white">
+                                <h4 class="m-0" id="completed-tasks">0</h4>
+                                <small>Hoàn thành</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-3 col-6 text-center mb-2">
-                      <div class="task-stat bg-danger text-white">
-                        <h4 class="m-0" id="pending-tasks">0</h4>
-                        <small>Chưa thực hiện</small>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-6 text-center mb-2">
-                      <div class="task-stat bg-warning text-dark">
-                        <h4 class="m-0" id="progress-tasks">0</h4>
-                        <small>Đang thực hiện</small>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-6 text-center mb-2">
-                      <div class="task-stat bg-success text-white">
-                        <h4 class="m-0" id="completed-tasks">0</h4>
-                        <small>Hoàn thành</small>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </div>
             </div>
-          </div>
+        </div>
+    </div>
 
-          <!-- Tìm kiếm & Sắp xếp -->
-          <div class="row mb-3">
-            <div class="col-md-4 col-sm-12 mb-2">
-              <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm nhiệm vụ...">
-            </div>
-            <div class="col-md-4 col-sm-6 mb-2">
-              <select id="sortSelect" class="form-control">
+    <!-- Tìm kiếm & Sắp xếp -->
+    <div class="row mb-3">
+        <div class="col-md-4 col-sm-12 mb-2">
+            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm nhiệm vụ...">
+        </div>
+        <div class="col-md-4 col-sm-6 mb-2">
+            <select id="sortSelect" class="form-control">
                 <option value="">Sắp xếp theo...</option>
                 <option value="deadline">Deadline</option>
                 <option value="priority">Ưu tiên</option>
                 <option value="status">Trạng thái</option>
-              </select>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-2">
-              <div class="btn-group btn-block" role="group">
+            </select>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-2">
+            <div class="btn-group btn-block" role="group">
                 <button type="button" class="btn btn-outline-secondary" onclick="filterByStatus('all')">Tất cả</button>
                 <button type="button" class="btn btn-outline-danger" onclick="filterByStatus('Chưa thực hiện')">Chưa làm</button>
                 <button type="button" class="btn btn-outline-warning" onclick="filterByStatus('Đang thực hiện')">Đang làm</button>
                 <button type="button" class="btn btn-outline-success" onclick="filterByStatus('Hoàn thành')">Hoàn thành</button>
-              </div>
             </div>
-          </div>
+        </div>
+    </div>
 
-          <!-- Lọc theo người (chỉ admin) -->
+          <!-- Lọc theo người (admin) -->
           <div id="filter-section" style="display: none;" class="mb-3">
             <label for="filterAssigned">Lọc theo người nhận:</label>
             <select id="filterAssigned" class="form-control" onchange="filterTasks()">
@@ -273,7 +429,7 @@
             </select>
           </div>
 
-          <!-- Tạo nhiệm vụ mới (chỉ admin) -->
+          <!-- Phần tạo nhiệm vụ mới chỉ dành cho admin -->
           <div id="createTaskContainer" class="mb-3">
             <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#createTaskForm" aria-expanded="false" aria-controls="createTaskForm">
               Tạo nhiệm vụ mới
@@ -313,8 +469,8 @@
                   <label for="taskDescription">Mô tả:</label>
                   <textarea class="form-control" id="taskDescription" rows="3"></textarea>
                 </div>
-                <!-- Khu vực Drag & Drop + Copy/Paste -->
-                <div id="dropzone">Kéo & thả file hoặc copy dán ảnh vào đây</div>
+                <!-- Dropzone -->
+                <div id="dropzone">Kéo & thả file vào đây (hoặc dán khi bấm Ctrl+V)</div>
                 <div class="form-group">
                   <label for="taskImage">Chọn file (ảnh/tài liệu):</label>
                   <input type="file" class="form-control-file" id="taskImage" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple>
@@ -325,7 +481,7 @@
             </div>
           </div>
 
-          <!-- Bảng nhiệm vụ -->
+          <!-- Bảng nhiệm vụ (bao bọc trong .table-responsive) -->
           <div class="table-responsive">
             <table class="table table-bordered" id="tasksTable">
               <thead>
@@ -346,12 +502,12 @@
             </table>
           </div>
 
-          <!-- Hiển thị tiến độ (nếu cần) -->
+          <!-- Khu vực hiển thị tiến độ (nếu cần) -->
           <div id="progress-bars"></div>
         </div>
       </div>
 
-      <!-- TAB: Lịch nhiệm vụ -->
+      <!-- Tab Lịch nhiệm vụ -->
       <div class="tab-pane fade" id="calendar-pane" role="tabpanel" aria-labelledby="calendar-tab">
         <div class="mt-3">
           <h3>Lịch nhiệm vụ</h3>
@@ -359,7 +515,7 @@
         </div>
       </div>
 
-      <!-- TAB: Báo cáo -->
+      <!-- Tab Báo cáo -->
       <div class="tab-pane fade" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
         <div class="mt-3">
           <h3>Báo cáo nhiệm vụ</h3>
@@ -369,44 +525,66 @@
     </div>
   </div>
 
-  <!-- Toast container (nếu muốn hiển thị toast thay vì alert) -->
+  <!-- Toast container -->
   <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Modal Chi tiết nhiệm vụ -->
+
+  <!-- Task Detail Modal -->
   <div class="modal fade" id="taskDetailModal" tabindex="-1" role="dialog" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="taskDetailModalLabel">Chi tiết nhiệm vụ</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="cancelEditTask()">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <!-- Thông tin nhiệm vụ, chuyển sang input nếu admin nhấn "Sửa" -->
           <div class="row">
+            <!-- Cột trái: các trường inline edit -->
             <div class="col-md-6">
               <div class="task-detail-item">
                 <strong>Tên nhiệm vụ:</strong>
-                <div id="detail-title"></div>
+                <input type="text" id="detail-title" class="form-control" disabled>
               </div>
               <div class="task-detail-item">
                 <strong>Người nhận:</strong>
-                <div id="detail-assigned"></div>
+                <select id="detail-assigned" class="form-control" disabled>
+                  <option value="Thiet">Thiet</option>
+                  <option value="Son">Son</option>
+                  <option value="Hai">Hai</option>
+                  <option value="Duc">Duc</option>
+                  <option value="Long">Long</option>
+                  <option value="SongJisub">SongJisub</option>
+                  <option value="Ha">Ha</option>
+                </select>
               </div>
               <div class="task-detail-item">
                 <strong>Mức ưu tiên:</strong>
-                <div id="detail-priority"></div>
+                <select id="detail-priority" class="form-control" disabled>
+                  <option value="cao">Ưu tiên cao</option>
+                  <option value="trungbinh">Trung bình</option>
+                  <option value="thap">Không ưu tiên</option>
+                </select>
               </div>
               <div class="task-detail-item">
                 <strong>Thời hạn:</strong>
-                <div id="detail-deadline"></div>
+                <input type="date" id="detail-deadline" class="form-control" disabled>
+              </div>
+              <div class="task-detail-item">
+                <strong>Trạng thái:</strong>
+                <select id="detail-status" class="form-control" disabled>
+                  <option value="Chưa thực hiện">Chưa thực hiện</option>
+                  <option value="Đang thực hiện">Đang thực hiện</option>
+                  <option value="Hoàn thành">Hoàn thành</option>
+                </select>
               </div>
             </div>
+            <!-- Cột phải: Mô tả, File đính kèm, Hình ảnh -->
             <div class="col-md-6">
               <div class="task-detail-item">
                 <strong>Mô tả:</strong>
-                <div id="detail-description"></div>
+                <textarea id="detail-description" class="form-control" rows="3" disabled></textarea>
               </div>
               <div class="task-detail-item">
                 <strong>File đính kèm:</strong>
@@ -417,9 +595,28 @@
                 <div id="detail-image"></div>
               </div>
             </div>
+            
           </div>
           <hr>
-          <!-- Bình luận trong modal -->
+          <!-- Khu vực Upload File (ẩn mặc định) -->
+          <div id="uploadFileSection" style="display: none; border:1px solid #ddd; padding:10px; margin-top:10px;">
+            <h5>Upload tệp đính kèm</h5>
+
+            <!-- Dropzone -->
+            <div id="upload-dropzone" 
+                 style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 15px; border-radius: 8px;">
+              Kéo & thả file vào đây (hoặc nhấn Ctrl+V)
+            </div>
+
+            <!-- Hiển thị danh sách file được chọn -->
+            <div id="upload-filePreviewList"></div>
+
+            <!-- Nút hành động -->
+            <button id="btnUploadFiles" class="btn btn-primary">Upload</button>
+            <button id="btnCancelUpload" class="btn btn-secondary">Hủy</button>
+          </div>
+
+          <!-- Phần bình luận -->
           <div class="task-detail-comments">
             <h6><i class="fa fa-comments"></i> Bình luận</h6>
             <div id="detail-comments-list" class="comments-list"></div>
@@ -432,11 +629,13 @@
           </div>
         </div>
         <div class="modal-footer">
+          <!-- Các nút hành động được thay đổi động -->
           <div id="detail-action-buttons" class="text-right w-100"></div>
         </div>
       </div>
     </div>
   </div>
+
 
   <!-- Scripts: jQuery, Popper, Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -446,18 +645,11 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
 
   <script>
-    /* ========== Biến toàn cục ========== */
-    let currentUser = null;         // Lưu user hiện tại
-    let selectedFiles = [];         // Lưu file kéo/thả, copy/dán khi tạo task
-    let editing = false;           // Cờ trạng thái đang sửa nhiệm vụ trong modal
-    let currentTaskId = null;      // ID nhiệm vụ đang xem chi tiết
-    let originalTaskData = {};     // Lưu dữ liệu gốc để khôi phục nếu Hủy chỉnh sửa
-    let currentStatusFilter = 'all';// Lưu trạng thái lọc
-
-    // Chart.js instance
+    let currentUser = null;
+    let selectedFiles = [];
     window.tasksChart = null;
 
-    /* ========== 1) Kiểm tra đăng nhập ========== */
+    // 1) Kiểm tra đăng nhập
     async function checkAuth() {
       try {
         const res = await fetch('/api/me');
@@ -469,8 +661,7 @@
         currentUser = data.user;
         document.getElementById('welcome').innerText =
           `Xin chào ${currentUser.name} - Vai trò: ${currentUser.role}`;
-
-        // Chỉ admin mới thấy phần tạo task và lọc theo người
+        // Nếu là admin, hiển thị form tạo nhiệm vụ và phần lọc; nếu không, ẩn chúng
         if (currentUser.role === 'admin') {
           document.getElementById('createTaskContainer').style.display = 'block';
           document.getElementById('filter-section').style.display = 'block';
@@ -484,7 +675,7 @@
       }
     }
 
-    /* ========== 2) Load thống kê (Báo cáo) ========== */
+    // 2) Hàm load Report
     async function loadReport() {
       try {
         const res = await fetch('/api/tasks');
@@ -499,12 +690,9 @@
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
-        // Hủy biểu đồ cũ nếu có
         if (window.tasksChart && typeof window.tasksChart.destroy === 'function') {
           window.tasksChart.destroy();
         }
-
-        // Tạo biểu đồ cột đơn giản
         window.tasksChart = new Chart(ctx, {
           type: 'bar',
           data: {
@@ -515,14 +703,18 @@
               backgroundColor: ['#dc3545', '#ffc107', '#28a745']
             }]
           },
-          options: { scales: { y: { beginAtZero: true } } }
+          options: {
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
         });
       } catch (err) {
         console.error("Error loading report:", err);
       }
     }
 
-    /* ========== 3) Load Lịch (FullCalendar) ========== */
+    // 3) Hàm load Calendar
     async function loadCalendar() {
       try {
         const res = await fetch('/api/tasks');
@@ -540,14 +732,12 @@
             description: task.description
           }
         }));
-
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: 'dayGridMonth',
           events,
           editable: (currentUser && currentUser.role === 'admin'),
           eventDidMount: function(info) {
-            // Tooltip khi hover sự kiện
             const ext = info.event.extendedProps;
             const tooltipContent = `
               <b>${info.event.title}</b><br>
@@ -559,7 +749,6 @@
             info.el.setAttribute('title', tooltipContent);
           },
           eventClick: function(info) {
-            // Click vào sự kiện => hiển thị chi tiết nhanh
             const ext = info.event.extendedProps;
             const details = `
 Nhiệm vụ: ${info.event.title}
@@ -571,7 +760,6 @@ Mô tả: ${ext.description || ''}
             alert(details);
           },
           eventDrop: async (info) => {
-            // Kéo thả sự kiện => cập nhật deadline
             const newDeadline = info.event.start.toISOString().split('T')[0];
             try {
               const res = await fetch(`/api/tasks/${info.event.id}`, {
@@ -599,7 +787,7 @@ Mô tả: ${ext.description || ''}
       }
     }
 
-    /* ========== 4) Drag & Drop, Copy/Paste File khi tạo nhiệm vụ mới ========== */
+    // 4) Drag & Drop và Preview file
     document.getElementById('taskImage').addEventListener('change', e => {
       const files = Array.from(e.target.files);
       files.forEach(file => addSelectedFile(file));
@@ -661,176 +849,160 @@ Mô tả: ${ext.description || ''}
       renderFilePreviews();
     }
 
-    /* ========== 5) Xử lý mở modal chi tiết nhiệm vụ (Xem + Bình luận + Chỉnh sửa) ========== */
-    function openTaskDetail(taskId) {
-      currentTaskId = taskId;
-      editing = false;
-      cancelEditTask(); // đảm bảo về chế độ xem thường
+    // Status variable for quick filtering
+    let currentStatusFilter = 'all';
+    
+    // Function to filter tasks by status
+    function filterByStatus(status) {
+      currentStatusFilter = status;
+      loadTasks();
+    }
+      // Hàm mở chi tiết nhiệm vụ và điền dữ liệu vào các trường inline
+      function openTaskDetail(taskId) {
+        try {
+          const rows = document.querySelectorAll('#tasksTable tbody tr');
+          let taskData = null;
 
-      // Lấy dữ liệu nhiệm vụ từ bảng
-      const rows = document.querySelectorAll('#tasksTable tbody tr');
-      let taskData = null;
-      for (const row of rows) {
-        if (row.querySelector(`button[onclick*="${taskId}"]`)) {
-          const cells = row.querySelectorAll('td');
-          taskData = {
-            id: taskId,
-            title: cells[1].textContent,
-            assignedTo: cells[2].textContent,
-            priority: cells[3].textContent,
-            deadline: cells[4].textContent,
-            description: cells[5].textContent,
-            status: cells[6].textContent,
-            attachments: cells[7].innerHTML,
-            imageURL: cells[8].querySelector('img') ? cells[8].querySelector('img').src : null
+          // Tìm dữ liệu nhiệm vụ từ bảng
+          for (const row of rows) {
+            const cells = row.querySelectorAll('td');
+            if (cells[0] && row.querySelector(`button[onclick*="${taskId}"]`)) {
+              taskData = {
+                id: taskId,
+                title: cells[1].textContent,
+                assignedTo: cells[2].textContent,
+                priority: cells[3].textContent,
+                deadline: cells[4].textContent,
+                description: cells[5].textContent,
+                status: cells[6].textContent
+              };
+              break;
+            }
+          }
+
+          if (!taskData) {
+            console.error('Task data not found for ID:', taskId);
+            return;
+          }
+
+          // Điền dữ liệu vào các input/select/textarea (sử dụng value thay vì textContent)
+          document.getElementById('detail-title').value = taskData.title;
+          document.getElementById('detail-assigned').value = taskData.assignedTo;
+          document.getElementById('detail-priority').value = taskData.priority.toLowerCase();
+          document.getElementById('detail-deadline').value = taskData.deadline;
+          document.getElementById('detail-status').value = taskData.status;
+          document.getElementById('detail-description').value = taskData.description || '';
+
+          // Đảm bảo các trường ở chế độ chỉ đọc
+          document.getElementById('detail-title').disabled = true;
+          document.getElementById('detail-assigned').disabled = true;
+          document.getElementById('detail-priority').disabled = true;
+          document.getElementById('detail-deadline').disabled = true;
+          document.getElementById('detail-status').disabled = true;
+          document.getElementById('detail-description').disabled = true;
+
+          // Load hình ảnh và file đính kèm
+          loadAttachments(taskId);
+
+          // Load bình luận
+          loadDetailComments(taskId);
+
+          // Thiết lập nút hành động (các nút Sửa, Upload File, Xóa,...)
+          setupDetailActionButtons(taskData);
+
+          // Xử lý gửi bình luận
+          document.getElementById('detail-post-comment').onclick = () => {
+            const commentText = document.getElementById('detail-new-comment').value.trim();
+            if (commentText) {
+              postDetailComment(taskId, commentText);
+            }
           };
-          break;
+
+          // Hiển thị modal
+          $('#taskDetailModal').modal('show');
+
+        } catch (error) {
+          console.error('Error opening task detail:', error);
+          showToast('Không thể mở chi tiết nhiệm vụ. Lỗi: ' + error.message);
         }
       }
-      if (!taskData) {
-        console.error('Task data not found for ID:', taskId);
-        return;
-      }
-      originalTaskData = { ...taskData };
 
-      // Điền dữ liệu vào modal
-      document.getElementById('detail-title').textContent = taskData.title;
-      document.getElementById('detail-assigned').textContent = taskData.assignedTo;
-      document.getElementById('detail-priority').textContent = taskData.priority;
-      document.getElementById('detail-deadline').textContent = taskData.deadline;
-      document.getElementById('detail-description').textContent = taskData.description || 'Không có mô tả';
-      document.getElementById('detail-attachments').innerHTML = taskData.attachments;
-      const imageContainer = document.getElementById('detail-image');
-      if (taskData.imageURL) {
-        imageContainer.innerHTML = `<a href="${taskData.imageURL}" target="_blank">
-          <img src="${taskData.imageURL}" style="max-width:100%; max-height:200px;" alt="Task image">
-        </a>`;
-      } else {
-        imageContainer.innerHTML = '<span class="text-muted">Không có hình ảnh</span>';
+      // Hàm bật chế độ inline edit
+      function enableInlineEdit(taskId) {
+        // Bỏ thuộc tính disabled để cho phép chỉnh sửa
+        document.getElementById('detail-title').disabled = false;
+        document.getElementById('detail-assigned').disabled = false;
+        document.getElementById('detail-priority').disabled = false;
+        document.getElementById('detail-deadline').disabled = false;
+        document.getElementById('detail-status').disabled = false;
+        document.getElementById('detail-description').disabled = false;
+
+        // Thay đổi nút hành động: hiển thị nút "Lưu" và "Hủy"
+        document.getElementById('detail-action-buttons').innerHTML = `
+          <button class="btn btn-success" onclick="saveInlineEdits(${taskId})">Lưu</button>
+          <button class="btn btn-secondary" onclick="cancelInlineEdit(${taskId})">Hủy</button>
+        `;
       }
 
-      // Load bình luận (phần detail)
-      loadDetailComments(taskId);
+      // Hàm lưu chỉnh sửa inline
+      async function saveInlineEdits(taskId) {
+        const updatedTask = {
+          title: document.getElementById('detail-title').value,
+          assignedTo: document.getElementById('detail-assigned').value,
+          priority: document.getElementById('detail-priority').value,
+          deadline: document.getElementById('detail-deadline').value,
+          status: document.getElementById('detail-status').value,
+          description: document.getElementById('detail-description').value
+        };
 
-      // Nút gửi bình luận
-      document.getElementById('detail-post-comment').onclick = () => {
-        const commentText = document.getElementById('detail-new-comment').value.trim();
-        if (commentText) {
-          postDetailComment(taskId, commentText);
+        try {
+          const res = await fetch(`/api/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedTask)
+          });
+          const result = await res.json();
+          if (!result.success) {
+            alert("Lỗi cập nhật nhiệm vụ: " + result.message);
+            return;
+          }
+          alert("Cập nhật thành công!");
+          openTaskDetail(taskId); // Load lại chi tiết nhiệm vụ với dữ liệu mới
+        } catch (error) {
+          console.error("Error updating task:", error);
+          alert("Lỗi khi cập nhật nhiệm vụ: " + error.message);
         }
-      };
-
-      // Setup các nút hành động (nếu admin thì có nút "Sửa", v.v.)
-      setupDetailActionButtons(taskData);
-
-      // Mở modal
-      $('#taskDetailModal').modal('show');
-    }
-
-    /* ========== 6) Chức năng Sửa nhiệm vụ (trong modal, chỉ admin) ========== */
-    function enableEditTask() {
-      if (currentUser.role !== 'admin' || editing) return;
-      editing = true;
-
-      // Đổi các vùng hiển thị thành input
-      document.getElementById('detail-title').innerHTML =
-        `<input type="text" id="edit-title" class="editable-input" value="${originalTaskData.title}">`;
-
-      document.getElementById('detail-assigned').innerHTML =
-        `<select id="edit-assigned" class="editable-input">
-          <option value="Thiet">Thiet</option>
-          <option value="Son">Son</option>
-          <option value="Hai">Hai</option>
-          <option value="Duc">Duc</option>
-          <option value="Long">Long</option>
-          <option value="SongJisub">SongJisub</option>
-          <option value="Ha">Ha</option>
-        </select>`;
-      document.getElementById('edit-assigned').value = originalTaskData.assignedTo;
-
-      document.getElementById('detail-priority').innerHTML =
-        `<select id="edit-priority" class="editable-input">
-          <option value="cao">Ưu tiên cao</option>
-          <option value="trungbinh">Trung bình</option>
-          <option value="thap">Không ưu tiên</option>
-        </select>`;
-      let prioVal = originalTaskData.priority.toLowerCase().includes("cao") ? "cao" :
-                    originalTaskData.priority.toLowerCase().includes("trung") ? "trungbinh" : "thap";
-      document.getElementById('edit-priority').value = prioVal;
-
-      document.getElementById('detail-deadline').innerHTML =
-        `<input type="date" id="edit-deadline" class="editable-input" value="${originalTaskData.deadline}">`;
-
-      document.getElementById('detail-description').innerHTML =
-        `<textarea id="edit-description" class="editable-input" rows="3">${originalTaskData.description}</textarea>`;
-
-      // Thay đổi các nút hành động
-      const actionContainer = document.getElementById('detail-action-buttons');
-      actionContainer.innerHTML = `
-        <button class="btn btn-success" onclick="saveTaskEdits(${currentTaskId})">Lưu</button>
-        <button class="btn btn-secondary" onclick="cancelEditTask()">Hủy</button>
-      `;
-    }
-
-    function cancelEditTask() {
-      if (!editing) return;
-      editing = false;
-      // Phục hồi nội dung gốc
-      document.getElementById('detail-title').textContent = originalTaskData.title;
-      document.getElementById('detail-assigned').textContent = originalTaskData.assignedTo;
-      document.getElementById('detail-priority').textContent = originalTaskData.priority;
-      document.getElementById('detail-deadline').textContent = originalTaskData.deadline;
-      document.getElementById('detail-description').textContent = originalTaskData.description || 'Không có mô tả';
-
-      // Phục hồi nút hành động
-      setupDetailActionButtons(originalTaskData);
-    }
-
-    async function saveTaskEdits(taskId) {
-      const updatedData = {
-        title: document.getElementById('edit-title').value,
-        assignedTo: document.getElementById('edit-assigned').value,
-        priority: document.getElementById('edit-priority').value,
-        deadline: document.getElementById('edit-deadline').value,
-        description: document.getElementById('edit-description').value
-      };
-      try {
-        const res = await fetch(`/api/tasks/${taskId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedData)
-        });
-        const result = await res.json();
-        if (!result.success) {
-          alert("Lỗi cập nhật nhiệm vụ: " + result.message);
-          return;
-        }
-        showToast("Cập nhật nhiệm vụ thành công!");
-        cancelEditTask();
-        loadTasks();
-        loadReport();
-        $('#taskDetailModal').modal('hide');
-      } catch (error) {
-        console.error("Error updating task:", error);
-        showToast("Lỗi cập nhật nhiệm vụ: " + error.message);
       }
-    }
 
-    /* ========== 7) Bình luận trong modal chi tiết ========== */
+      // Hàm hủy chỉnh sửa inline
+      function cancelInlineEdit(taskId) {
+        // Load lại dữ liệu nhiệm vụ ban đầu
+        openTaskDetail(taskId);
+      }
+
+    
+    // Load comments for the detail view
     async function loadDetailComments(taskId) {
       try {
         const res = await fetch(`/api/tasks/${taskId}/comments`);
         const comments = await res.json();
         const list = document.getElementById('detail-comments-list');
+        
         list.innerHTML = '';
+        
         if (comments.length === 0) {
           list.innerHTML = '<p class="text-center text-muted"><i>Chưa có bình luận nào</i></p>';
         } else {
           comments.forEach(c => {
             const p = document.createElement('p');
             const formattedDate = new Date(c.created_at).toLocaleString('vi-VN', {
-             timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
             });
+            
             p.innerHTML = `
               <span class="comment-user">${c.user}</span>
               <span class="comment-date">${formattedDate}</span><br>
@@ -843,23 +1015,26 @@ Mô tả: ${ext.description || ''}
         console.error("Error loading detail comments:", err);
       }
     }
-
+    
+    // Post comment from detail view
     async function postDetailComment(taskId, commentText) {
       try {
         const submitBtn = document.getElementById('detail-post-comment');
+        const originalText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang gửi...';
-
+        
         const res = await fetch(`/api/tasks/${taskId}/comments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ comment_text: commentText })
         });
+        
         const result = await res.json();
         if (result.success) {
           document.getElementById('detail-new-comment').value = '';
           await loadDetailComments(taskId);
-          await loadCommentCount(taskId); // Cập nhật số comment ở danh sách
+          await loadCommentCount(taskId); // Update comment count badge in the list
         } else {
           showToast("Lỗi: " + result.message);
         }
@@ -872,31 +1047,50 @@ Mô tả: ${ext.description || ''}
         submitBtn.innerHTML = '<i class="fa fa-paper-plane"></i> Gửi';
       }
     }
-
+    
+    // Setup action buttons in detail view
     function setupDetailActionButtons(taskData) {
       const container = document.getElementById('detail-action-buttons');
-      let buttons = `<button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="cancelEditTask()">Đóng</button>`;
-      if (currentUser && currentUser.role === 'admin') {
-        buttons += ` <button class="btn btn-primary" onclick="enableEditTask()">Sửa</button>`;
+      container.innerHTML = '';
+      
+      //let buttons = '';
+      let buttons = `<button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button> `;
+      // Close button
+      //buttons += `<button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button> `;
+      // Nút “Sửa” cho admin (hoặc assigned)
+      if (currentUser.role === 'admin') {
+        buttons += `<button class="btn btn-primary" onclick="enableInlineEdit(${taskData.id})">Sửa</button> `;
       }
+      // Action buttons based on task status and user role
+      if (taskData.status === "Chưa thực hiện" && currentUser.name === taskData.assignedTo) {
+        buttons += `<button class="btn btn-info" onclick="startTask(${taskData.id})">Nhận nhiệm vụ</button> `;
+      }
+      
+      if (taskData.status !== "Hoàn thành" && (currentUser.role === 'admin' || currentUser.name === taskData.assignedTo)) {
+        buttons += `<button class="btn btn-success" onclick="completeTask(${taskData.id})">Hoàn thành</button> `;
+      }
+      
+      if (currentUser.role === 'admin') {
+        buttons += `<button class="btn btn-warning" onclick="handoverTask(${taskData.id})">Bàn giao</button> `;
+      }
+      
+      if (currentUser.role === 'admin' || currentUser.name === taskData.assignedTo) {
+        buttons += `<button class="btn btn-secondary" onclick="openUploadSection(${taskData.id})">Upload File</button> `;
+      }
+
+      if (currentUser.role === 'admin') {
+        buttons += `<button class="btn btn-danger" onclick="deleteTask(${taskData.id})">Xóa</button>`;
+      }
+
+
       container.innerHTML = buttons;
     }
+    
 
-    /* ========== 8) Upload hình ảnh và file (dùng chung) ========== */
-    async function uploadImage(file) {
-      try {
-        const formData = new FormData();
-        formData.append('image', file);
-        const res = await fetch('/api/upload-image', {
-          method: 'POST',
-          body: formData
-        });
-        return await res.json();
-      } catch (err) {
-        console.error("Error uploadImage:", err);
-        return { success: false, message: err?.message || "Unknown error" };
-      }
-    }
+    
+
+
+    // 6) Upload attachment
     async function uploadAttachment(taskId, file) {
       try {
         const formData = new FormData();
@@ -912,10 +1106,11 @@ Mô tả: ${ext.description || ''}
       }
     }
 
-    /* ========== 9) Load danh sách nhiệm vụ (chính) ========== */
+    // 7) Load danh sách nhiệm vụ
     async function loadTasks() {
       try {
         if (!currentUser) return;
+
         let url = '/api/tasks';
         if (currentUser.role === 'admin') {
           const assigned = document.getElementById('filterAssigned').value;
@@ -924,19 +1119,19 @@ Mô tả: ${ext.description || ''}
         const res = await fetch(url);
         let tasks = await res.json();
 
-        // Tính toán thống kê
+        // Update task statistics
         const taskStats = {
           total: tasks.length,
           pending: tasks.filter(t => t.status === 'Chưa thực hiện').length,
           progress: tasks.filter(t => t.status === 'Đang thực hiện').length,
           completed: tasks.filter(t => t.status === 'Hoàn thành').length
         };
+        
         document.getElementById('total-tasks').querySelector('h4').textContent = taskStats.total;
         document.getElementById('pending-tasks').textContent = taskStats.pending;
         document.getElementById('progress-tasks').textContent = taskStats.progress;
         document.getElementById('completed-tasks').textContent = taskStats.completed;
 
-        // Tìm kiếm
         const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
         if (searchVal) {
           tasks = tasks.filter(task => {
@@ -946,12 +1141,11 @@ Mô tả: ${ext.description || ''}
           });
         }
 
-        // Lọc theo trạng thái
+        // Filter by status if needed
         if (currentStatusFilter !== 'all') {
           tasks = tasks.filter(task => task.status === currentStatusFilter);
         }
 
-        // Sắp xếp
         const sortVal = document.getElementById('sortSelect').value;
         if (sortVal === 'deadline') {
           tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
@@ -963,49 +1157,47 @@ Mô tả: ${ext.description || ''}
           tasks.sort((a, b) => order[a.status] - order[b.status]);
         }
 
-        // Render bảng
         const tbody = document.querySelector('#tasksTable tbody');
         tbody.innerHTML = '';
         let stt = 1;
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         for (const task of tasks) {
+          // Check if task is overdue
           const deadlineDate = new Date(task.deadline);
           deadlineDate.setHours(0, 0, 0, 0);
           const isOverdue = deadlineDate < today && task.status !== 'Hoàn thành';
-
-          // Các nút hành động
           let actionButtons = '';
-          // 1) Nhận nhiệm vụ (nếu đang "Chưa thực hiện" và đúng người)
           if (task.status === "Chưa thực hiện" && currentUser.name === task.assignedTo) {
             actionButtons += `<button class="btn btn-info btn-sm" onclick="startTask(${task.id})">Nhận</button> `;
           }
-          // 2) Hoàn thành (nếu chưa hoàn thành và là admin hoặc người nhận)
           if (task.status !== "Hoàn thành" && (currentUser.role === 'admin' || currentUser.name === task.assignedTo)) {
             actionButtons += `<button class="btn btn-success btn-sm" onclick="completeTask(${task.id})">Hoàn thành</button> `;
           }
-          // 3) Bàn giao (chỉ admin)
           if (currentUser.role === 'admin') {
             actionButtons += `<button class="btn btn-warning btn-sm" onclick="handoverTask(${task.id})">Bàn giao</button> `;
           }
-          // 4) Upload File (admin hoặc người nhận)
           if (currentUser.role === 'admin' || currentUser.name === task.assignedTo) {
             actionButtons += `<button class="btn btn-secondary btn-sm" onclick="uploadAttachmentPrompt(${task.id})">Upload File</button> `;
           }
-          // 5) Bình luận inline
+          // Get comment count for this task
           actionButtons += `<button class="btn btn-info btn-sm comment-btn" onclick="toggleComments(${task.id})">
             <i class="fa fa-comment"></i> Comment <span id="comment-count-${task.id}" class="comment-count">0</span>
           </button> `;
-          // 6) Chi tiết
           actionButtons += `<button class="btn btn-primary btn-sm" onclick="openTaskDetail(${task.id})">
             <i class="fa fa-eye"></i> Chi tiết
           </button> `;
-          // 7) Xóa (chỉ admin)
           if (currentUser.role === 'admin') {
             actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Xóa</button>`;
           }
 
-          // Hiển thị mức ưu tiên
+          const tr = document.createElement('tr');
+          if (isOverdue) {
+            tr.classList.add('task-overdue');
+          }
+          
+          // Format priority with appropriate styling
           let priorityDisplay = '';
           if (task.priority === 'cao') {
             priorityDisplay = '<span class="priority-cao">Ưu tiên cao</span>';
@@ -1014,7 +1206,8 @@ Mô tả: ${ext.description || ''}
           } else {
             priorityDisplay = '<span class="priority-thap">Không ưu tiên</span>';
           }
-          // Hiển thị trạng thái
+          
+          // Format status with badges
           let statusDisplay = '';
           if (task.status === 'Chưa thực hiện') {
             statusDisplay = '<span class="status-badge status-pending">Chưa thực hiện</span>';
@@ -1023,14 +1216,12 @@ Mô tả: ${ext.description || ''}
           } else {
             statusDisplay = '<span class="status-badge status-completed">Hoàn thành</span>';
           }
-          // Deadline
-          const deadlineDisplay = isOverdue
-            ? `<span class="text-danger font-weight-bold">${task.deadline}</span>`
-            : task.deadline;
-
-          // Tạo dòng bảng
-          const tr = document.createElement('tr');
-          if (isOverdue) tr.classList.add('task-overdue');
+          
+          // Format the deadline with highlight if overdue
+          const deadlineDisplay = isOverdue ? 
+            `<span class="text-danger font-weight-bold">${task.deadline}</span>` : 
+            task.deadline;
+          
           tr.innerHTML = `
             <td>${stt}</td>
             <td>${task.title}</td>
@@ -1039,25 +1230,16 @@ Mô tả: ${ext.description || ''}
             <td>${deadlineDisplay}</td>
             <td>${task.description || ''}</td>
             <td>${statusDisplay}</td>
-            <td id="attachments-${task.id}"></td>
-            <td>
-              ${
-                task.imageURL
-                  ? `<a href="${task.imageURL}" target="_blank" download>
-                       <img src="${task.imageURL}" style="max-width:100px;" alt="thumbnail">
-                     </a>`
-                  : 'N/A'
-              }
-            </td>
+            <td id="attachments-${task.id}">N/A</td>
+            <td id="images-${task.id}">N/A</td>
             <td>
               ${actionButtons}
-              <!-- Khu vực comment inline -->
               <div id="comments-${task.id}" class="comments-container" style="display:none;">
                 <h6><i class="fa fa-comments"></i> Bình luận</h6>
                 <div id="comments-list-${task.id}" class="comments-list"></div>
                 <div class="comment-input-area">
                   <textarea id="new-comment-${task.id}" class="form-control" rows="2" placeholder="Nhập bình luận của bạn..."></textarea>
-                  <div class="comment-actions mt-2">
+                  <div class="comment-actions">
                     <button class="btn btn-outline-secondary btn-sm" onclick="hideComments(${task.id})">Đóng</button>
                     <button class="btn btn-primary btn-sm" onclick="postComment(${task.id})">
                       <i class="fa fa-paper-plane"></i> Gửi
@@ -1069,9 +1251,8 @@ Mô tả: ${ext.description || ''}
           `;
           tbody.appendChild(tr);
           stt++;
-
-          // Load danh sách attachments + số comment
-          loadAttachments(task.id);
+          loadAttachmentsForTable(task.id); // Cập nhật file đính kèm và hình ảnh cho dòng này
+          // Load comment counts for each task
           loadCommentCount(task.id);
         }
       } catch (err) {
@@ -1079,20 +1260,13 @@ Mô tả: ${ext.description || ''}
       }
     }
 
-    function filterByStatus(status) {
-      currentStatusFilter = status;
-      loadTasks();
-    }
-    function filterTasks() {
-      loadTasks();
-    }
-
-    /* ========== 9.1) Comment inline ========== */
+    // Function to load just the comment count for a task
     async function loadCommentCount(taskId) {
       try {
         const res = await fetch(`/api/tasks/${taskId}/comments`);
         const comments = await res.json();
         const countBadge = document.getElementById(`comment-count-${taskId}`);
+
         if (countBadge) {
           countBadge.textContent = comments.length;
         }
@@ -1100,128 +1274,93 @@ Mô tả: ${ext.description || ''}
         console.error(`Error loading comment count for task ${taskId}:`, err);
       }
     }
-    function toggleComments(taskId) {
-      const container = document.getElementById(`comments-${taskId}`);
-      if (!container) return;
-      if (container.style.display === 'none' || !container.style.display) {
-        container.style.display = 'block';
-        // Khi mở, load comment
-        loadComments(taskId);
-      } else {
-        container.style.display = 'none';
-      }
+    function filterTasks() {
+      loadTasks();
     }
-    function hideComments(taskId) {
-      const container = document.getElementById(`comments-${taskId}`);
-      if (container) container.style.display = 'none';
-    }
-    async function loadComments(taskId) {
-      // Giống loadDetailComments, nhưng hiển thị ở comment inline
-      try {
-        const res = await fetch(`/api/tasks/${taskId}/comments`);
-        const comments = await res.json();
-        const listEl = document.getElementById(`comments-list-${taskId}`);
-        if (!listEl) return;
-        listEl.innerHTML = '';
-        if (comments.length === 0) {
-          listEl.innerHTML = '<p class="text-center text-muted"><i>Chưa có bình luận nào</i></p>';
-        } else {
-          comments.forEach(c => {
-            const p = document.createElement('p');
-            const formattedDate = new Date(c.created_at).toLocaleString('vi-VN', {
-             timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-            });
-            p.innerHTML = `
-              <span class="comment-user">${c.user}</span>
-              <span class="comment-date">${formattedDate}</span><br>
-              ${c.comment_text.replace(/\n/g, '<br>')}
-            `;
-            listEl.appendChild(p);
-          });
-        }
-      } catch (err) {
-        console.error("Error loading inline comments for task", taskId, err);
-      }
-    }
-    async function postComment(taskId) {
-      try {
-        const textarea = document.getElementById(`new-comment-${taskId}`);
-        const commentText = textarea.value.trim();
-        if (!commentText) return;
-        // Tạm disable nút
-        const button = textarea.parentNode.querySelector('button.btn-primary');
-        button.disabled = true;
-        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang gửi...';
 
-        const res = await fetch(`/api/tasks/${taskId}/comments`, {
+// 8) Xử lý submit form giao nhiệm vụ
+    document.getElementById('taskForm').addEventListener('submit', async function(e) {
+      e.preventDefault(); // Ngăn reload trang
+
+      const task = {
+        title: document.getElementById('taskTitle').value,
+        assignedTo: document.getElementById('taskAssigned').value,
+        priority: document.getElementById('taskPriority').value,
+        deadline: document.getElementById('taskDeadline').value,
+        description: document.getElementById('taskDescription').value,
+        status: 'Chưa thực hiện'
+      };
+
+      try {
+        // Gọi API tạo nhiệm vụ
+        const createRes = await fetch('/api/tasks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ comment_text: commentText })
+          body: JSON.stringify(task)
         });
-        const result = await res.json();
-        if (result.success) {
-          textarea.value = '';
-          await loadComments(taskId);
-          await loadCommentCount(taskId);
-        } else {
-          showToast("Lỗi: " + result.message);
-        }
-      } catch (err) {
-        console.error("Error posting inline comment:", err);
-        showToast("Lỗi kết nối: Không thể gửi bình luận");
-      } finally {
-        const button = document.getElementById(`comments-${taskId}`)
-                       ?.querySelector('button.btn-primary');
-        if (button) {
-          button.disabled = false;
-          button.innerHTML = '<i class="fa fa-paper-plane"></i> Gửi';
-        }
-      }
-    }
-
-    /* ========== 9.2) Attachments inline ========== */
-    async function loadAttachments(taskId) {
-      try {
-        const attRes = await fetch(`/api/tasks/${taskId}/attachments`);
-        const attachments = await attRes.json();
-        const attContainer = document.getElementById(`attachments-${taskId}`);
-        if (!attContainer) return;
-        if (!attachments || attachments.length === 0) {
-          attContainer.innerHTML = 'Không có';
+        const createResult = await createRes.json();
+        console.log("Phản hồi từ API tạo nhiệm vụ:", createResult);
+        if (!createResult.success) {
+          showToast("Lỗi tạo nhiệm vụ: " + createResult.message);
           return;
         }
-        // Render danh sách file
-        attContainer.innerHTML = attachments.map(a => {
-          return `<a href="${a.file_url}" target="_blank">${a.file_name}</a>`;
-        }).join('<br>');
-      } catch (err) {
-        console.error("Error loading attachments for task", taskId, err);
-      }
-    }
-    function uploadAttachmentPrompt(taskId) {
-      // Mở 1 input file để chọn file upload
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.multiple = true;
-      input.accept = "image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      input.onchange = async (e) => {
-        const files = Array.from(e.target.files);
-        for (const file of files) {
-          const uploadResult = await uploadAttachment(taskId, file);
-          if (!uploadResult.success) {
-            showToast("Lỗi upload file: " + uploadResult.message);
+
+        // Lấy ID của nhiệm vụ vừa tạo
+        const newTaskId = createResult.task && createResult.task.id;
+        if (!newTaskId) {
+          showToast("Không tìm thấy ID của nhiệm vụ vừa tạo!");
+          return;
+        }
+
+        // Xử lý upload file nếu có
+        if (selectedFiles.length > 0) {
+          for (const file of selectedFiles) {
+            const uploadResult = await uploadAttachment(newTaskId, file);
+            if (!uploadResult.success) {
+              showToast("Lỗi upload file: " + uploadResult.message);
+            }
           }
         }
-        // Tải lại danh sách đính kèm
-        loadAttachments(taskId);
-        showToast("Upload file thành công (nếu không có lỗi)!");
-      };
-      input.click();
-    }
 
-    /* ========== 9.3) Các hành động thay đổi trạng thái (Nhận, Hoàn thành, Bàn giao, Xóa) ========== */
+        showToast("Nhiệm vụ và file đính kèm đã được tạo thành công!");
+        loadTasks();
+        loadReport();
+
+        // Reset form và các file đã chọn
+        document.getElementById('taskForm').reset();
+        selectedFiles = [];
+        document.getElementById('filePreviewList').innerHTML = '';
+
+      } catch (err) {
+        console.error("Error creating task:", err);
+        showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
+      }
+    });
+
+
+// Hàm cập nhật hình ảnh cho nhiệm vụ
+async function updateTaskImage(taskId, imageUrl, imagePath) {
+  try {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageURL: imageUrl, image_path: imagePath })
+    });
+    const result = await res.json();
+    if (!result.success) {
+      showToast("Lỗi cập nhật hình ảnh nhiệm vụ: " + result.message);
+    }
+    return result;
+  } catch (error) {
+    console.error("Error updating task image:", error);
+    showToast("Lỗi cập nhật hình ảnh nhiệm vụ: " + error.message);
+  }
+}
+
+
+    // 9) Nhận nhiệm vụ
     async function startTask(taskId) {
-      if (!confirm("Bạn muốn nhận nhiệm vụ này?")) return;
+      if (!confirm("Nhận nhiệm vụ này?")) return;
       try {
         const res = await fetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
@@ -1230,20 +1369,20 @@ Mô tả: ${ext.description || ''}
         });
         const result = await res.json();
         if (result.success) {
-          showToast("Đã nhận nhiệm vụ!");
+          showToast("Bạn đã nhận nhiệm vụ!");
           loadTasks();
           loadReport();
         } else {
           showToast("Lỗi: " + result.message);
         }
       } catch (err) {
-        console.error("Error starting task:", err);
-        showToast("Lỗi kết nối: Không thể nhận nhiệm vụ");
+        console.error("Error startTask:", err);
       }
     }
 
+    // 10) Hoàn thành nhiệm vụ
     async function completeTask(taskId) {
-      if (!confirm("Xác nhận hoàn thành nhiệm vụ này?")) return;
+      if (!confirm("Đánh dấu là 'Hoàn thành'?")) return;
       try {
         const res = await fetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
@@ -1252,7 +1391,7 @@ Mô tả: ${ext.description || ''}
         });
         const result = await res.json();
         if (result.success) {
-          showToast("Nhiệm vụ đã được đánh dấu hoàn thành!");
+          showToast("Nhiệm vụ đã hoàn thành!");
           loadTasks();
           loadReport();
         } else {
@@ -1260,13 +1399,11 @@ Mô tả: ${ext.description || ''}
         }
       } catch (err) {
         console.error("Error completing task:", err);
-        showToast("Lỗi kết nối: Không thể hoàn thành nhiệm vụ");
       }
     }
 
+    // 11) Bàn giao nhiệm vụ (admin)
     async function handoverTask(taskId) {
-      // Ví dụ: chuyển assignedTo sang người khác
-      // Tùy bạn muốn logic ra sao. Ở đây ta prompt 1 ô input:
       const newAssignee = prompt("Nhập tên người nhận mới:");
       if (!newAssignee) return;
       try {
@@ -1277,27 +1414,25 @@ Mô tả: ${ext.description || ''}
         });
         const result = await res.json();
         if (result.success) {
-          showToast("Đã bàn giao nhiệm vụ cho " + newAssignee);
+          showToast("Đã bàn giao!");
           loadTasks();
           loadReport();
         } else {
           showToast("Lỗi: " + result.message);
         }
       } catch (err) {
-        console.error("Error handing over task:", err);
-        showToast("Lỗi kết nối: Không thể bàn giao");
+        console.error("Error handoverTask:", err);
       }
     }
 
+    // 12) Xóa nhiệm vụ (admin)
     async function deleteTask(taskId) {
-      if (!confirm("Bạn có chắc muốn xóa nhiệm vụ này không?")) return;
+      if (!confirm("Xóa nhiệm vụ này?")) return;
       try {
-        const res = await fetch(`/api/tasks/${taskId}`, {
-          method: 'DELETE'
-        });
+        const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
         const result = await res.json();
         if (result.success) {
-          showToast("Đã xóa nhiệm vụ!");
+          showToast("Nhiệm vụ đã được xóa!");
           loadTasks();
           loadReport();
         } else {
@@ -1305,116 +1440,611 @@ Mô tả: ${ext.description || ''}
         }
       } catch (err) {
         console.error("Error deleting task:", err);
-        showToast("Lỗi kết nối: Không thể xóa nhiệm vụ");
       }
     }
 
-    /* ========== 10) Tạo nhiệm vụ mới ========== */
-    document.getElementById('taskForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const task = {
-        title: document.getElementById('taskTitle').value,
-        assignedTo: document.getElementById('taskAssigned').value,
-        priority: document.getElementById('taskPriority').value,
-        deadline: document.getElementById('taskDeadline').value,
-        description: document.getElementById('taskDescription').value,
-        status: 'Chưa thực hiện'
-      };
+    // 13) Toggle comments
+    async function toggleComments(taskId) {
+      const container = document.getElementById(`comments-${taskId}`);
+      if (!container) {
+        console.error(`Comment container for task ${taskId} not found`);
+        return;
+      }
+
+      // Always load the latest comments when toggling
       try {
-        // Gọi API tạo nhiệm vụ
-        const createRes = await fetch('/api/tasks', {
+        await loadComments(taskId);
+
+        if (container.style.display === 'none' || container.style.display === '') {
+          // Show with standard JavaScript
+          container.style.display = 'block';
+          // Focus on comment textarea
+          setTimeout(() => {
+            const textarea = document.getElementById(`new-comment-${taskId}`);
+            if (textarea) textarea.focus();
+          }, 100);
+        } else {
+          // Hide with standard JavaScript
+          container.style.display = 'none';
+        }
+      } catch (error) {
+        console.error("Error toggling comments:", error);
+        // Fallback just in case
+        container.style.display = container.style.display === 'none' || container.style.display === '' ? 'block' : 'none';
+      }
+    }
+    async function loadComments(taskId) {
+      try {
+        const res = await fetch(`/api/tasks/${taskId}/comments`);
+        const comments = await res.json();
+        const list = document.getElementById(`comments-list-${taskId}`);
+        const countBadge = document.getElementById(`comment-count-${taskId}`);
+
+        // Update comment count
+        if (countBadge) {
+          countBadge.textContent = comments.length;
+        }
+
+        list.innerHTML = '';
+
+        if (comments.length === 0) {
+          list.innerHTML = '<p class="text-center text-muted"><i>Chưa có bình luận nào</i></p>';
+        } else {
+          comments.forEach(c => {
+            const p = document.createElement('p');
+            const formattedDate = new Date(c.created_at).toLocaleString('vi-VN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            p.innerHTML = `
+              <span class="comment-user">${c.user}</span>
+              <span class="comment-date">${formattedDate}</span><br>
+              ${c.comment_text.replace(/\n/g, '<br>')}
+            `;
+            list.appendChild(p);
+          });
+        }
+      } catch (err) {
+        console.error("Error loadComments:", err);
+      }
+    }
+    // Function to hide comment section
+    function hideComments(taskId) {
+      const commentsDiv = document.getElementById(`comments-${taskId}`);
+      if (commentsDiv) {
+        commentsDiv.style.display = 'none';
+      }
+    }
+
+    async function postComment(taskId) {
+      const textArea = document.getElementById(`new-comment-${taskId}`);
+      const commentText = textArea.value.trim();
+      if (!commentText) {
+        showToast("Vui lòng nhập nội dung bình luận.");
+        textArea.focus();
+        return;
+      }
+
+      // Disable button while sending
+      const submitBtn = document.querySelector(`#comments-${taskId} .comment-actions .btn-primary`);
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang gửi...';
+
+      try {
+        const res = await fetch(`/api/tasks/${taskId}/comments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(task)
+          body: JSON.stringify({ comment_text: commentText })
         });
-        const createResult = await createRes.json();
-        if (!createResult.success) {
-          showToast("Lỗi tạo nhiệm vụ: " + createResult.message);
-          return;
+        const result = await res.json();
+        if (result.success) {
+          showToast("Bình luận đã được gửi thành công!");
+          textArea.value = '';
+          await loadComments(taskId);
+        } else {
+          showToast("Lỗi: " + result.message);
         }
-        const newTaskId = createResult.task && createResult.task.id;
-        if (!newTaskId) {
-          showToast("Không tìm thấy ID của nhiệm vụ vừa tạo!");
+      } catch (err) {
+        console.error("Error postComment:", err);
+        showToast("Lỗi kết nối: Không thể gửi bình luận");
+      } finally {
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    }
+
+    // 14) Upload attachment
+    async function uploadAttachmentPrompt(taskId) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (file) {
+          const result = await uploadAttachment(taskId, file);
+          if (result.success) {
+            showToast("File đính kèm đã được upload!");
+            loadAttachments(taskId);
+          } else {
+            showToast("Lỗi upload file: " + result.message);
+          }
+        }
+      };
+      input.click();
+    }
+    async function loadAttachments(taskId) {
+      try {
+        const res = await fetch(`/api/tasks/${taskId}/attachments`);
+        const attachments = await res.json();
+
+        const imageContainer = document.getElementById('detail-image');
+        const fileContainer = document.getElementById('detail-attachments');
+
+        // Sử dụng file_type hoặc mimetype để xác định loại file
+        const images = attachments.filter(a => {
+          const type = a.file_type || a.mimetype;
+          return type && type.startsWith('image/');
+        });
+        const files = attachments.filter(a => {
+          const type = a.file_type || a.mimetype;
+          return !type || !type.startsWith('image/');
+        });
+
+        // Hiển thị tất cả ảnh với nút "×" để xóa nếu admin
+        if (images.length > 0) {
+          imageContainer.innerHTML = images.map(img => {
+            return `
+              <div style="display:inline-block; position:relative; margin:5px;">
+                <a href="${img.file_url}" target="_blank">
+                  <img src="${img.file_url}" style="max-width:100%; max-height:200px; border:1px solid #ccc; border-radius:4px;" alt="Task image">
+                </a>
+                ${ currentUser && currentUser.role === 'admin'
+                  ? `<button onclick="deleteAttachment(${img.id}, ${taskId})" style="position:absolute; top:0; right:0; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">×</button>`
+                  : '' }
+              </div>
+            `;
+          }).join('');
+        } else {
+          imageContainer.innerHTML = '<span class="text-muted">Không có hình ảnh</span>';
+        }
+
+        // Hiển thị file đính kèm (không phải ảnh) với nút xóa nếu admin
+        if (files.length > 0) {
+          fileContainer.innerHTML = files.map(file => {
+            return `
+              <div style="position:relative; margin-bottom:5px;">
+                <a href="${file.file_url}" target="_blank" download>
+                  <i class="fa fa-file"></i> ${file.file_name}
+                </a>
+                ${ currentUser && currentUser.role === 'admin'
+                  ? `<button onclick="deleteAttachment(${file.id}, ${taskId})" style="position:absolute; top:0; right:0; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">×</button>`
+                  : '' }
+              </div>
+            `;
+          }).join('');
+        } else {
+          fileContainer.innerHTML = '<span class="text-muted">Không có file đính kèm</span>';
+        }
+
+        console.log("Task", taskId, "=> Số ảnh:", images.length, "Số file:", files.length);
+      } catch (error) {
+        console.error("Error loading attachments:", error);
+      }
+    }
+
+    async function deleteAttachment(attachmentId, taskId) {
+      if (!confirm("Bạn có chắc chắn muốn xóa file này không?")) return;
+      try {
+        const res = await fetch(`/api/attachments/${attachmentId}`, {
+          method: "DELETE"
+        });
+        const result = await res.json();
+        if (result.success) {
+          showToast("File đã được xóa thành công!");
+          // Reload lại attachments trong modal
+          loadAttachments(taskId);
+        } else {
+          showToast("Lỗi: " + result.message);
+        }
+      } catch (error) {
+        console.error("Error deleting attachment:", error);
+        showToast("Lỗi khi xóa file: " + error.message);
+      }
+    }
+
+
+
+
+
+    // 15) Hàm hiển thị Toast
+    function showToast(message) {
+      const toastContainer = document.querySelector('.toast-container');
+      const toast = document.createElement('div');
+      toast.className = "toast";
+      toast.setAttribute("role", "alert");
+      toast.setAttribute("aria-live", "assertive");
+      toast.setAttribute("aria-atomic", "true");
+      toast.style.minWidth = "200px";
+      toast.innerHTML = `<div class="toast-body">${message}</div>`;
+      toastContainer.appendChild(toast);
+      $(toast).toast({ delay: 3000 });
+      $(toast).toast('show');
+      setTimeout(() => { toast.remove(); }, 3500);
+    }
+
+    // 16) Tabs - mỗi khi chuyển tab load Calendar hoặc Report
+    async function onTabShown(e) {
+      const target = $(e.target).attr("href");
+      if (target === "#calendar-pane") {
+        await loadCalendar();
+      }
+      if (target === "#report-pane") {
+        await loadReport();
+      }
+    }
+
+    // 17) Khởi tạo
+    async function init() {
+      await checkAuth();
+      if (!currentUser) return;
+      loadTasks();
+    }
+
+    $(document).ready(async function(){
+      $('a[data-toggle="tab"]').on('shown.bs.tab', onTabShown);
+      await init();
+      document.getElementById('searchInput').addEventListener('input', () => {
+        loadTasks();
+      });
+
+      // Đảm bảo hiển thị cột với kích thước tương đối hợp lý
+      $(window).on('resize', function() {
+        adjustTableLayout();
+      });
+
+      function adjustTableLayout() {
+        const tableWidth = $('.table-responsive').width();
+        const tableMinWidth = 1500; // Tổng chiều rộng tối thiểu của bảng
+
+        // Nếu bảng không đủ không gian, cho phép cuộn ngang
+        if (tableWidth < tableMinWidth) {
+          $('#tasksTable').css('width', tableMinWidth + 'px');
+        } else {
+          $('#tasksTable').css('width', '100%');
+        }
+      }
+
+      // Chạy một lần khi trang tải
+      setTimeout(adjustTableLayout, 500);
+    });
+
+    let uploadSelectedFiles = []; // Mảng chứa các file đã chọn khi Upload
+
+    function openUploadSection(taskId) {
+      // Hiển thị khu vực Upload
+      document.getElementById('uploadFileSection').style.display = 'block';
+
+      // Thiết lập các sự kiện cho dropzone
+      const dropzone = document.getElementById('upload-dropzone');
+      dropzone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+      });
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files);
+        files.forEach(file => addUploadFile(file));
+      });
+
+      // Sự kiện paste (Ctrl+V)
+      document.addEventListener('paste', e => {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].kind === 'file') {
+            const file = items[i].getAsFile();
+            addUploadFile(file);
+          }
+        }
+      });
+
+      // Nút Upload & Hủy
+      document.getElementById('btnUploadFiles').onclick = () => doUploadFiles(taskId);
+      document.getElementById('btnCancelUpload').onclick = () => closeUploadSection();
+    }
+
+    function closeUploadSection() {
+      // Ẩn khu vực Upload, xóa các file đã chọn
+      document.getElementById('uploadFileSection').style.display = 'none';
+      uploadSelectedFiles = [];
+      renderUploadPreviews();
+    }
+
+    function addUploadFile(file) {
+      uploadSelectedFiles.push(file);
+      renderUploadPreviews();
+    }
+
+    function removeUploadFile(index) {
+      uploadSelectedFiles.splice(index, 1);
+      renderUploadPreviews();
+    }
+
+    function renderUploadPreviews() {
+      const container = document.getElementById('upload-filePreviewList');
+      container.innerHTML = '';
+      uploadSelectedFiles.forEach((file, index) => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        div.style.display = 'inline-block';
+        div.style.margin = '5px';
+        div.style.position = 'relative';
+
+        if (file.type.startsWith('image/')) {
+          // Nếu là ảnh
+          const reader = new FileReader();
+          reader.onload = e => {
+            div.innerHTML = `
+              <img src="${e.target.result}" alt="${file.name}" style="max-width:100px; max-height:100px; border:1px solid #ccc; border-radius:4px;">
+              <button type="button" class="remove-btn" style="position:absolute; top:0; right:0; background:red; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;" 
+                onclick="removeUploadFile(${index})">×</button>
+            `;
+            container.appendChild(div);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          // File tài liệu
+          div.innerHTML = `
+            <span style="display:inline-block; max-width:200px; overflow:hidden; text-overflow:ellipsis;">${file.name}</span>
+            <button type="button" class="remove-btn" style="position:absolute; top:0; right:0; background:red; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;" 
+              onclick="removeUploadFile(${index})">×</button>
+          `;
+          container.appendChild(div);
+        }
+      });
+    }
+    async function doUploadFiles(taskId) {
+      if (uploadSelectedFiles.length === 0) {
+        alert("Không có file nào để upload.");
+        return;
+      }
+
+      try {
+        for (const file of uploadSelectedFiles) {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          // Upload tất cả vào attachments
+          const attRes = await fetch(`/api/tasks/${taskId}/attachments`, {
+            method: 'POST',
+            body: formData
+          });
+          const attResult = await attRes.json();
+          if (!attResult.success) {
+            alert("Lỗi upload file: " + attResult.message);
+          }
+        }
+        alert("Upload thành công!");
+      
+        // Sau khi upload xong, ẩn khối upload, refresh modal
+         uploadSelectedFiles = []; 
+         document.getElementById('upload-filePreviewList').innerHTML = '';
+        closeUploadSection();
+        // Gọi lại hàm mở chi tiết (hoặc hàm loadAttachments riêng)
+        openTaskDetail(taskId);
+      } catch (err) {
+        console.error("Error uploading files:", err);
+        alert("Có lỗi khi upload file: " + err.message);
+      }
+    }
+    let editSelectedFiles = []; // Mảng chứa file được chọn khi Sửa
+
+    function enterEditMode(taskId) {
+      // Hiển thị form
+      document.getElementById('editTaskForm').style.display = 'block';
+
+      // Điền dữ liệu từ vùng chi tiết
+      document.getElementById('edit-task-title').value = document.getElementById('detail-title').textContent;
+      document.getElementById('edit-task-assigned').value = document.getElementById('detail-assigned').textContent;
+      document.getElementById('edit-task-priority').value = document.getElementById('detail-priority').textContent.toLowerCase();
+      document.getElementById('edit-task-deadline').value = document.getElementById('detail-deadline').textContent;
+      document.getElementById('edit-task-description').value = document.getElementById('detail-description').textContent;
+
+      // Nếu đang dùng tasks.imageURL, hiển thị ảnh cũ
+      document.getElementById('edit-task-current-image').innerHTML = document.getElementById('detail-image').innerHTML;
+
+      // Clear mảng file mới
+      editSelectedFiles = [];
+      renderEditFilePreviews();
+
+      // Sự kiện nút Lưu / Hủy
+      document.getElementById('saveTaskEdits').onclick = () => saveTaskEdits(taskId);
+      document.getElementById('cancelTaskEdits').onclick = () => {
+        document.getElementById('editTaskForm').style.display = 'none';
+      };
+
+      // Thiết lập dropzone
+      const dropzone = document.getElementById('edit-dropzone');
+      dropzone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+      });
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files);
+        files.forEach(file => addEditFile(file));
+      });
+
+      // Sự kiện paste (Ctrl+V)
+      document.addEventListener('paste', onEditPaste);
+    }
+
+    function onEditPaste(e) {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file') {
+          const file = items[i].getAsFile();
+          addEditFile(file);
+        }
+      }
+    }
+
+    // Hàm thêm file vào mảng
+    function addEditFile(file) {
+      editSelectedFiles.push(file);
+      renderEditFilePreviews();
+    }
+
+    // Hàm hiển thị danh sách file preview
+    function renderEditFilePreviews() {
+      const container = document.getElementById('edit-filePreviewList');
+      container.innerHTML = '';
+      editSelectedFiles.forEach((file, index) => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        div.style.display = 'inline-block';
+        div.style.margin = '5px';
+        div.style.position = 'relative';
+
+        if (file.type.startsWith('image/')) {
+          // Xử lý ảnh
+          const reader = new FileReader();
+          reader.onload = e => {
+            div.innerHTML = `
+              <img src="${e.target.result}" alt="${file.name}" style="max-width:100px; max-height:100px; border:1px solid #ccc; border-radius:4px;">
+              <button type="button" style="position:absolute; top:0; right:0; background:red; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;" 
+                onclick="removeEditFile(${index})">×</button>
+            `;
+            container.appendChild(div);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          // Xử lý file thường
+          div.innerHTML = `
+            <span style="display:inline-block; max-width:200px; overflow:hidden; text-overflow:ellipsis;">${file.name}</span>
+            <button type="button" style="position:absolute; top:0; right:0; background:red; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;" 
+              onclick="removeEditFile(${index})">×</button>
+          `;
+          container.appendChild(div);
+        }
+      });
+    }
+
+    function removeEditFile(index) {
+      editSelectedFiles.splice(index, 1);
+      renderEditFilePreviews();
+    }
+
+    async function saveTaskEdits(taskId) {
+      // Tạo object dữ liệu
+      const updatedTask = {
+        title: document.getElementById('edit-task-title').value,
+        assignedTo: document.getElementById('edit-task-assigned').value,
+        priority: document.getElementById('edit-task-priority').value,
+        deadline: document.getElementById('edit-task-deadline').value,
+        description: document.getElementById('edit-task-description').value,
+      };
+
+      try {
+        // 1) Gửi PUT request cập nhật thông tin nhiệm vụ (nếu server cho phép)
+        const res = await fetch(`/api/tasks/${taskId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTask)
+        });
+        const result = await res.json();
+        if (!result.success) {
+          alert("Lỗi cập nhật nhiệm vụ: " + result.message);
           return;
         }
 
-        // Xử lý upload file nếu có
-        let mainImageUpdated = false;
-        if (selectedFiles.length > 0) {
-          for (const file of selectedFiles) {
-            if (file.type.startsWith('image/')) {
-              // Upload hình ảnh chính
-              const uploadResult = await uploadImage(file);
-              if (!uploadResult.success) {
-                showToast("Lỗi upload hình ảnh: " + uploadResult.message);
-              } else {
-                if (!mainImageUpdated) {
-                  // Cập nhật task với imageURL
-                  await updateTaskImage(newTaskId, uploadResult.imageUrl, uploadResult.filePath);
-                  mainImageUpdated = true;
-                } else {
-                  // Các ảnh khác -> lưu dưới dạng attachments
-                  const attResult = await uploadAttachment(newTaskId, file);
-                  if (!attResult.success) {
-                    showToast("Lỗi upload file đính kèm: " + attResult.message);
-                  }
-                }
-              }
-            } else {
-              // File không phải ảnh -> đính kèm
-              const uploadResult = await uploadAttachment(newTaskId, file);
-              if (!uploadResult.success) {
-                showToast("Lỗi upload file đính kèm: " + uploadResult.message);
-              }
+        // 2) Upload file mới (nếu có)
+        if (editSelectedFiles.length > 0) {
+          for (const file of editSelectedFiles) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Dùng API attachments
+            const attRes = await fetch(`/api/tasks/${taskId}/attachments`, {
+              method: 'POST',
+              body: formData
+            });
+            const attResult = await attRes.json();
+            if (!attResult.success) {
+              alert("Lỗi upload file: " + attResult.message);
             }
           }
         }
 
-        showToast("Nhiệm vụ và file đính kèm đã được tạo thành công!");
-        // Reset form
-        document.getElementById('taskForm').reset();
-        document.getElementById('filePreviewList').innerHTML = '';
-        selectedFiles = [];
+        // 3) Thông báo, ẩn form, reload
+        alert("Nhiệm vụ đã được cập nhật thành công!");
+        document.getElementById('editTaskForm').style.display = 'none';
+        // Gỡ sự kiện paste nếu muốn
+        document.removeEventListener('paste', onEditPaste);
 
-        // Tải lại danh sách
-        loadTasks();
-        loadReport();
+        loadTasks(); // Hàm tải lại danh sách
+        // Hoặc gọi lại openTaskDetail(taskId) nếu muốn cập nhật ngay trong modal
+        // Đóng modal
+        $('#taskDetailModal').modal('hide');
+
       } catch (err) {
-        console.error("Error creating task:", err);
-        showToast("Lỗi tạo nhiệm vụ: " + (err?.message || "Xem log"));
+        console.error("Error updating task:", err);
+        alert("Lỗi khi cập nhật nhiệm vụ: " + err.message);
       }
-    });
-
-    async function updateTaskImage(taskId, imageUrl, imagePath) {
+    }
+    async function loadAttachmentsForTable(taskId) {
       try {
-        const res = await fetch(`/api/tasks/${taskId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageURL: imageUrl, image_path: imagePath })
-        });
-        const result = await res.json();
-        if (!result.success) {
-          showToast("Lỗi cập nhật hình ảnh nhiệm vụ: " + result.message);
+        const res = await fetch(`/api/tasks/${taskId}/attachments`);
+        const attachments = await res.json();
+
+        // Tách các file ảnh và file tài liệu
+        const images = attachments.filter(a => a.file_type && a.file_type.startsWith('image/'));
+        const files = attachments.filter(a => !a.file_type || !a.file_type.startsWith('image/'));
+
+        // Gán nội dung cho ô "Hình ảnh"
+        const imageContainer = document.getElementById(`images-${taskId}`);
+        if (images.length > 0) {
+          imageContainer.innerHTML = images.map(img => `
+            <a href="${img.file_url}" target="_blank" style="margin:2px;">
+              <img src="${img.file_url}" style="max-width:50px; max-height:50px; border:1px solid #ccc; border-radius:4px;" alt="image">
+            </a>
+          `).join('');
+        } else {
+          imageContainer.innerHTML = 'N/A';
         }
-        return result;
+
+        // Gán nội dung cho ô "File đính kèm"
+        const fileContainer = document.getElementById(`attachments-${taskId}`);
+        if (files.length > 0) {
+          fileContainer.innerHTML = files.map(file => `
+            <div>
+              <a href="${file.file_url}" target="_blank" download>
+                <i class="fa fa-file"></i> ${file.file_name}
+              </a>
+            </div>
+          `).join('');
+        } else {
+          fileContainer.innerHTML = 'N/A';
+        }
       } catch (error) {
-        console.error("Error updating task image:", error);
-        showToast("Lỗi cập nhật hình ảnh nhiệm vụ: " + error.message);
+        console.error("Error loading attachments for table:", error);
       }
     }
 
-    /* ========== Hàm tiện ích hiển thị thông báo ========== */
-    function showToast(message) {
-      // Ở đây tôi dùng alert thay cho toast. Nếu bạn có code toast sẵn, có thể thay thế.
-      alert(message);
-    }
 
-    /* ========== Khởi chạy ========== */
-    checkAuth().then(() => {
-      loadTasks();
-      loadCalendar();
-      loadReport();
-    });
   </script>
 </body>
 </html>

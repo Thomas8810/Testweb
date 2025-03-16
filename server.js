@@ -173,49 +173,6 @@ app.post('/api/tasks', isAuthenticated, isAdmin, async (req, res) => {
     res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
   }
 });
-// ... [Các phần khởi tạo, middleware, cấu hình đã có] ...
-
-// Cập nhật nhiệm vụ (admin có thể cập nhật tất cả các trường)
-app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
-  const taskId = req.params.id;
-  try {
-    const { data: taskData, error: selectError } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('id', taskId)
-      .single();
-    if (selectError) throw selectError;
-
-    // Chỉ admin mới được sửa toàn bộ thông tin nhiệm vụ
-    if (req.session.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: "Bạn không có quyền cập nhật nhiệm vụ này." });
-    }
-
-    // updateData chứa các trường có thể được cập nhật: title, assignedTo, priority, deadline, description, imageURL, image_path,...
-    let updateData = { ...req.body };
-
-    const oldStatus = taskData.status;
-    const newStatus = updateData.status;
-
-    const { data: updated, error: updateError } = await supabase
-      .from('tasks')
-      .update(updateData)
-      .eq('id', taskId)
-      .select();
-    if (updateError) throw updateError;
-
-    if (newStatus && newStatus !== oldStatus) {
-      await logTaskHistory(taskId, req.session.user.name, 'Status change', oldStatus, newStatus);
-    }
-    res.json({ success: true, task: updated[0] });
-  } catch (error) {
-    console.error("Error in PUT /api/tasks/:id:", error);
-    res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
-  }
-});
-
-// ... [Các endpoint khác giữ nguyên] ...
-
 
 // Cập nhật nhiệm vụ
 app.put('/api/tasks/:id', isAuthenticated, async (req, res) => {
@@ -348,35 +305,6 @@ app.post('/api/tasks/:id/comments', isAuthenticated, async (req, res) => {
     res.json({ success: true, comment: data[0] });
   } catch (error) {
     console.error("Error in POST /api/tasks/:id/comments:", error);
-    res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
-  }
-});
-
-// ----------------------- IMAGE UPLOAD ENDPOINT -----------------------
-app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
-    const fileName = `tasks-images/${Date.now()}_${req.file.originalname}`;
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage
-      .from('tasks-images')
-      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
-    if (uploadError) {
-      console.error("Upload error:", JSON.stringify(uploadError, null, 2));
-      return res.status(500).json({ success: false, message: uploadError.message || JSON.stringify(uploadError) });
-    }
-    const filePath = uploadData.path;
-    const { data: publicUrlData, error: publicUrlError } = supabase
-      .storage
-      .from('tasks-images')
-      .getPublicUrl(filePath);
-    if (publicUrlError) {
-      console.error("Error getting public URL:", publicUrlError);
-      return res.status(500).json({ success: false, message: publicUrlError.message || JSON.stringify(publicUrlError) });
-    }
-    res.json({ success: true, imageUrl: publicUrlData.publicUrl, filePath });
-  } catch (error) {
-    console.error("Error in POST /api/upload-image:", error);
     res.status(500).json({ success: false, message: error.message || JSON.stringify(error) });
   }
 });
@@ -567,6 +495,48 @@ app.get('/export', (req, res) => {
   res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
   res.setHeader('Content-Type', 'application/octet-stream');
   res.send(buf);
+});
+// Xóa một attachment (chỉ admin mới được xóa)
+app.delete('/api/attachments/:id', isAuthenticated, isAdmin, async (req, res) => {
+  const attachmentId = req.params.id;
+  try {
+    // 1) Tìm attachment trong bảng task_attachments
+    const { data: attData, error: attError } = await supabase
+      .from('task_attachments')
+      .select('*')
+      .eq('id', attachmentId)
+      .single();
+    if (attError) throw attError;
+    if (!attData) {
+      return res.json({ success: false, message: "Không tìm thấy attachment" });
+    }
+
+    // 2) Xóa file thực tế khỏi Supabase Storage (nếu có file_path)
+    if (attData.file_path) {
+      console.log("Deleting attachment file:", attData.file_path);
+      const { error: storageError } = await supabase
+        .storage
+        .from('tasks-attachments')
+        .remove([attData.file_path]);
+      if (storageError) {
+        // Không bắt buộc dừng, chỉ log lỗi
+        console.error("Error removing file from storage:", storageError);
+      }
+    }
+
+    // 3) Xóa dòng trong bảng task_attachments
+    const { error: delError } = await supabase
+      .from('task_attachments')
+      .delete()
+      .eq('id', attachmentId);
+    if (delError) throw delError;
+
+    // 4) Trả về kết quả
+    return res.json({ success: true, message: "Attachment deleted successfully!" });
+  } catch (error) {
+    console.error("Error deleting attachment:", error);
+    return res.json({ success: false, message: error.message });
+  }
 });
 
 // ----------------------- START SERVER -----------------------
