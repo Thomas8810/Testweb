@@ -1206,19 +1206,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
   showBtn.addEventListener('click', () => {
     section.style.display = 'block';
-
     if (chart1 && chart2) return;
 
-    // Dữ liệu từ server (bạn gán sẵn window.dataFromJson ở đâu đó trước đoạn này)
-    const data = window.dataFromJson;
-    const labels = data.map(d => d.projectName);
+    const grouped = {};
+    allData.forEach(item => {
+      const name = item["Project"] || "Unknown";
+      if (!grouped[name]) {
+        grouped[name] = { total: 0, approved: 0, ongoing: 0, criticalYes: 0, criticalNo: 0 };
+      }
+      grouped[name].total += 1;
+      if (item["Status"] === "Approved") grouped[name].approved += 1;
+      else grouped[name].ongoing += 1;
 
-    // Biểu đồ tổng quan dự án
+      const criticalVal = item["Critical"]?.toString().toLowerCase();
+      if (criticalVal === "yes" || criticalVal === "true" || criticalVal === "1") {
+        grouped[name].criticalYes += 1;
+      } else {
+        grouped[name].criticalNo += 1;
+      }
+    });
+
+    const labels = Object.keys(grouped);
+    const data = labels.map(label => grouped[label]);
+
     const ctx1 = document.getElementById('projectChart').getContext('2d');
     chart1 = new Chart(ctx1, {
       type: 'bar',
       data: {
-        labels: labels,
+        labels,
         datasets: [
           { label: 'Total', data: data.map(d => d.total), backgroundColor: '#3498db' },
           { label: 'Approved', data: data.map(d => d.approved), backgroundColor: '#2ecc71' },
@@ -1226,30 +1241,27 @@ document.addEventListener('DOMContentLoaded', function () {
         ]
       },
       options: {
-        responsive: true,
         plugins: {
-          title: { display: true, text: 'Tổng quan các Project', font: { size: 18 } },
+          title: { display: true, text: 'Tổng quan các Project' },
           legend: { position: 'bottom' }
         },
         scales: { y: { beginAtZero: true } }
       }
     });
 
-    // Biểu đồ critical part
     const ctx2 = document.getElementById('criticalChart').getContext('2d');
     chart2 = new Chart(ctx2, {
       type: 'bar',
       data: {
-        labels: labels,
+        labels,
         datasets: [
           { label: 'Critical: Yes', data: data.map(d => d.criticalYes), backgroundColor: '#e74c3c' },
           { label: 'Critical: No', data: data.map(d => d.criticalNo), backgroundColor: '#95a5a6' }
         ]
       },
       options: {
-        responsive: true,
         plugins: {
-          title: { display: true, text: 'Phân bố Critical Part theo Project', font: { size: 18 } },
+          title: { display: true, text: 'Phân bố Critical Part theo Project' },
           legend: { position: 'bottom' }
         },
         scales: { y: { beginAtZero: true } }
