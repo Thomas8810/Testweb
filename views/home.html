@@ -1074,9 +1074,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function cropCenterAndOCR(callback) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const cropWidth = 220, cropHeight = 60;
-    const offsetX = (canvas.width - cropWidth) / 2;
-    const offsetY = (canvas.height - cropHeight) / 2;
+    
+const cropWidth = canvas.width * 0.8;
+const cropHeight = canvas.height * 0.2;
+
+    const offsetX = canvas.width * 0.1;
+    const offsetY = canvas.height * 0.35;
     const imageData = ctx.getImageData(offsetX, offsetY, cropWidth, cropHeight);
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = cropWidth;
