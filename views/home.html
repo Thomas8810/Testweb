@@ -1098,19 +1098,28 @@
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     Tesseract.recognize(
-      canvas.toDataURL('image/png'),
-      'eng',
-      { logger: m => console.log(m) }
-    ).then(({ data: { text } }) => {
-      const rawText = text.trim();
-      if (!rawText) {
-        statusP.textContent = '⚠️ Không nhận diện được ký tự. Vui lòng thử lại.';
-        return;
-      }
-      const match = rawText.match(/[A-Z0-9\-]+/i);
-      const partNumber = match ? match[0] : rawText;
-      statusP.textContent = '✅ Quét thành công!';
-      resultP.textContent = `🔎 Part Number: ${partNumber}`;
+  canvas.toDataURL('image/png'),
+  'eng',
+  {
+    logger: m => console.log(m),
+    // cấu hình nếu muốn whitelist ký tự:
+    // You can optionally use .recognize(..., 'eng', { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-' })
+  }
+).then(({ data: { text } }) => {
+  const rawText = text.trim();
+  if (!rawText) {
+    statusP.textContent = '⚠️ Không nhận diện được ký tự. Vui lòng thử lại.';
+    return;
+  }
+
+  const match = rawText.match(/[A-Z0-9\-]+/i);
+  const partNumber = match ? match[0] : rawText;
+
+  // Đổ vào input cho người dùng sửa nếu muốn
+  document.getElementById('ocrInput').value = partNumber;
+  statusP.textContent = '✅ Kết quả đã nhận: Bạn có thể chỉnh sửa nếu cần.';
+});
+
       
       // Đặt giá trị lọc vào Select2 và áp dụng bộ lọc
       $('#filter-value-1').val([partNumber]).trigger('change');
@@ -1124,7 +1133,22 @@
       console.error(err);
       statusP.textContent = '❌ Lỗi khi thực hiện OCR.';
     });
+
+     document.getElementById('btnApplyOcrFilter').addEventListener('click', () => {
+    const part = document.getElementById('ocrInput').value.trim();
+    if (!part) {
+      alert('Bạn chưa nhập Part Number!');
+      return;
+    }
+    $('#filter-column-1').val('Part Number').trigger('change');
+    $('#filter-value-1').val([part]).trigger('change');
+    applyFilters();
+
+    statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
+    setTimeout(() => btnClose.click(), 1500);
   });
+});
+
 
   btnClose.addEventListener('click', () => {
     modal.style.display = 'none';
@@ -1146,6 +1170,15 @@
       <video id="video" width="320" height="240" autoplay></video>
       <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
       <p id="ocrStatus">Chờ quét...</p>
+      
+      <p id="ocrStatus">🔍 Đang nhận diện...</p>
+
+<!-- Input cho người dùng sửa kết quả -->
+<input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
+
+<!-- Nút để lọc bằng nội dung người dùng sửa -->
+<button id="btnApplyOcrFilter">✅ Lọc Part Number</button>
+
       <p id="ocrResult" style="color: green; font-weight: bold;"></p>
       <button id="btnCapture">Chụp & Quét</button>
       <button id="btnCloseCamera">Đóng</button>
