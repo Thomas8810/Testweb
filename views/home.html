@@ -1,15 +1,16 @@
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
-  <!-- CSS Select2 -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-  <!-- Thêm i18next và i18next-browser-languagedetector -->
-  <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
-  <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Web Tra Cứu - Nguyễn Văn Đạo</title>
+<!-- CSS Select2 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
+<!-- Thêm i18next và i18next-browser-languagedetector -->
+<script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
+<script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
+<style>
     /* Cài đặt CSS cơ bản */
     html, body { height: 100%; margin: 0; padding: 0; }
     body {
@@ -287,225 +288,216 @@
   </style>
 </head>
 <body>
-  <div class="page-container">
-    <div class="top-container">
-      <div class="header">
-          <a href="/tasks" class="tasks-link">Tasks</a>
-        <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
-        <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
-        <!-- Nút chuyển đổi ngôn ngữ ở góc trên bên phải -->
-        <div class="language-switcher">
-          <button onclick="changeLanguage('vi')">Vi</button>
-          <button onclick="changeLanguage('en')">En</button>
-          <button onclick="changeLanguage('ko')">Ko</button>
-        </div>
-      </div>
-      <!-- Phần tiêu chí lọc -->
-      <div class="filter-bar">
-        <!-- Filter Block Sheet -->
-        <div class="filter-block" id="filter-block-sheet">
-          <label for="filter-sheet" id="label-filter-sheet">Chọn dự án</label>
-          <select id="filter-sheet" class="value-select" multiple="multiple"></select>
-        </div>
-        <!-- Filter Block 1 -->
-        <div class="filter-block" id="filter-block-1">
-          <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
-          <select id="filter-column-1">
-            <option value="Part Number" selected>Part Number</option>
-            <option value="Status">Status</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Take pictures">Take pictures</option>
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
-          <select id="filter-value-1" class="value-select" multiple="multiple"></select>
-        </div>
-        <!-- Filter Block 2 -->
-        <div class="filter-block" id="filter-block-2">
-          <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
-          <select id="filter-column-2">
-            <option value="Part Number" selected>Part Number</option>
-            <option value="Status">Status</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Take pictures">Take pictures</option>
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
-          <select id="filter-value-2" multiple="multiple"></select>
-        </div>
-        <!-- Filter Block 3 -->
-        <div class="filter-block" id="filter-block-3">
-          <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
-          <select id="filter-column-3">
-            <option value="Part Number" selected>Part Number</option>
-            <option value="Status">Status</option>
-            <option value="Critical">Critical</option>
-            <option value="CE">CE</option>
-            <option value="Take pictures">Take pictures</option>
-            <option value="PO Number">PO Number</option>
-            <option value="Project">Project</option>
-            <option value="REV">REV</option>
-            <option value="Description">Description</option>
-            <option value="Note Number">Note Number</option>
-            <option value="Material">Material</option>
-            <option value="Plating">Plating</option>
-            <option value="Painting">Painting</option>
-            <option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
-            <option value="Ngày Nhận PO">Ngày Nhận PO</option>
-            <option value="Cover sheet">Cover sheet</option>
-            <option value="Drawing">Drawing</option>
-            <option value="Datasheet form">Datasheet form</option>
-            <option value="Data">Data</option>
-            <option value="COC">COC</option>
-            <option value="BOM">BOM</option>
-            <option value="Mill">Mill</option>
-            <option value="Part Pictures">Part Pictures</option>
-            <option value="Packaging Pictures">Packaging Pictures</option>
-            <option value="Submit date">Submit date</option>
-            <option value="OK">OK</option>
-            <option value="Remark">Remark</option>
-            <option value="Remark 2">Remark 2</option>
-            <option value="Note">Note</option>
-          </select>
-          <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
-          <select id="filter-value-3" class="value-select" multiple="multiple"></select>
-        </div>
-      </div>
-
-      <!-- Khối chứa các nút chức năng -->
-      <div class="action-bar">
-        <div class="filter-actions">
-          <button id="apply-filters">Áp Dụng Lọc</button>
-          <button id="clear-filters">Xóa Lọc</button>
-        </div>
-        <div class="download-container">
-          <button id="download-excel">Xuất Excel (Đang xem)</button>
-          <button id="export-all">Xuất Excel (Tất cả)</button>
-        </div>
-        <div class="zoom-controls">
-          <button id="zoom-in">Phóng to</button>
-          <button id="zoom-out">Thu nhỏ</button>
-        </div>
-      </div>
-
-      <!-- Phần hiển thị tổng số dòng -->
-      
-<div class="scan-camera" style="text-align:center; margin-top:10px;">
-  <button id="btnScanCamera">📷 Quét Camera</button>
+<div class="page-container">
+<div class="top-container">
+<div class="header">
+<a class="tasks-link" href="/tasks">Tasks</a>
+<h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
+<p id="header-subtitle">Tra cứu tình trạng FAIR</p>
+<!-- Nút chuyển đổi ngôn ngữ ở góc trên bên phải -->
+<div class="language-switcher">
+<button onclick="changeLanguage('vi')">Vi</button>
+<button onclick="changeLanguage('en')">En</button>
+<button onclick="changeLanguage('ko')">Ko</button>
 </div>
-
+</div>
+<!-- Phần tiêu chí lọc -->
+<div class="filter-bar">
+<!-- Filter Block Sheet -->
+<div class="filter-block" id="filter-block-sheet">
+<label for="filter-sheet" id="label-filter-sheet">Chọn dự án</label>
+<select class="value-select" id="filter-sheet" multiple="multiple"></select>
+</div>
+<!-- Filter Block 1 -->
+<div class="filter-block" id="filter-block-1">
+<label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
+<select id="filter-column-1">
+<option selected="" value="Part Number">Part Number</option>
+<option value="Status">Status</option>
+<option value="Critical">Critical</option>
+<option value="CE">CE</option>
+<option value="Take pictures">Take pictures</option>
+<option value="PO Number">PO Number</option>
+<option value="Project">Project</option>
+<option value="REV">REV</option>
+<option value="Description">Description</option>
+<option value="Note Number">Note Number</option>
+<option value="Material">Material</option>
+<option value="Plating">Plating</option>
+<option value="Painting">Painting</option>
+<option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
+<option value="Ngày Nhận PO">Ngày Nhận PO</option>
+<option value="Cover sheet">Cover sheet</option>
+<option value="Drawing">Drawing</option>
+<option value="Datasheet form">Datasheet form</option>
+<option value="Data">Data</option>
+<option value="COC">COC</option>
+<option value="BOM">BOM</option>
+<option value="Mill">Mill</option>
+<option value="Part Pictures">Part Pictures</option>
+<option value="Packaging Pictures">Packaging Pictures</option>
+<option value="Submit date">Submit date</option>
+<option value="OK">OK</option>
+<option value="Remark">Remark</option>
+<option value="Remark 2">Remark 2</option>
+<option value="Note">Note</option>
+</select>
+<label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
+<select class="value-select" id="filter-value-1" multiple="multiple"></select>
+</div>
+<!-- Filter Block 2 -->
+<div class="filter-block" id="filter-block-2">
+<label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
+<select id="filter-column-2">
+<option selected="" value="Part Number">Part Number</option>
+<option value="Status">Status</option>
+<option value="Critical">Critical</option>
+<option value="CE">CE</option>
+<option value="Take pictures">Take pictures</option>
+<option value="PO Number">PO Number</option>
+<option value="Project">Project</option>
+<option value="REV">REV</option>
+<option value="Description">Description</option>
+<option value="Note Number">Note Number</option>
+<option value="Material">Material</option>
+<option value="Plating">Plating</option>
+<option value="Painting">Painting</option>
+<option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
+<option value="Ngày Nhận PO">Ngày Nhận PO</option>
+<option value="Cover sheet">Cover sheet</option>
+<option value="Drawing">Drawing</option>
+<option value="Datasheet form">Datasheet form</option>
+<option value="Data">Data</option>
+<option value="COC">COC</option>
+<option value="BOM">BOM</option>
+<option value="Mill">Mill</option>
+<option value="Part Pictures">Part Pictures</option>
+<option value="Packaging Pictures">Packaging Pictures</option>
+<option value="Submit date">Submit date</option>
+<option value="OK">OK</option>
+<option value="Remark">Remark</option>
+<option value="Remark 2">Remark 2</option>
+<option value="Note">Note</option>
+</select>
+<label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
+<select id="filter-value-2" multiple="multiple"></select>
+</div>
+<!-- Filter Block 3 -->
+<div class="filter-block" id="filter-block-3">
+<label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
+<select id="filter-column-3">
+<option selected="" value="Part Number">Part Number</option>
+<option value="Status">Status</option>
+<option value="Critical">Critical</option>
+<option value="CE">CE</option>
+<option value="Take pictures">Take pictures</option>
+<option value="PO Number">PO Number</option>
+<option value="Project">Project</option>
+<option value="REV">REV</option>
+<option value="Description">Description</option>
+<option value="Note Number">Note Number</option>
+<option value="Material">Material</option>
+<option value="Plating">Plating</option>
+<option value="Painting">Painting</option>
+<option value="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</option>
+<option value="Ngày Nhận PO">Ngày Nhận PO</option>
+<option value="Cover sheet">Cover sheet</option>
+<option value="Drawing">Drawing</option>
+<option value="Datasheet form">Datasheet form</option>
+<option value="Data">Data</option>
+<option value="COC">COC</option>
+<option value="BOM">BOM</option>
+<option value="Mill">Mill</option>
+<option value="Part Pictures">Part Pictures</option>
+<option value="Packaging Pictures">Packaging Pictures</option>
+<option value="Submit date">Submit date</option>
+<option value="OK">OK</option>
+<option value="Remark">Remark</option>
+<option value="Remark 2">Remark 2</option>
+<option value="Note">Note</option>
+</select>
+<label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
+<select class="value-select" id="filter-value-3" multiple="multiple"></select>
+</div>
+</div>
+<!-- Khối chứa các nút chức năng -->
+<div class="action-bar">
+<div class="filter-actions">
+<button id="apply-filters">Áp Dụng Lọc</button>
+<button id="clear-filters">Xóa Lọc</button>
+</div>
+<div class="download-container">
+<button id="download-excel">Xuất Excel (Đang xem)</button>
+<button id="export-all">Xuất Excel (Tất cả)</button>
+</div>
+<div class="zoom-controls">
+<button id="zoom-in">Phóng to</button>
+<button id="zoom-out">Thu nhỏ</button>
+</div>
+</div>
+<!-- Phần hiển thị tổng số dòng -->
+<div class="scan-camera" style="text-align:center; margin-top:10px;">
+<button id="btnScanCamera">📷 Quét Camera</button>
+</div>
 <div class="results-count" id="results-count">Total rows: 0</div>
-    </div>
-
-    <!-- Khu vực hiển thị bảng dữ liệu -->
-    <div class="table-container">
-      <table id="results-table">
-        <thead>
-          <tr>
-            <th class="sticky-col-1">STT</th>
-            <th class="sticky-col-2">Part Number</th>
-            <th class="sticky-col-3">REV</th>
-            <th data-column="Status">Status</th>
-            <th data-column="Take pictures">Take pictures</th>
-            <th data-column="Critical">Critical</th>
-            <th data-column="CE">CE</th>
-            <th data-column="PO Number">PO Number</th>
-            <th data-column="Project">Project</th>
-            <th data-column="Description">Description</th>
-            <th data-column="Note Number">Note Number</th>
-            <th data-column="Material">Material</th>
-            <th data-column="Plating">Plating</th>
-            <th data-column="Painting">Painting</th>
-            <th data-column="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</th>
-            <th data-column="Ngày Nhận PO">Ngày Nhận PO</th>
-            <th data-column="Cover sheet">Cover sheet</th>
-            <th data-column="Drawing">Drawing</th>
-            <th data-column="Datasheet form">Datasheet form</th>
-            <th data-column="Data">Data</th>
-            <th data-column="COC">COC</th>
-            <th data-column="BOM">BOM</th>
-            <th data-column="Mill">Mill</th>
-            <th data-column="Part Pictures">Part Pictures</th>
-            <th data-column="Packaging Pictures">Packaging Pictures</th>
-            <th data-column="Submit date">Submit date</th>
-            <th data-column="OK">OK</th>
-            <th data-column="Remark">Remark</th>
-            <th data-column="Remark 2">Remark 2</th>
-            <th data-column="Note">Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Dữ liệu sẽ được load tại đây -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Nút tải thêm -->
-    <div id="load-more-container" style="text-align:center; margin:10px;">
-      <button id="load-more">Load More</button>
-      <button id="load-all">Load All</button>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
-  </div>
-
-  <!-- JS Thư viện -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
-
-  <!-- i18next Integration -->
-  <script>
+</div>
+<!-- Khu vực hiển thị bảng dữ liệu -->
+<div class="table-container">
+<table id="results-table">
+<thead>
+<tr>
+<th class="sticky-col-1">STT</th>
+<th class="sticky-col-2">Part Number</th>
+<th class="sticky-col-3">REV</th>
+<th data-column="Status">Status</th>
+<th data-column="Take pictures">Take pictures</th>
+<th data-column="Critical">Critical</th>
+<th data-column="CE">CE</th>
+<th data-column="PO Number">PO Number</th>
+<th data-column="Project">Project</th>
+<th data-column="Description">Description</th>
+<th data-column="Note Number">Note Number</th>
+<th data-column="Material">Material</th>
+<th data-column="Plating">Plating</th>
+<th data-column="Painting">Painting</th>
+<th data-column="Tiêu chuẩn mạ sơn">Tiêu chuẩn mạ sơn</th>
+<th data-column="Ngày Nhận PO">Ngày Nhận PO</th>
+<th data-column="Cover sheet">Cover sheet</th>
+<th data-column="Drawing">Drawing</th>
+<th data-column="Datasheet form">Datasheet form</th>
+<th data-column="Data">Data</th>
+<th data-column="COC">COC</th>
+<th data-column="BOM">BOM</th>
+<th data-column="Mill">Mill</th>
+<th data-column="Part Pictures">Part Pictures</th>
+<th data-column="Packaging Pictures">Packaging Pictures</th>
+<th data-column="Submit date">Submit date</th>
+<th data-column="OK">OK</th>
+<th data-column="Remark">Remark</th>
+<th data-column="Remark 2">Remark 2</th>
+<th data-column="Note">Note</th>
+</tr>
+</thead>
+<tbody>
+<!-- Dữ liệu sẽ được load tại đây -->
+</tbody>
+</table>
+</div>
+<!-- Nút tải thêm -->
+<div id="load-more-container" style="text-align:center; margin:10px;">
+<button id="load-more">Load More</button>
+<button id="load-all">Load All</button>
+</div>
+<!-- Footer -->
+<div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
+</div>
+<!-- JS Thư viện -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
+<!-- i18next Integration -->
+<script>
     // Khởi tạo i18next với resource cho tiếng Anh và tiếng Việt
     i18next.use(i18nextBrowserLanguageDetector).init({
       fallbackLng: 'vi',
@@ -647,9 +639,8 @@
       });
     }
   </script>
-
-  <!-- Các mã JS hiện tại -->
-  <script>
+<!-- Các mã JS hiện tại -->
+<script>
     // Hàm format Excel date
     function formatExcelDate(val) {
       if(val && !isNaN(val)) {
@@ -1031,30 +1022,25 @@
       sortTable(col, newOrder);
     });
   </script>
-
 <!-- Modal OCR (Không có xem trước ảnh) -->
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;">
-  <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center;">
-    <h3>📷 Quét Part Number</h3>
-    <video id="camera" autoplay playsinline style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
-    
+<div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center;">
+<h3>📷 Quét Part Number</h3>
+<div style="position: relative; width: 100%; max-height:240px;"><video autoplay="" id="camera" playsinline="" style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video><div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div></div>
 <div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
   🔍 Zoom:
-  <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" style="width:80%;">
+  <input id="zoomSlider" max="3" min="1" step="0.1" style="width:80%;" type="range" value="1"/>
 </div>
-
-<canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
-      <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">📸 Chụp & Quét</button>
-      <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
-      <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">❌ Đóng</button>
-    </div>
-    <input id="ocrInput" type="text" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;" />
-    <p id="ocrStatus" style="font-size:14px; margin-top:10px;">Đang chờ thao tác...</p>
-  </div>
+<canvas height="240" id="canvas" style="display:none;" width="320"></canvas>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
+<button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">📸 Chụp &amp; Quét</button>
+<button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
+<button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">❌ Đóng</button>
 </div>
-
-
+<input id="ocrInput" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;" type="text">
+<p id="ocrStatus" style="font-size:14px; margin-top:10px;">Đang chờ thao tác...</p>
+</input></div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -1169,7 +1155,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-
-
-</body>
+<script>
+// Tự động scroll khi bật bàn phím ảo để không bị che input
+window.addEventListener('resize', () => {
+  const activeEl = document.activeElement;
+  if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+    setTimeout(() => {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }
+});
+</script></body>
 </html>
