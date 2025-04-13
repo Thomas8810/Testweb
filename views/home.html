@@ -439,11 +439,22 @@
   <button id="btnScanCamera">📷 Quét Camera</button>
 </div>
 
-
-
-
-
-
+<!-- Modal Camera (chỉ một bản duy nhất) -->
+<div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
+     width:100%; height:100%; background:rgba(0,0,0,0.8); 
+     justify-content:center; align-items:center; z-index:1000;">
+  <div style="position:relative; background:#fff; padding:20px; border-radius:8px; text-align:center; max-width:90vw;">
+    <h2>📷 Quét Part Number</h2>
+    <video id="video" width="320" height="240" autoplay playsinline style="border: 1px solid #ccc;"></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <p id="ocrStatus" style="margin: 10px 0; font-weight: bold;">Chờ quét...</p>
+    <input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
+    <button id="btnApplyOcrFilter" style="margin-bottom:10px;">✅ Lọc Part Number</button>
+    <p id="ocrResult" style="color: green; font-size: 16px; font-weight: bold;"></p>
+    <button id="btnCapture">📸 Chụp & Quét</button>
+    <button id="btnCloseCamera">❌ Đóng</button>
+  </div>
+</div>
         
  </div>
 
@@ -1045,22 +1056,6 @@
     
   </script>
 
-<!-- Modal Camera (chỉ một bản duy nhất) -->
-<div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
-     width:100%; height:100%; background:rgba(0,0,0,0.8); 
-     justify-content:center; align-items:center; z-index:1000;">
-  <div style="position:relative; background:#fff; padding:20px; border-radius:8px; text-align:center; max-width:90vw;">
-    <h2>📷 Quét Part Number</h2>
-    <video id="video" width="320" height="240" autoplay playsinline style="border: 1px solid #ccc;"></video>
-    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-    <p id="ocrStatus" style="margin: 10px 0; font-weight: bold;">Chờ quét...</p>
-    <input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
-    <button id="btnApplyOcrFilter" style="margin-bottom:10px;">✅ Lọc Part Number</button>
-    <p id="ocrResult" style="color: green; font-size: 16px; font-weight: bold;"></p>
-    <button id="btnCapture">📸 Chụp & Quét</button>
-    <button id="btnCloseCamera">❌ Đóng</button>
-  </div>
-</div>
 
 <script>
 
