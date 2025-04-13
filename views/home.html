@@ -1162,6 +1162,11 @@ document.addEventListener('DOMContentLoaded', () => {
   <div style="position:relative; background:#fff; padding:20px; border-radius:5px; text-align:center;">
     <h3>Quét Part Number</h3>
     <video id="video" width="320" height="240" autoplay playsinline></video>
+<div id="zoomContainer" style="display:none; margin-top:10px;">
+  🔍 Zoom:
+  <input id="zoomSlider" type="range" min="1" max="4" step="0.1" value="1" style="width:80%;">
+</div>
+
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <div style="text-align:center; margin-top:10px;">
         <button id="rotateBtn" style="font-size: 16px; padding: 8px 16px; margin: 5px; margin:6px 4px; font-size:16px; padding:10px 16px;">🔄 Xoay ảnh</button>
@@ -1225,6 +1230,28 @@ document.getElementById("rotateBtn").addEventListener("click", function() {
     const canvas = document.getElementById("snapshot");
     canvas.style.transform = `rotate(${rotation}deg)`;
 });
+<script>
+// Zoom bằng slider nếu thiết bị hỗ trợ
+const zoomSlider = document.getElementById("zoomSlider");
+const zoomContainer = document.getElementById("zoomContainer");
+
+navigator.mediaDevices.getUserMedia({
+  video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
+}).then(function(stream) {
+  const track = stream.getVideoTracks()[0];
+  const capabilities = track.getCapabilities();
+  if (capabilities.zoom) {
+    zoomContainer.style.display = 'block';
+    zoomSlider.min = capabilities.zoom.min;
+    zoomSlider.max = capabilities.zoom.max;
+    zoomSlider.step = capabilities.zoom.step || 0.1;
+    zoomSlider.value = capabilities.zoom.min;
+    zoomSlider.addEventListener("input", () => {
+      track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
+    });
+  }
+});
+</script>
 </script>
 
 </body>
