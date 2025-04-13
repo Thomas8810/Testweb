@@ -1185,5 +1185,77 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
-</script></body>
+</script>
+<!-- Nút và vùng biểu đồ tổng quan -->
+<div style="text-align:center; margin-top:10px;">
+  <button id="showMapBtn" style="padding:10px 20px; font-size:16px;">📊 Xem bản đồ tổng quan</button>
+</div>
+
+<div id="chartOverviewSection" style="display:none; margin:20px auto; max-width:1000px;">
+  <canvas id="projectChart" height="300" style="margin-bottom:40px;"></canvas>
+  <canvas id="criticalChart" height="300"></canvas>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const showBtn = document.getElementById('showMapBtn');
+  const section = document.getElementById('chartOverviewSection');
+  let chart1 = null, chart2 = null;
+
+  showBtn.addEventListener('click', () => {
+    section.style.display = 'block';
+
+    if (chart1 && chart2) return;
+
+    // Dữ liệu từ server (bạn gán sẵn window.dataFromJson ở đâu đó trước đoạn này)
+    const data = window.dataFromJson;
+    const labels = data.map(d => d.projectName);
+
+    // Biểu đồ tổng quan dự án
+    const ctx1 = document.getElementById('projectChart').getContext('2d');
+    chart1 = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Total', data: data.map(d => d.total), backgroundColor: '#3498db' },
+          { label: 'Approved', data: data.map(d => d.approved), backgroundColor: '#2ecc71' },
+          { label: 'On-going', data: data.map(d => d.ongoing), backgroundColor: '#f1c40f' }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: { display: true, text: 'Tổng quan các Project', font: { size: 18 } },
+          legend: { position: 'bottom' }
+        },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    // Biểu đồ critical part
+    const ctx2 = document.getElementById('criticalChart').getContext('2d');
+    chart2 = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Critical: Yes', data: data.map(d => d.criticalYes), backgroundColor: '#e74c3c' },
+          { label: 'Critical: No', data: data.map(d => d.criticalNo), backgroundColor: '#95a5a6' }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: { display: true, text: 'Phân bố Critical Part theo Project', font: { size: 18 } },
+          legend: { position: 'bottom' }
+        },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  });
+</script>
+</body>
 </html>
