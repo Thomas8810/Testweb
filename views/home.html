@@ -1055,21 +1055,6 @@
 </div>
 
 
-<style>
-  .ocr-guide-rect {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 220px;
-    height: 60px;
-    transform: translate(-50%, -50%);
-    border: 2px dashed red;
-    box-sizing: border-box;
-    z-index: 1001;
-    pointer-events: none;
-  }
-</style>
-
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -1121,13 +1106,6 @@ document.addEventListener('DOMContentLoaded', () => {
       video.srcObject = stream;
       video.play();
 
-      // Thêm khung đỏ vào modal
-      if (!document.querySelector('.ocr-guide-rect')) {
-        const guideBox = document.createElement('div');
-        guideBox.className = 'ocr-guide-rect';
-        modal.appendChild(guideBox);
-      }
-
       const track = stream.getVideoTracks()[0];
       const capabilities = track.getCapabilities();
       if (capabilities.zoom) {
@@ -1156,18 +1134,10 @@ document.addEventListener('DOMContentLoaded', () => {
         inputOCR.value = lines[0];
         statusP.textContent = '✅ Đã nhận 1 dòng.';
       } else {
-        const selectHTML = `
-          <select id="ocrLineSelector" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
-            ${lines.map(l => `<option>${l}</option>`).join('')}
-          </select>
-        `;
-        inputOCR.insertAdjacentHTML('beforebegin', selectHTML);
-        const selector = document.getElementById('ocrLineSelector');
-        selector.addEventListener('change', () => {
-          inputOCR.value = selector.value;
-        });
-        inputOCR.value = lines[0];
-        statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Đã chọn dòng đầu tiên, có thể chỉnh sửa.`;
+        const selectHTML = `<select id="ocrSelectLine" style="width:100%; padding:8px; font-size:14px;">${lines.map(l => `<option>${l}</option>`).join('')}</select>`;
+        inputOCR.outerHTML = selectHTML;
+        inputOCR = document.getElementById('ocrSelectLine');
+        statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Chọn dòng đúng.`;
       }
     });
   });
@@ -1186,13 +1156,19 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = 'none';
     zoomContainer.style.display = 'none';
     stopStream();
-    document.getElementById("ocrLineSelector")?.remove();
-    document.querySelector('.ocr-guide-rect')?.remove();
-    inputOCR.value = '';
+    document.getElementById("ocrSelectLine")?.remove();
+    inputOCR = document.createElement('input');
+    inputOCR.id = "ocrInput";
+    inputOCR.type = "text";
+    inputOCR.placeholder = "Kết quả OCR...";
+    inputOCR.style = "margin-top:10px; width:100%; padding:8px; font-size:14px;";
+    document.querySelector('#btnApplyOcrFilter').before(inputOCR);
   });
+
+  // Tùy chọn nâng cao: bật OCR liên tục mỗi 2s (gợi ý thêm nút riêng nếu muốn)
+  // intervalId = setInterval(() => { cropCenterAndOCR(...) }, 2000);
 });
 </script>
-
 
 
 </body>
