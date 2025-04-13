@@ -1203,6 +1203,37 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
   Chart.register(ChartDataLabels);
 </script>
+<style>
+  body {
+    background-color: var(--bg, #fff);
+    color: var(--text, #000);
+  }
+  .chart-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 16px 0;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    background-color: var(--chart-bg, #fafafa);
+  }
+</style>
+<script>
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (prefersDark) {
+    document.documentElement.style.setProperty('--bg', '#111');
+    document.documentElement.style.setProperty('--text', '#eee');
+    document.documentElement.style.setProperty('--chart-bg', '#1e1e1e');
+  }
+
+  Chart.defaults.set('plugins.datalabels', {
+    anchor: 'end',
+    align: 'end',
+    font: { weight: 'bold' },
+    color: prefersDark ? '#fff' : '#000'
+  });
+</script>
+
 
 <script>
   const showBtn = document.getElementById('showMapBtn');
