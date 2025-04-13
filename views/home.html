@@ -1069,6 +1069,7 @@
     const video      = document.getElementById('video');
     const canvas     = document.getElementById('canvas');
     const statusP    = document.getElementById('ocrStatus');
+    const resultP    = document.getElementById('ocrResult'); 
     const btnCapture = document.getElementById('btnCapture');
     const btnClose   = document.getElementById('btnCloseCamera');
      let stream;
@@ -1143,6 +1144,7 @@
       <video id="video" width="320" height="240" autoplay></video>
       <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
       <p id="ocrStatus">Chờ quét...</p>
+      <p id="ocrResult" style="color: green; font-weight: bold;"></p>
       <button id="btnCapture">Chụp & Quét</button>
       <button id="btnCloseCamera">Đóng</button>
     </div>
