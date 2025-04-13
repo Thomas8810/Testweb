@@ -1036,7 +1036,26 @@
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;">
   <div style="background:#fff; padding:16px; border-radius:8px; max-height: 90vh; overflow-y: auto; width:95%; max-width:400px; text-align:center;">
     <h3>📷 Quét Part Number</h3>
-    <video id="camera" autoplay playsinline style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
+    
+<div id="ocrFrameHint"
+  style="
+    position:absolute;
+    border: 2px dashed red;
+    top: 35%;
+    left: 10%;
+    width: 80%;
+    height: 20%;
+    pointer-events: none;
+    z-index: 999;
+    border-radius: 8px;
+    box-shadow: 0 0 6px rgba(255,0,0,0.6);
+  ">
+</div>
+<p style="color:#f00; font-size:13px; margin-top:5px; text-align:center;">
+  👉 Hãy đặt mã Part Number vào giữa khung đỏ để quét chính xác hơn!
+</p>
+
+<video id="camera" autoplay playsinline style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
     
 <div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
   🔍 Zoom:
