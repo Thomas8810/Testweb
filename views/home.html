@@ -1063,18 +1063,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const video = document.getElementById('camera');
   const canvas = document.getElementById('canvas');
   const statusP = document.getElementById('ocrStatus');
-  const inputOCR = document.getElementById('ocrInput');
+  let inputOCR = document.getElementById('ocrInput');
   const btnCapture = document.getElementById('btnCapture');
   const btnClose = document.getElementById('btnCloseCamera');
   const btnApply = document.getElementById('btnApplyOcrFilter');
   const zoomSlider = document.getElementById("zoomSlider");
   const zoomContainer = document.getElementById("zoomContainer");
-  let stream;
+  let stream, intervalId;
+
+  function stopStream() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+    }
+    clearInterval(intervalId);
+  }
+
+  function cropCenterAndOCR(callback) {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const cropWidth = 220, cropHeight = 60;
+    const offsetX = (canvas.width - cropWidth) / 2;
+    const offsetY = (canvas.height - cropHeight) / 2;
+    const imageData = ctx.getImageData(offsetX, offsetY, cropWidth, cropHeight);
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = cropWidth;
+    tempCanvas.height = cropHeight;
+    tempCanvas.getContext("2d").putImageData(imageData, 0, 0);
+
+    Tesseract.recognize(tempCanvas.toDataURL(), 'eng')
+      .then(({ data: { text } }) => callback(text))
+      .catch(() => statusP.textContent = '❌ Lỗi khi nhận diện.');
+  }
 
   btnScan.addEventListener('click', async () => {
     modal.style.display = 'flex';
     statusP.textContent = '🔄 Đang khởi động camera...';
     inputOCR.value = '';
+    document.getElementById("ocrInput").style.display = 'block';
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       video.srcObject = stream;
@@ -1092,8 +1118,7 @@ document.addEventListener('DOMContentLoaded', () => {
           track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
         });
       }
-
-      statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét".';
+      statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét" hoặc giữ chế độ tự động';
     } catch (err) {
       statusP.textContent = '❌ Không thể truy cập camera.';
     }
@@ -1101,24 +1126,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnCapture.addEventListener('click', () => {
     statusP.textContent = '🔍 Đang quét...';
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    Tesseract.recognize(canvas.toDataURL('image/png'), 'eng').then(({ data: { text } }) => {
-      const partNumber = (text || '').trim().split(/\s+/).find(word => /[A-Z0-9\-]+/.test(word)) || text.trim();
-      inputOCR.value = partNumber;
-      statusP.textContent = '✅ Kết quả đã nhận.';
-    }).catch(() => {
-      statusP.textContent = '❌ Lỗi khi nhận diện.';
-    });
-  });
+    cropCenterAndOCR((text) => {
+      const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) return statusP.textContent = '❌ Không nhận được dòng nào.';
 
-  btnClose.addEventListener('click', () => {
-    modal.style.display = 'none';
-    zoomContainer.style.display = 'none';
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-      video.srcObject = null;
-    }
+      if (lines.length === 1) {
+        inputOCR.value = lines[0];
+        statusP.textContent = '✅ Đã nhận 1 dòng.';
+      } else {
+        const selectHTML = `<select id="ocrSelectLine" style="width:100%; padding:8px; font-size:14px;">${lines.map(l => `<option>${l}</option>`).join('')}</select>`;
+        inputOCR.outerHTML = selectHTML;
+        inputOCR = document.getElementById('ocrSelectLine');
+        statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Chọn dòng đúng.`;
+      }
+    });
   });
 
   btnApply.addEventListener('click', () => {
@@ -1130,6 +1151,22 @@ document.addEventListener('DOMContentLoaded', () => {
     statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
     setTimeout(() => btnClose.click(), 1500);
   });
+
+  btnClose.addEventListener('click', () => {
+    modal.style.display = 'none';
+    zoomContainer.style.display = 'none';
+    stopStream();
+    document.getElementById("ocrSelectLine")?.remove();
+    inputOCR = document.createElement('input');
+    inputOCR.id = "ocrInput";
+    inputOCR.type = "text";
+    inputOCR.placeholder = "Kết quả OCR...";
+    inputOCR.style = "margin-top:10px; width:100%; padding:8px; font-size:14px;";
+    document.querySelector('#btnApplyOcrFilter').before(inputOCR);
+  });
+
+  // Tùy chọn nâng cao: bật OCR liên tục mỗi 2s (gợi ý thêm nút riêng nếu muốn)
+  // intervalId = setInterval(() => { cropCenterAndOCR(...) }, 2000);
 });
 </script>
 
