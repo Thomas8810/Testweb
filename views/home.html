@@ -1078,8 +1078,10 @@
     modal.style.display = 'flex';
     statusP.textContent = '🔄 Đang khởi động camera...';
     resultP.textContent = '';
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+   try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: "environment" } } // <-- dùng camera sau
+    });
       video.srcObject = stream;
       video.play();
       statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét".';
