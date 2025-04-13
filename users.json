@@ -46,5 +46,11 @@
     "email": "Ha@gmail.com",
     "password": "Ha123",
     "role": "user"
+  },
+    {
+    "name": "Hoang",
+    "email": "Hoang@gmail.com",
+    "password": "Hoang123",
+    "role": "user"
   }
 ]

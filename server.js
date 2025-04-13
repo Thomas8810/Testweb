@@ -426,7 +426,7 @@ app.get('/filters', (req, res) => {
     "Part Pictures": getDistinct("Part Pictures"),
     "Packaging Pictures": getDistinct("Packaging Pictures"),
     "Submit date": getDistinct("Submit date"),
-    "Đã lên PO LAM": getDistinct("Đã lên PO LAM"),
+    "Take pictures": getDistinct("Take pictures"),
     "OK": getDistinct("OK"),
     "Remark": getDistinct("Remark"),
     "Remark 2": getDistinct("Remark 2"),
@@ -485,7 +485,7 @@ app.get('/export', (req, res) => {
     "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
     "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
     "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
-    "Đã lên PO LAM", "OK", "Remark", "Remark 2", "Status", "Note"
+    "Take pictures", "OK", "Remark", "Remark 2", "Status", "Note"
   ];
   const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
 

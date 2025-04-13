@@ -315,6 +315,7 @@
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
             <option value="CE">CE</option>
+            <option value="Take pictures">Take pictures</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
             <option value="REV">REV</option>
@@ -335,7 +336,6 @@
             <option value="Part Pictures">Part Pictures</option>
             <option value="Packaging Pictures">Packaging Pictures</option>
             <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
             <option value="OK">OK</option>
             <option value="Remark">Remark</option>
             <option value="Remark 2">Remark 2</option>
@@ -352,6 +352,7 @@
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
             <option value="CE">CE</option>
+            <option value="Take pictures">Take pictures</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
             <option value="REV">REV</option>
@@ -372,7 +373,6 @@
             <option value="Part Pictures">Part Pictures</option>
             <option value="Packaging Pictures">Packaging Pictures</option>
             <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
             <option value="OK">OK</option>
             <option value="Remark">Remark</option>
             <option value="Remark 2">Remark 2</option>
@@ -389,6 +389,7 @@
             <option value="Status">Status</option>
             <option value="Critical">Critical</option>
             <option value="CE">CE</option>
+            <option value="Take pictures">Take pictures</option>
             <option value="PO Number">PO Number</option>
             <option value="Project">Project</option>
             <option value="REV">REV</option>
@@ -409,7 +410,6 @@
             <option value="Part Pictures">Part Pictures</option>
             <option value="Packaging Pictures">Packaging Pictures</option>
             <option value="Submit date">Submit date</option>
-            <option value="Đã lên PO LAM">Đã lên PO LAM</option>
             <option value="OK">OK</option>
             <option value="Remark">Remark</option>
             <option value="Remark 2">Remark 2</option>
@@ -449,6 +449,7 @@
             <th class="sticky-col-2">Part Number</th>
             <th class="sticky-col-3">REV</th>
             <th data-column="Status">Status</th>
+            <th data-column="Take pictures">Take pictures</th>
             <th data-column="Critical">Critical</th>
             <th data-column="CE">CE</th>
             <th data-column="PO Number">PO Number</th>
@@ -470,7 +471,6 @@
             <th data-column="Part Pictures">Part Pictures</th>
             <th data-column="Packaging Pictures">Packaging Pictures</th>
             <th data-column="Submit date">Submit date</th>
-            <th data-column="Đã lên PO LAM">Đã lên PO LAM</th>
             <th data-column="OK">OK</th>
             <th data-column="Remark">Remark</th>
             <th data-column="Remark 2">Remark 2</th>
@@ -947,6 +947,7 @@
         tr.append(`<td class="sticky-col-2">${row['Part Number'] || ''}</td>`);
         tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
         tr.append(`<td>${row['Status'] || ''}</td>`);
+        tr.append(`<td>${row['Take pictures'] || ''}</td>`);
         tr.append(`<td>${row['Critical'] || ''}</td>`);
         tr.append(`<td>${row['CE'] || ''}</td>`);
         tr.append(`<td>${row['PO Number'] || ''}</td>`);
@@ -968,7 +969,6 @@
         tr.append(`<td>${formatPercentage(row['Part Pictures'])}</td>`);
         tr.append(`<td>${formatPercentage(row['Packaging Pictures'])}</td>`);
         tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
-        tr.append(`<td>${row['Đã lên PO LAM'] || ''}</td>`);
         tr.append(`<td>${row['OK'] || ''}</td>`);
         tr.append(`<td>${row['Remark'] || ''}</td>`);
         tr.append(`<td>${row['Remark 2'] || ''}</td>`);
