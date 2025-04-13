@@ -434,10 +434,17 @@
           <button id="zoom-in">Phóng to</button>
           <button id="zoom-out">Thu nhỏ</button>
         </div>
-        <div class="scan-camera">
-          <button id="btnScanCamera">📷 Quét Camera</button>
-        </div>
+<!-- Nút Quét Camera -->
+<div class="scan-camera">
+  <button id="btnScanCamera">📷 Quét Camera</button>
+</div>
 
+<!-- Modal Quét Camera -->
+<div id="cameraModal" style="display:none; position:fixed; /* ... */">
+  <!-- video, canvas, nút Chụp & Quét, Đóng -->
+</div>
+
+        
       </div>
 
       <!-- Phần hiển thị tổng số dòng -->
@@ -1041,6 +1048,7 @@
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 
   <script>
+     document.addEventListener('DOMContentLoaded', () => {
     // --- Khai báo các phần tử ---
     const btnScan = document.getElementById('btnScanCamera');
     const modal   = document.getElementById('cameraModal');
@@ -1105,6 +1113,7 @@
         video.srcObject.getTracks().forEach(t => t.stop());
       }
     });
+        });
   </script>
 
   <!-- Modal Quét Camera -->
