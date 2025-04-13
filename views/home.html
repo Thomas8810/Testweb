@@ -1059,8 +1059,7 @@
     
   </script>
 
-
-<!-- Đảm bảo chỉ có 1 phần modal duy nhất trong HTML -->
+<!-- Modal Camera (chỉ một bản duy nhất) -->
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
      width:100%; height:100%; background:rgba(0,0,0,0.8); 
      justify-content:center; align-items:center; z-index:1000;">
@@ -1069,7 +1068,6 @@
     <video id="video" width="320" height="240" autoplay playsinline style="border: 1px solid #ccc;"></video>
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <p id="ocrStatus" style="margin: 10px 0; font-weight: bold;">Chờ quét...</p>
-    <!-- Nhập kết quả OCR nếu muốn chỉnh sửa -->
     <input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
     <button id="btnApplyOcrFilter" style="margin-bottom:10px;">✅ Lọc Part Number</button>
     <p id="ocrResult" style="color: green; font-size: 16px; font-weight: bold;"></p>
@@ -1078,11 +1076,8 @@
   </div>
 </div>
 
-<!-- Phần script cho camera & OCR -->
 <script>
-// Sử dụng Tesseract.createWorker để tối ưu hiệu năng
 document.addEventListener('DOMContentLoaded', async () => {
-  // Khai báo các phần tử
   const btnScan    = document.getElementById('btnScanCamera');
   const modal      = document.getElementById('cameraModal');
   const video      = document.getElementById('video');
@@ -1095,15 +1090,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnApply   = document.getElementById('btnApplyOcrFilter');
   let stream;
 
-  // Khởi tạo Tesseract Worker
+  // Khởi tạo worker OCR
   const worker = Tesseract.createWorker({
-    logger: m => console.log(m)
+    logger: m => console.log('OCR logger:', m)
   });
   await worker.load();
   await worker.loadLanguage('eng');
   await worker.initialize('eng');
+  // Thiết lập whitelist nếu cần (có thể bỏ qua để thử nghiệm)
+  await worker.setParameters({
+    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
+  });
 
-  // Mở camera khi nhấn nút quét
   btnScan.addEventListener('click', async () => {
     modal.style.display = 'flex';
     statusP.textContent = '🔄 Đang khởi động camera...';
@@ -1122,40 +1120,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Chụp ảnh và thực hiện OCR
   btnCapture.addEventListener('click', async () => {
     statusP.textContent = '🔍 Đang quét...';
     resultP.textContent = '';
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = canvas.toDataURL('image/png');
+    console.log('Hình ảnh chụp được:', imageData); // Debug hình ảnh
     try {
-      // Sử dụng whitelist để chỉ nhận diện ký tự mong muốn
-      const { data: { text } } = await worker.recognize(imageData, { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-' });
+      // Nếu whitelist gây vấn đề, thử xóa hoặc chuyển thành {}:
+      const { data: { text } } = await worker.recognize(imageData /*, { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-' } */);
       const rawText = text.trim();
       if (!rawText) {
         statusP.textContent = '⚠️ Không nhận diện được ký tự. Vui lòng thử lại.';
         return;
       }
-      // Lấy phần chuỗi phù hợp với Part Number (có thể chỉnh sửa regex nếu cần)
       const match = rawText.match(/[A-Z0-9\-]+/i);
       const partNumber = match ? match[0] : rawText;
       inputOCR.value = partNumber;
-      statusP.textContent = '✅ Nhận diện thành công. Bạn có thể chỉnh sửa kết quả nếu cần.';
+      statusP.textContent = '✅ Nhận diện thành công. Bạn có thể chỉnh sửa nếu cần.';
     } catch (err) {
       console.error(err);
       statusP.textContent = '❌ Lỗi khi thực hiện OCR.';
     }
   });
 
-  // Áp dụng lọc dựa trên kết quả nhận dạng
   btnApply.addEventListener('click', () => {
     const part = inputOCR.value.trim();
     if (!part) {
       alert('Bạn chưa nhập Part Number!');
       return;
     }
-    // Cập nhật Select2 và gọi hàm lọc (đảm bảo hàm applyFilters tồn tại trong code của bạn)
     $('#filter-column-1').val('Part Number').trigger('change');
     $('#filter-value-1').val([part]).trigger('change');
     applyFilters();
@@ -1163,7 +1158,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => btnClose.click(), 1500);
   });
 
-  // Đóng modal và tắt camera
   btnClose.addEventListener('click', () => {
     modal.style.display = 'none';
     resultP.textContent = '';
@@ -1172,12 +1166,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       stream.getTracks().forEach(track => track.stop());
     }
   });
-  // Tắt worker khi trang được đóng (tuỳ chọn)
+
   window.addEventListener('beforeunload', async () => {
     await worker.terminate();
   });
 });
 </script>
+
 
 
 
