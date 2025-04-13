@@ -1055,6 +1055,21 @@
 </div>
 
 
+<style>
+  .ocr-guide-rect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 220px;
+    height: 60px;
+    transform: translate(-50%, -50%);
+    border: 2px dashed red;
+    box-sizing: border-box;
+    z-index: 1001;
+    pointer-events: none;
+  }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -1105,6 +1120,13 @@ document.addEventListener('DOMContentLoaded', () => {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       video.srcObject = stream;
       video.play();
+
+      // Thêm khung đỏ vào modal
+      if (!document.querySelector('.ocr-guide-rect')) {
+        const guideBox = document.createElement('div');
+        guideBox.className = 'ocr-guide-rect';
+        modal.appendChild(guideBox);
+      }
 
       const track = stream.getVideoTracks()[0];
       const capabilities = track.getCapabilities();
@@ -1165,10 +1187,12 @@ document.addEventListener('DOMContentLoaded', () => {
     zoomContainer.style.display = 'none';
     stopStream();
     document.getElementById("ocrLineSelector")?.remove();
+    document.querySelector('.ocr-guide-rect')?.remove();
     inputOCR.value = '';
   });
 });
 </script>
+
 
 
 </body>
