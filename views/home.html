@@ -1037,7 +1037,13 @@
   <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center;">
     <h3>📷 Quét Part Number</h3>
     <video id="camera" autoplay playsinline style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
-    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    
+<div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
+  🔍 Zoom:
+  <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" style="width:80%;">
+</div>
+
+<canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
       <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">📸 Chụp & Quét</button>
       <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
@@ -1047,6 +1053,7 @@
     <p id="ocrStatus" style="font-size:14px; margin-top:10px;">Đang chờ thao tác...</p>
   </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 <script>
@@ -1060,6 +1067,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCapture = document.getElementById('btnCapture');
   const btnClose = document.getElementById('btnCloseCamera');
   const btnApply = document.getElementById('btnApplyOcrFilter');
+  const zoomSlider = document.getElementById("zoomSlider");
+  const zoomContainer = document.getElementById("zoomContainer");
   let stream;
 
   btnScan.addEventListener('click', async () => {
@@ -1070,6 +1079,20 @@ document.addEventListener('DOMContentLoaded', () => {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       video.srcObject = stream;
       video.play();
+
+      const track = stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      if (capabilities.zoom) {
+        zoomContainer.style.display = 'block';
+        zoomSlider.min = capabilities.zoom.min;
+        zoomSlider.max = capabilities.zoom.max;
+        zoomSlider.step = capabilities.zoom.step || 0.1;
+        zoomSlider.value = capabilities.zoom.min;
+        zoomSlider.addEventListener("input", () => {
+          track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
+        });
+      }
+
       statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét".';
     } catch (err) {
       statusP.textContent = '❌ Không thể truy cập camera.';
@@ -1091,6 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnClose.addEventListener('click', () => {
     modal.style.display = 'none';
+    zoomContainer.style.display = 'none';
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
       video.srcObject = null;
@@ -1101,13 +1125,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const part = inputOCR.value.trim();
     if (!part) return alert('Bạn chưa nhập Part Number!');
     $('#filter-column-1').val('Part Number').trigger('change');
-    $('#filter-value-1').val([part]).trigger('change');
-    if (typeof applyFilters === 'function') applyFilters();
+    $('#filter-value-1').append(new Option(part, part, true, true)).trigger('change');
+    if (typeof applyFilters === 'function') applyFilters(true);
     statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
     setTimeout(() => btnClose.click(), 1500);
   });
 });
 </script>
+
 
 </body>
 </html>
