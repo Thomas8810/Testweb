@@ -285,7 +285,13 @@
       .header p { font-size: 12px; }
       table, th, td { font-size: 9px; }
     }
-  </style>
+  
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 300px; /* chừa chỗ cho bàn phím */
+  }
+}
+</style>
 </head>
 <body>
 <div class="page-container">
@@ -1037,9 +1043,9 @@
 <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
 <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">❌ Đóng</button>
 </div>
-<input id="ocrInput" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;" type="text">
+<input id="ocrInput" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;" type="text"/>
 <p id="ocrStatus" style="font-size:14px; margin-top:10px;">Đang chờ thao tác...</p>
-</input></div>
+</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 <script>
@@ -1156,13 +1162,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <script>
-// Tự động scroll khi bật bàn phím ảo để không bị che input
 window.addEventListener('resize', () => {
   const activeEl = document.activeElement;
   if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
     setTimeout(() => {
       activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
+  }
+});
+</script><script>
+// Scroll riêng cho input OCR khi focus (bàn phím mở lên)
+document.addEventListener('DOMContentLoaded', function () {
+  const ocrInput = document.getElementById('ocrInput');
+  if (ocrInput) {
+    ocrInput.addEventListener('focus', () => {
+      setTimeout(() => {
+        ocrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    });
   }
 });
 </script></body>
