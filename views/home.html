@@ -1058,11 +1058,7 @@
     });
     
   </script>
-  
-<!-- Nút Quét Camera -->
-<div class="scan-camera">
-  <button id="btnScanCamera">📷 Quét Camera</button>
-</div>
+
 
 <!-- Đảm bảo chỉ có 1 phần modal duy nhất trong HTML -->
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
@@ -1176,7 +1172,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       stream.getTracks().forEach(track => track.stop());
     }
   });
-
   // Tắt worker khi trang được đóng (tuỳ chọn)
   window.addEventListener('beforeunload', async () => {
     await worker.terminate();
