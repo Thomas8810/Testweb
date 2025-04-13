@@ -1185,95 +1185,111 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
-</script><div class="chart-container">
-        <button onclick="toggleView()">Chuyển đổi Biểu đồ / Bảng</button>
-        <canvas id="myChart" height="300"></canvas>
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>Dự án</th>
-                    <th>Total</th>
-                    <th>Approved</th>
-                    <th>On going</th>
-                </tr>
-            </thead>
-            <tbody id="dataRows"></tbody>
-        </table>
-    </div>
+</script>
+<!-- Nút và vùng biểu đồ tổng quan -->
+<div style="text-align:center; margin-top:10px;">
+  <button id="showMapBtn" style="padding:10px 20px; font-size:16px;">📊 Xem bản đồ tổng quan</button>
+</div>
 
-    <script>
-        const labels = ["GUMI Sheetmetal", "LAM Sheetmetal", "UCT", "LAM Plastics", "LAM Machining"];
-        const data = {
-            labels: labels,
-            datasets: [
-                {
-                    label: "Total",
-                    backgroundColor: "#3498db",
-                    data: [680, 150, 20, 80, 110]
-                },
-                {
-                    label: "Approved",
-                    backgroundColor: "#2ecc71",
-                    data: [230, 100, 5, 60, 90]
-                },
-                {
-                    label: "On going",
-                    backgroundColor: "#f1c40f",
-                    data: [450, 50, 15, 20, 20]
-                }
-            ]
-        };
+<div id="chartOverviewSection" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:white; z-index:9999; overflow:auto; padding:20px;">
+  <button onclick="document.getElementById('chartOverviewSection').style.display='none'" style="float:right; font-size:18px; padding:6px 12px;">❌ Đóng</button>
+  <h2 style="margin-top:0;">📊 Tổng quan FAIR theo Project</h2>
+  <canvas id="allProjectChart" height="200" style="margin-bottom:40px;"></canvas>
+  <canvas id="criticalProjectChart" height="200"></canvas>
+</div>
 
-        const config = {
-            type: "bar",
-            data: data,
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { labels: { color: "white" } },
-                    title: {
-                        display: true,
-                        text: "Tổng quan các Project",
-                        color: "white",
-                        font: { size: 20 }
-                    }
-                },
-                scales: {
-                    x: { ticks: { color: "white" } },
-                    y: { ticks: { color: "white" } }
-                }
-            }
-        };
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        const myChart = new Chart(document.getElementById("myChart"), config);
+<script>
+  const showBtn = document.getElementById('showMapBtn');
+  const section = document.getElementById('chartOverviewSection');
+  let chart1 = null, chart2 = null;
 
-        function toggleView() {
-            const chartCanvas = document.getElementById("myChart");
-            const dataTable = document.getElementById("dataTable");
+  showBtn.addEventListener('click', () => {
+    if (section.style.display === 'block') {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = 'block';
 
-            if (dataTable.style.display === "none") {
-                chartCanvas.style.display = "none";
-                dataTable.style.display = "table";
-                populateTable();
-            } else {
-                chartCanvas.style.display = "block";
-                dataTable.style.display = "none";
-            }
-        }
+    chart1?.destroy();
+    chart2?.destroy();
 
-        function populateTable() {
-            const tbody = document.getElementById("dataRows");
-            tbody.innerHTML = "";
-            for (let i = 0; i < labels.length; i++) {
-                const row = `<tr>
-                    <td>${labels[i]}</td>
-                    <td>${data.datasets[0].data[i]}</td>
-                    <td>${data.datasets[1].data[i]}</td>
-                    <td>${data.datasets[2].data[i]}</td>
-                </tr>`;
-                tbody.innerHTML += row;
-            }
-        }
-    </script>
+    // Tính tổng quan toàn bộ project
+    const allGrouped = {};
+    allData.forEach(item => {
+      const name = item["Project"] || "Unknown";
+      if (!allGrouped[name]) {
+        allGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
+      }
+      allGrouped[name].total += 1;
+      if (item["Status"] === "Approved") allGrouped[name].approved += 1;
+      else allGrouped[name].ongoing += 1;
+    });
+
+    // Tính chỉ critical (C1/C4/C8/CV)
+    const critGrouped = {};
+    allData.forEach(item => {
+      const name = item["Project"] || "Unknown";
+      const criticalRaw = (item["Critical"] || "").toString().toUpperCase();
+      const isCritical = /(C1|C4|C8|CV)/.test(criticalRaw);
+      if (!isCritical) return;
+      if (!critGrouped[name]) {
+        critGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
+      }
+      critGrouped[name].total += 1;
+      if (item["Status"] === "Approved") critGrouped[name].approved += 1;
+      else critGrouped[name].ongoing += 1;
+    });
+
+    const labels1 = Object.keys(allGrouped);
+    const data1 = labels1.map(l => allGrouped[l]);
+
+    const ctx1 = document.getElementById('allProjectChart').getContext('2d');
+    chart1 = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: labels1,
+        datasets: [
+          { label: 'Total', data: data1.map(d => d.total), backgroundColor: '#3498db' },
+          { label: 'Approved', data: data1.map(d => d.approved), backgroundColor: '#2ecc71' },
+          { label: 'On-going', data: data1.map(d => d.ongoing), backgroundColor: '#f1c40f' }
+        ]
+      },
+      options: {
+        plugins: {
+          title: { display: true, text: 'Tổng quan TẤT CẢ các Project' },
+          legend: { position: 'bottom' }
+        },
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    const labels2 = Object.keys(critGrouped);
+    const data2 = labels2.map(l => critGrouped[l]);
+
+    const ctx2 = document.getElementById('criticalProjectChart').getContext('2d');
+    chart2 = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: labels2,
+        datasets: [
+          { label: 'Total (Critical)', data: data2.map(d => d.total), backgroundColor: '#e67e22' },
+          { label: 'Approved (Critical)', data: data2.map(d => d.approved), backgroundColor: '#27ae60' },
+          { label: 'On-going (Critical)', data: data2.map(d => d.ongoing), backgroundColor: '#f39c12' }
+        ]
+      },
+      options: {
+        plugins: {
+          title: { display: true, text: 'Chỉ các part CRITICAL (C1, C4, C8, CV)' },
+          legend: { position: 'bottom' }
+        },
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  });
+</script>
 </body>
 </html>
