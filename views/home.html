@@ -1152,6 +1152,11 @@ document.addEventListener('DOMContentLoaded', () => {
     <h3>Quét Part Number</h3>
     <video id="video" width="320" height="240" autoplay playsinline></video>
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <div style="text-align:center; margin-top:10px;">
+        <button id="rotateBtn" style="font-size: 16px; padding: 8px 16px; margin: 5px;">🔄 Xoay ảnh</button>
+        <button id="closeCameraBtn" style="font-size: 16px; padding: 8px 16px; margin: 5px;">❌ Đóng Camera</button>
+    </div>
+    
     
     <p id="ocrStatus">Chờ quét...</p>
     <input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
@@ -1187,6 +1192,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
+
+
+<script>
+document.getElementById("closeCameraBtn").addEventListener("click", function() {
+    const modal = document.getElementById("cameraModal");
+    const video = document.getElementById("camera");
+    const stream = video.srcObject;
+    if (stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        video.srcObject = null;
+    }
+    modal.style.display = "none";
+});
+
+// Xoay ảnh
+let rotation = 0;
+document.getElementById("rotateBtn").addEventListener("click", function() {
+    rotation = (rotation + 90) % 360;
+    const canvas = document.getElementById("snapshot");
+    canvas.style.transform = `rotate(${rotation}deg)`;
+});
+</script>
 
 </body>
 
