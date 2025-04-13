@@ -1191,12 +1191,13 @@ document.addEventListener('DOMContentLoaded', function () {
   <button id="showMapBtn" style="padding:10px 20px; font-size:16px;">📊 Xem bản đồ tổng quan</button>
 </div>
 
-<div id="chartOverviewSection" style="display:none; margin:20px auto; max-width:1000px;">
-  <canvas id="projectChart" height="300" style="margin-bottom:40px;"></canvas>
-  <canvas id="criticalChart" height="300"></canvas>
+<div id="chartOverviewSection" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:white; z-index:9999; overflow:auto; padding:20px;">
+  <button onclick="document.getElementById('chartOverviewSection').style.display='none'" style="float:right; font-size:18px; padding:6px 12px;">❌ Đóng</button>
+  <h2 style="margin-top:0;">📊 Tổng quan FAIR theo Project</h2>
+  <canvas id="projectChart" height="200" style="margin-bottom:40px;"></canvas>
+  <canvas id="criticalChart" height="200"></canvas>
 </div>
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -1205,25 +1206,35 @@ document.addEventListener('DOMContentLoaded', function () {
   let chart1 = null, chart2 = null;
 
   showBtn.addEventListener('click', () => {
+    if (section.style.display === 'block') {
+      section.style.display = 'none';
+      return;
+    }
     section.style.display = 'block';
-    if (chart1 && chart2) return;
+
+    if (chart1 || chart2) {
+      chart1?.destroy();
+      chart2?.destroy();
+      chart1 = null;
+      chart2 = null;
+    }
 
     const grouped = {};
     allData.forEach(item => {
       const name = item["Project"] || "Unknown";
+
+      // Chỉ xét nếu Critical có giá trị chứa C1, C4, C8, CV (không phân biệt hoa thường)
+      const criticalRaw = (item["Critical"] || "").toString().toUpperCase();
+      const isCritical = /(C1|C4|C8|CV)/.test(criticalRaw);
+      if (!isCritical) return;
+
       if (!grouped[name]) {
-        grouped[name] = { total: 0, approved: 0, ongoing: 0, criticalYes: 0, criticalNo: 0 };
+        grouped[name] = { total: 0, approved: 0, ongoing: 0, criticalYes: 0 };
       }
       grouped[name].total += 1;
       if (item["Status"] === "Approved") grouped[name].approved += 1;
       else grouped[name].ongoing += 1;
-
-      const criticalVal = item["Critical"]?.toString().toLowerCase();
-      if (criticalVal === "yes" || criticalVal === "true" || criticalVal === "1") {
-        grouped[name].criticalYes += 1;
-      } else {
-        grouped[name].criticalNo += 1;
-      }
+      grouped[name].criticalYes += 1;
     });
 
     const labels = Object.keys(grouped);
@@ -1235,16 +1246,17 @@ document.addEventListener('DOMContentLoaded', function () {
       data: {
         labels,
         datasets: [
-          { label: 'Total', data: data.map(d => d.total), backgroundColor: '#3498db' },
+          { label: 'Total Critical Parts', data: data.map(d => d.total), backgroundColor: '#3498db' },
           { label: 'Approved', data: data.map(d => d.approved), backgroundColor: '#2ecc71' },
           { label: 'On-going', data: data.map(d => d.ongoing), backgroundColor: '#f1c40f' }
         ]
       },
       options: {
         plugins: {
-          title: { display: true, text: 'Tổng quan các Project' },
+          title: { display: true, text: 'Tổng quan các Project (Critical Only)' },
           legend: { position: 'bottom' }
         },
+        responsive: true,
         scales: { y: { beginAtZero: true } }
       }
     });
@@ -1255,15 +1267,15 @@ document.addEventListener('DOMContentLoaded', function () {
       data: {
         labels,
         datasets: [
-          { label: 'Critical: Yes', data: data.map(d => d.criticalYes), backgroundColor: '#e74c3c' },
-          { label: 'Critical: No', data: data.map(d => d.criticalNo), backgroundColor: '#95a5a6' }
+          { label: 'Critical (C1/C4/C8/CV)', data: data.map(d => d.criticalYes), backgroundColor: '#e74c3c' }
         ]
       },
       options: {
         plugins: {
-          title: { display: true, text: 'Phân bố Critical Part theo Project' },
+          title: { display: true, text: 'Số lượng Critical Part theo Project' },
           legend: { position: 'bottom' }
         },
+        responsive: true,
         scales: { y: { beginAtZero: true } }
       }
     });
