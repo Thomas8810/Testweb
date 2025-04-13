@@ -1048,16 +1048,16 @@
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 
   <script>
-     document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     // --- Khai báo các phần tử ---
-    const btnScan = document.getElementById('btnScanCamera');
-    const modal   = document.getElementById('cameraModal');
-    const video   = document.getElementById('video');
-    const canvas  = document.getElementById('canvas');
-    const statusP = document.getElementById('ocrStatus');
+    const btnScan    = document.getElementById('btnScanCamera');
+    const modal      = document.getElementById('cameraModal');
+    const video      = document.getElementById('video');
+    const canvas     = document.getElementById('canvas');
+    const statusP    = document.getElementById('ocrStatus');
     const btnCapture = document.getElementById('btnCapture');
     const btnClose   = document.getElementById('btnCloseCamera');
-    let stream;
+
     // Mở popup và khởi động camera
     btnScan.addEventListener('click', async () => {
       modal.style.display = 'flex';
@@ -1076,27 +1076,25 @@
     btnCapture.addEventListener('click', () => {
       statusP.textContent = 'Đang quét...';
       // Vẽ video lên canvas
-      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       // OCR bằng Tesseract.js
       Tesseract.recognize(
         canvas.toDataURL('image/png'),
-        'eng', // chuyển thành 'vie' nếu muốn tiếng Việt
+        'eng', // hoặc sử dụng 'vie' nếu muốn tiếng Việt, tùy theo yêu cầu
         { logger: m => console.log(m) }
       ).then(({ data: { text } }) => {
-        const part = text.trim();
-        if (!part) {
+        const rawResult = text.trim();
+        if (!rawResult) {
           statusP.textContent = 'Không nhận diện được ký tự. Thử lại.';
           return;
         }
-        statusP.textContent = `Kết quả: ${part}`;
-        // Gọi hàm lọc của bạn (ví dụ filterByPartNumber)
-        if (typeof filterByPartNumber === 'function') {
-          filterByPartNumber(part);
-        } else {
-          // fallback: gán vào ô tìm kiếm rồi bấm nút tìm
-          document.getElementById('partNumberInput').value = part;
-          document.getElementById('btnApplyFilters').click();
-        }
+        // Tuỳ chọn: Lọc thêm ký tự hợp lệ nếu part number có định dạng cụ thể
+        const match = rawResult.match(/[A-Z0-9\-]+/i);
+        const partNumber = match ? match[0] : rawResult;
+        statusP.textContent = `Kết quả: ${partNumber}`;
+        // Gọi hàm lọc cập nhật giá trị cho phần tử Select2 của Part Number
+        filterByPartNumber(partNumber);
         // Đóng camera
         btnClose.click();
       }).catch(err => {
@@ -1108,13 +1106,13 @@
     // Đóng popup và tắt camera
     btnClose.addEventListener('click', () => {
       modal.style.display = 'none';
-      // Tắt các track camera
       if (video.srcObject) {
         video.srcObject.getTracks().forEach(t => t.stop());
       }
     });
-        });
-  </script>
+  });
+</script>
+
 
   <!-- Modal Quét Camera -->
   <div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
@@ -1129,13 +1127,17 @@
       <button id="btnCloseCamera">Đóng</button>
     </div>
   </div>
+  
   <script>
-    function filterByPartNumber(part) {
-      document.getElementById('partNumberInput').value = part;
-      // giả sử nút lọc là btnApplyFilters
-      document.getElementById('btnApplyFilters').click();
-    }
-  </script>
+  function filterByPartNumber(part) {
+    // Giả sử dropdown của Part Number ở block 1 có id "filter-value-1"
+    // Đặt giá trị đã quét vào dropdown và tự động trigger thay đổi
+    $('#filter-value-1').val([part]).trigger('change');
+    // Gọi hàm applyFilters (đã được định nghĩa trong script xử lý lọc toàn cục)
+    applyFilters();
+  }
+</script>
+
 
 </body>
 
