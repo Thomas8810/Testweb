@@ -1041,10 +1041,10 @@
   style="
     position:absolute;
     border: 2px dashed red;
-    top: 35%;
+    top: 44%;
     left: 10%;
     width: 80%;
-    height: 20%;
+    height: 12%;
     pointer-events: none;
     z-index: 999;
     border-radius: 8px;
@@ -1125,7 +1125,11 @@ catch (err) {
     statusP.textContent = '🔍 Đang quét...';
     const ctx = canvas.getContext('2d');
     ctx.filter = "contrast(150%) grayscale(100%)";
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const zoomTop = Math.floor(canvas.height * 0.44);
+    const zoomHeight = Math.floor(canvas.height * 0.12);
+    ctx.drawImage(video, 0, zoomTop, video.videoWidth, video.videoHeight * 0.12, 0, 0, canvas.width, canvas.height);
+    
     Tesseract.recognize(canvas.toDataURL('image/png'), 'eng').then(({ data: { text } }) => {
       const partNumber = (text || '').trim().split(/\s+/).find(word => /[A-Z0-9\-]+/.test(word)) || text.trim();
       inputOCR.value = partNumber;
