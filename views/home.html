@@ -1194,8 +1194,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <div id="chartOverviewSection" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:white; z-index:9999; overflow:auto; padding:20px;">
   <button onclick="document.getElementById('chartOverviewSection').style.display='none'" style="float:right; font-size:18px; padding:6px 12px;">❌ Đóng</button>
   <h2 style="margin-top:0;">📊 Tổng quan FAIR theo Project</h2>
-  <canvas id="projectChart" height="200" style="margin-bottom:40px;"></canvas>
-  <canvas id="criticalChart" height="200"></canvas>
+  <canvas id="allProjectChart" height="200" style="margin-bottom:40px;"></canvas>
+  <canvas id="criticalProjectChart" height="200"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1212,48 +1212,53 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     section.style.display = 'block';
 
-    if (chart1 || chart2) {
-      chart1?.destroy();
-      chart2?.destroy();
-      chart1 = null;
-      chart2 = null;
-    }
+    chart1?.destroy();
+    chart2?.destroy();
 
-    const grouped = {};
+    // Tính tổng quan toàn bộ project
+    const allGrouped = {};
     allData.forEach(item => {
       const name = item["Project"] || "Unknown";
+      if (!allGrouped[name]) {
+        allGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
+      }
+      allGrouped[name].total += 1;
+      if (item["Status"] === "Approved") allGrouped[name].approved += 1;
+      else allGrouped[name].ongoing += 1;
+    });
 
-      // Chỉ xét nếu Critical có giá trị chứa C1, C4, C8, CV (không phân biệt hoa thường)
+    // Tính chỉ critical (C1/C4/C8/CV)
+    const critGrouped = {};
+    allData.forEach(item => {
+      const name = item["Project"] || "Unknown";
       const criticalRaw = (item["Critical"] || "").toString().toUpperCase();
       const isCritical = /(C1|C4|C8|CV)/.test(criticalRaw);
       if (!isCritical) return;
-
-      if (!grouped[name]) {
-        grouped[name] = { total: 0, approved: 0, ongoing: 0, criticalYes: 0 };
+      if (!critGrouped[name]) {
+        critGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
       }
-      grouped[name].total += 1;
-      if (item["Status"] === "Approved") grouped[name].approved += 1;
-      else grouped[name].ongoing += 1;
-      grouped[name].criticalYes += 1;
+      critGrouped[name].total += 1;
+      if (item["Status"] === "Approved") critGrouped[name].approved += 1;
+      else critGrouped[name].ongoing += 1;
     });
 
-    const labels = Object.keys(grouped);
-    const data = labels.map(label => grouped[label]);
+    const labels1 = Object.keys(allGrouped);
+    const data1 = labels1.map(l => allGrouped[l]);
 
-    const ctx1 = document.getElementById('projectChart').getContext('2d');
+    const ctx1 = document.getElementById('allProjectChart').getContext('2d');
     chart1 = new Chart(ctx1, {
       type: 'bar',
       data: {
-        labels,
+        labels: labels1,
         datasets: [
-          { label: 'Total Critical Parts', data: data.map(d => d.total), backgroundColor: '#3498db' },
-          { label: 'Approved', data: data.map(d => d.approved), backgroundColor: '#2ecc71' },
-          { label: 'On-going', data: data.map(d => d.ongoing), backgroundColor: '#f1c40f' }
+          { label: 'Total', data: data1.map(d => d.total), backgroundColor: '#3498db' },
+          { label: 'Approved', data: data1.map(d => d.approved), backgroundColor: '#2ecc71' },
+          { label: 'On-going', data: data1.map(d => d.ongoing), backgroundColor: '#f1c40f' }
         ]
       },
       options: {
         plugins: {
-          title: { display: true, text: 'Tổng quan các Project (Critical Only)' },
+          title: { display: true, text: 'Tổng quan TẤT CẢ các Project' },
           legend: { position: 'bottom' }
         },
         responsive: true,
@@ -1261,18 +1266,23 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    const ctx2 = document.getElementById('criticalChart').getContext('2d');
+    const labels2 = Object.keys(critGrouped);
+    const data2 = labels2.map(l => critGrouped[l]);
+
+    const ctx2 = document.getElementById('criticalProjectChart').getContext('2d');
     chart2 = new Chart(ctx2, {
       type: 'bar',
       data: {
-        labels,
+        labels: labels2,
         datasets: [
-          { label: 'Critical (C1/C4/C8/CV)', data: data.map(d => d.criticalYes), backgroundColor: '#e74c3c' }
+          { label: 'Total (Critical)', data: data2.map(d => d.total), backgroundColor: '#e67e22' },
+          { label: 'Approved (Critical)', data: data2.map(d => d.approved), backgroundColor: '#27ae60' },
+          { label: 'On-going (Critical)', data: data2.map(d => d.ongoing), backgroundColor: '#f39c12' }
         ]
       },
       options: {
         plugins: {
-          title: { display: true, text: 'Số lượng Critical Part theo Project' },
+          title: { display: true, text: 'Chỉ các part CRITICAL (C1, C4, C8, CV)' },
           legend: { position: 'bottom' }
         },
         responsive: true,
