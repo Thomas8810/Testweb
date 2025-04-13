@@ -1194,8 +1194,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <div id="chartOverviewSection" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:white; z-index:9999; overflow:auto; padding:20px;">
   <button onclick="document.getElementById('chartOverviewSection').style.display='none'" style="float:right; font-size:18px; padding:6px 12px;">❌ Đóng</button>
   <h2 style="margin-top:0;">📊 Tổng quan FAIR theo Project</h2>
-  <canvas id="allProjectChart" height="200" style="margin-bottom:40px;"></canvas>
-  <canvas id="criticalProjectChart" height="200"></canvas>
+  <div class="chart-scroll-wrapper"><canvas id="allProjectChart" height="200" style="margin-bottom:40px;"></canvas></div>
+  <div class="chart-scroll-wrapper"><canvas id="criticalProjectChart" height="200"></canvas></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1285,7 +1285,116 @@ document.addEventListener('DOMContentLoaded', function () {
           title: { display: true, text: 'Chỉ các part CRITICAL (C1, C4, C8, CV)' },
           legend: { position: 'bottom' }
         },
+        responsive: tru
+<!-- ĐÃ CẬP NHẬT: Responsive + Hiển thị số trên đầu cột biểu đồ -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<style>
+  #chartOverviewSection canvas {
+    max-width: 100%;
+    height: auto !important;
+  }
+  .chart-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 30px;
+  }
+</style>
+<script>
+  const showBtn = document.getElementById('showMapBtn');
+  const section = document.getElementById('chartOverviewSection');
+  let chart1 = null, chart2 = null;
+
+  showBtn.addEventListener('click', () => {
+    if (section.style.display === 'block') {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = 'block';
+    chart1?.destroy();
+    chart2?.destroy();
+
+    const allGrouped = {};
+    allData.forEach(item => {
+      const name = item["Project"] || "Unknown";
+      if (!allGrouped[name]) allGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
+      allGrouped[name].total++;
+      if (item["Status"] === "Approved") allGrouped[name].approved++;
+      else allGrouped[name].ongoing++;
+    });
+
+    const critGrouped = {};
+    allData.forEach(item => {
+      const name = item["Project"] || "Unknown";
+      const isCritical = /(C1|C4|C8|CV)/.test((item["Critical"] || "").toUpperCase());
+      if (!isCritical) return;
+      if (!critGrouped[name]) critGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
+      critGrouped[name].total++;
+      if (item["Status"] === "Approved") critGrouped[name].approved++;
+      else critGrouped[name].ongoing++;
+    });
+
+    const labels1 = Object.keys(allGrouped);
+    const data1 = labels1.map(l => allGrouped[l]);
+    const ctx1 = document.getElementById('allProjectChart').getContext('2d');
+    chart1 = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: labels1,
+        datasets: [
+          { label: 'Total', data: data1.map(d => d.total), backgroundColor: '#3498db' },
+          { label: 'Approved', data: data1.map(d => d.approved), backgroundColor: '#2ecc71' },
+          { label: 'On-going', data: data1.map(d => d.ongoing), backgroundColor: '#f1c40f' }
+        ]
+      },
+      options: {
+        plugins: {
+          title: { display: true, text: 'Tổng quan TẤT CẢ các Project' },
+          legend: { position: 'bottom' },
+          datalabels: {
+            anchor: 'end',
+            align: 'start',
+            formatter: value => value,
+            font: { weight: 'bold' }
+          }
+        },
         responsive: true,
+        scales: { y: { beginAtZero: true } }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    const labels2 = Object.keys(critGrouped);
+    const data2 = labels2.map(l => critGrouped[l]);
+    const ctx2 = document.getElementById('criticalProjectChart').getContext('2d');
+    chart2 = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: labels2,
+        datasets: [
+          { label: 'Total (Critical)', data: data2.map(d => d.total), backgroundColor: '#e67e22' },
+          { label: 'Approved (Critical)', data: data2.map(d => d.approved), backgroundColor: '#27ae60' },
+          { label: 'On-going (Critical)', data: data2.map(d => d.ongoing), backgroundColor: '#f39c12' }
+        ]
+      },
+      options: {
+        plugins: {
+          title: { display: true, text: 'Chỉ các part CRITICAL (C1, C4, C8, CV)' },
+          legend: { position: 'bottom' },
+          datalabels: {
+            anchor: 'end',
+            align: 'start',
+            formatter: value => value,
+            font: { weight: 'bold' }
+          }
+        },
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      },
+      plugins: [ChartDataLabels]
+    });
+  });
+</script>
+e,
         scales: { y: { beginAtZero: true } }
       }
     });
