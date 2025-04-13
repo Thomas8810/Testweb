@@ -1134,10 +1134,18 @@ document.addEventListener('DOMContentLoaded', () => {
         inputOCR.value = lines[0];
         statusP.textContent = '✅ Đã nhận 1 dòng.';
       } else {
-        const selectHTML = `<select id="ocrSelectLine" style="width:100%; padding:8px; font-size:14px;">${lines.map(l => `<option>${l}</option>`).join('')}</select>`;
-        inputOCR.outerHTML = selectHTML;
-        inputOCR = document.getElementById('ocrSelectLine');
-        statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Chọn dòng đúng.`;
+        const selectHTML = `
+          <select id="ocrLineSelector" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
+            ${lines.map(l => `<option>${l}</option>`).join('')}
+          </select>
+        `;
+        inputOCR.insertAdjacentHTML('beforebegin', selectHTML);
+        const selector = document.getElementById('ocrLineSelector');
+        selector.addEventListener('change', () => {
+          inputOCR.value = selector.value;
+        });
+        inputOCR.value = lines[0];
+        statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Đã chọn dòng đầu tiên, có thể chỉnh sửa.`;
       }
     });
   });
@@ -1156,17 +1164,9 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = 'none';
     zoomContainer.style.display = 'none';
     stopStream();
-    document.getElementById("ocrSelectLine")?.remove();
-    inputOCR = document.createElement('input');
-    inputOCR.id = "ocrInput";
-    inputOCR.type = "text";
-    inputOCR.placeholder = "Kết quả OCR...";
-    inputOCR.style = "margin-top:10px; width:100%; padding:8px; font-size:14px;";
-    document.querySelector('#btnApplyOcrFilter').before(inputOCR);
+    document.getElementById("ocrLineSelector")?.remove();
+    inputOCR.value = '';
   });
-
-  // Tùy chọn nâng cao: bật OCR liên tục mỗi 2s (gợi ý thêm nút riêng nếu muốn)
-  // intervalId = setInterval(() => { cropCenterAndOCR(...) }, 2000);
 });
 </script>
 
