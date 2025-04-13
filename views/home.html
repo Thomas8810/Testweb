@@ -10,6 +10,17 @@
   <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
   <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
   <style>
+@media (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+}
     /* Cài đặt CSS cơ bản */
     html, body { height: 100%; margin: 0; padding: 0; }
     body {
@@ -1153,14 +1164,14 @@ document.addEventListener('DOMContentLoaded', () => {
     <video id="video" width="320" height="240" autoplay playsinline></video>
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <div style="text-align:center; margin-top:10px;">
-        <button id="rotateBtn" style="font-size: 16px; padding: 8px 16px; margin: 5px;">🔄 Xoay ảnh</button>
-        <button id="closeCameraBtn" style="font-size: 16px; padding: 8px 16px; margin: 5px;">❌ Đóng Camera</button>
+        <button id="rotateBtn" style="font-size: 16px; padding: 8px 16px; margin: 5px; margin:6px 4px; font-size:16px; padding:10px 16px;">🔄 Xoay ảnh</button>
+        <button id="closeCameraBtn" style="font-size: 16px; padding: 8px 16px; margin: 5px; margin:6px 4px; font-size:16px; padding:10px 16px;">❌ Đóng Camera</button>
     </div>
     
     
     <p id="ocrStatus">Chờ quét...</p>
     <input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
-    <button id="btnApplyOcrFilter" style="margin-bottom:10px;">✅ Lọc Part Number</button>
+    <button id="btnApplyOcrFilter" style="margin-bottom:10px; margin:6px 4px; font-size:16px; padding:10px 16px;">✅ Lọc Part Number</button>
 
     <p id="ocrResult" style="color: green; font-weight: bold;"></p>
     <button id="btnCapture">📸 Chụp & Quét</button>
