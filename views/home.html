@@ -1043,13 +1043,13 @@
   <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" style="width:80%;">
 </div>
 
-<canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+<canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
       <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">📸 Chụp & Quét</button>
       <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
       <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">❌ Đóng</button>
     </div>
-    <textarea id="ocrInput" rows="4" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;"></textarea>
+    <input id="ocrInput" type="text" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;" />
     <p id="ocrStatus" style="font-size:14px; margin-top:10px;">Đang chờ thao tác...</p>
   </div>
 </div>
@@ -1105,6 +1105,7 @@ catch (err) {
   btnCapture.addEventListener('click', () => {
     statusP.textContent = '🔍 Đang quét...';
     const ctx = canvas.getContext('2d');
+    ctx.filter = "contrast(150%) grayscale(100%)";
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     Tesseract.recognize(canvas.toDataURL('image/png'), 'eng').then(({ data: { text } }) => {
       const partNumber = (text || '').trim().split(/\s+/).find(word => /[A-Z0-9\-]+/.test(word)) || text.trim();
