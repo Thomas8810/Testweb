@@ -1057,7 +1057,7 @@
     const statusP = document.getElementById('ocrStatus');
     const btnCapture = document.getElementById('btnCapture');
     const btnClose   = document.getElementById('btnCloseCamera');
-
+    let stream;
     // Mở popup và khởi động camera
     btnScan.addEventListener('click', async () => {
       modal.style.display = 'flex';
