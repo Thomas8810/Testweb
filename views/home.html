@@ -1086,6 +1086,25 @@ document.addEventListener('DOMContentLoaded', () => {
         video: { facingMode: { exact: "environment" } }
       });
       video.srcObject = stream;
+const track = stream.getVideoTracks()[0];
+const capabilities = track.getCapabilities();
+const zoomSlider = document.getElementById("zoomSlider");
+const zoomContainer = document.getElementById("zoomContainer");
+
+if (capabilities.zoom) {
+  zoomContainer.style.display = 'block';
+  zoomSlider.min = capabilities.zoom.min;
+  zoomSlider.max = capabilities.zoom.max;
+  zoomSlider.step = capabilities.zoom.step || 0.1;
+  zoomSlider.value = capabilities.zoom.min;
+
+  zoomSlider.addEventListener("input", () => {
+    track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
+  });
+} else {
+  console.log("Thiết bị không hỗ trợ zoom.");
+}
+
       video.play();
       statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét".';
     } catch (err) {
@@ -1161,11 +1180,14 @@ document.addEventListener('DOMContentLoaded', () => {
      justify-content:center; align-items:center; z-index:1000;">
   <div style="position:relative; background:#fff; padding:20px; border-radius:5px; text-align:center;">
     <h3>Quét Part Number</h3>
-    <video id="video" width="320" height="240" autoplay playsinline></video>
-<div id="zoomContainer" style="display:none; margin-top:10px;">
+<video id="camera" autoplay playsinline style="width:100%; max-height:400px; object-fit:cover;"></video>
+
+<!-- Thanh zoom -->
+<div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
   🔍 Zoom:
   <input id="zoomSlider" type="range" min="1" max="4" step="0.1" value="1" style="width:80%;">
 </div>
+
 
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <div style="text-align:center; margin-top:10px;">
