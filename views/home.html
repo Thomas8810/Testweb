@@ -1182,12 +1182,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <canvas id="canvas" width="320" height="240" style="display:block; margin:10px auto; transform: rotate(0deg);"></canvas>
 
-    <div style="margin: 10px 0;">
-      <button id="btnCapture">📸 Chụp & Quét</button>
-      <button id="rotateBtn">🔄 Xoay ảnh</button>
-      <button id="btnApplyOcrFilter">✅ Lọc Part Number</button>
-      <button id="btnCloseCamera">❌ Đóng</button>
-    </div>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
+  <button id="btnCapture" style="padding: 12px 20px; font-size: 16px;">📸 Chụp & Quét</button>
+  <button id="rotateBtn" style="padding: 12px 20px; font-size: 16px;">🔄 Xoay ảnh</button>
+  <button id="btnApplyOcrFilter" style="padding: 12px 20px; font-size: 16px;">✅ Lọc</button>
+  <button id="btnCloseCamera" style="padding: 12px 20px; font-size: 16px;">❌ Đóng</button>
+</div>
+
 
     <p id="ocrStatus">Chờ quét...</p>
     <input id="ocrInput" type="text" placeholder="Kết quả nhận diện" style="width:90%; padding:6px; font-size:16px;" />
