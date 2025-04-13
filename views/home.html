@@ -1059,29 +1059,34 @@
     
   </script>
   <!-- Tesseract.js OCR -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+  <!-- Tesseract.js OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // --- Khai báo các phần tử ---
-    const btnScan    = document.getElementById('btnScanCamera');
-    const modal      = document.getElementById('cameraModal');
-    const video      = document.getElementById('video');
-    const canvas     = document.getElementById('canvas');
-    const statusP    = document.getElementById('ocrStatus');
-    const resultP    = document.getElementById('ocrResult'); 
-    const btnCapture = document.getElementById('btnCapture');
-    const btnClose   = document.getElementById('btnCloseCamera');
-     let stream;
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Khai báo các phần tử
+  const btnScan    = document.getElementById('btnScanCamera');
+  const modal      = document.getElementById('cameraModal');
+  const video      = document.getElementById('video');
+  const canvas     = document.getElementById('canvas');
+  const statusP    = document.getElementById('ocrStatus');
+  const resultP    = document.getElementById('ocrResult');
+  const inputOCR   = document.getElementById('ocrInput');
+  const btnCapture = document.getElementById('btnCapture');
+  const btnClose   = document.getElementById('btnCloseCamera');
+  const btnApply   = document.getElementById('btnApplyOcrFilter');
+  let stream;
 
+  // Mở camera
   btnScan.addEventListener('click', async () => {
     modal.style.display = 'flex';
     statusP.textContent = '🔄 Đang khởi động camera...';
     resultP.textContent = '';
-   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { exact: "environment" } } // <-- dùng camera sau
-    });
+    inputOCR.value = '';
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: "environment" } }
+      });
       video.srcObject = stream;
       video.play();
       statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét".';
@@ -1091,6 +1096,7 @@
     }
   });
 
+  // Chụp & OCR
   btnCapture.addEventListener('click', () => {
     statusP.textContent = '🔍 Đang quét...';
     resultP.textContent = '';
@@ -1098,44 +1104,34 @@
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     Tesseract.recognize(
-  canvas.toDataURL('image/png'),
-  'eng',
-  {
-    logger: m => console.log(m),
-    // cấu hình nếu muốn whitelist ký tự:
-    // You can optionally use .recognize(..., 'eng', { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-' })
-  }
-).then(({ data: { text } }) => {
-  const rawText = text.trim();
-  if (!rawText) {
-    statusP.textContent = '⚠️ Không nhận diện được ký tự. Vui lòng thử lại.';
-    return;
-  }
+      canvas.toDataURL('image/png'),
+      'eng',
+      {
+        logger: m => console.log(m),
+        // Cấu hình whitelist nếu cần:
+        // tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
+      }
+    ).then(({ data: { text } }) => {
+      const rawText = text.trim();
+      if (!rawText) {
+        statusP.textContent = '⚠️ Không nhận diện được ký tự. Vui lòng thử lại.';
+        return;
+      }
 
-  const match = rawText.match(/[A-Z0-9\-]+/i);
-  const partNumber = match ? match[0] : rawText;
+      const match = rawText.match(/[A-Z0-9\-]+/i);
+      const partNumber = match ? match[0] : rawText;
 
-  // Đổ vào input cho người dùng sửa nếu muốn
-  document.getElementById('ocrInput').value = partNumber;
-  statusP.textContent = '✅ Kết quả đã nhận: Bạn có thể chỉnh sửa nếu cần.';
-});
-
-      
-      // Đặt giá trị lọc vào Select2 và áp dụng bộ lọc
-      $('#filter-value-1').val([partNumber]).trigger('change');
-      applyFilters();
-
-      // Đóng camera sau 1.5s
-      setTimeout(() => {
-        btnClose.click();
-      }, 1500);
+      inputOCR.value = partNumber;
+      statusP.textContent = '✅ Kết quả đã nhận: Bạn có thể chỉnh sửa nếu cần.';
     }).catch(err => {
       console.error(err);
       statusP.textContent = '❌ Lỗi khi thực hiện OCR.';
     });
+  });
 
-     document.getElementById('btnApplyOcrFilter').addEventListener('click', () => {
-    const part = document.getElementById('ocrInput').value.trim();
+  // Áp dụng lọc sau khi người dùng xác nhận
+  btnApply.addEventListener('click', () => {
+    const part = inputOCR.value.trim();
     if (!part) {
       alert('Bạn chưa nhập Part Number!');
       return;
@@ -1143,16 +1139,15 @@
     $('#filter-column-1').val('Part Number').trigger('change');
     $('#filter-value-1').val([part]).trigger('change');
     applyFilters();
-
     statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
     setTimeout(() => btnClose.click(), 1500);
   });
-});
 
-
+  // Đóng modal + tắt camera
   btnClose.addEventListener('click', () => {
     modal.style.display = 'none';
     resultP.textContent = '';
+    inputOCR.value = '';
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
     }
@@ -1161,38 +1156,48 @@
 </script>
 
 
-  <!-- Modal Quét Camera -->
-  <div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
-       width:100%; height:100%; background:rgba(0,0,0,0.8); 
-       justify-content:center; align-items:center; z-index:1000;">
-    <div style="position:relative; background:#fff; padding:20px; border-radius:5px; text-align:center;">
-      <h3>Quét Part Number</h3>
-      <video id="video" width="320" height="240" autoplay></video>
-      <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-      <p id="ocrStatus">Chờ quét...</p>
-      
-      <p id="ocrStatus">🔍 Đang nhận diện...</p>
 
-<!-- Input cho người dùng sửa kết quả -->
-<input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
+<!-- Modal Quét Camera -->
+<div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
+     width:100%; height:100%; background:rgba(0,0,0,0.8); 
+     justify-content:center; align-items:center; z-index:1000;">
+  <div style="position:relative; background:#fff; padding:20px; border-radius:5px; text-align:center;">
+    <h3>Quét Part Number</h3>
+    <video id="video" width="320" height="240" autoplay playsinline></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    
+    <p id="ocrStatus">Chờ quét...</p>
+    <input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
+    <button id="btnApplyOcrFilter" style="margin-bottom:10px;">✅ Lọc Part Number</button>
 
-<!-- Nút để lọc bằng nội dung người dùng sửa -->
-<button id="btnApplyOcrFilter">✅ Lọc Part Number</button>
-
-      <p id="ocrResult" style="color: green; font-weight: bold;"></p>
-      <button id="btnCapture">Chụp & Quét</button>
-      <button id="btnCloseCamera">Đóng</button>
-    </div>
+    <p id="ocrResult" style="color: green; font-weight: bold;"></p>
+    <button id="btnCapture">📸 Chụp & Quét</button>
+    <button id="btnCloseCamera">❌ Đóng</button>
   </div>
+</div>
+
   
   <script>
   function filterByPartNumber(part) {
-    // Giả sử dropdown của Part Number ở block 1 có id "filter-value-1"
-    // Đặt giá trị đã quét vào dropdown và tự động trigger thay đổi
-    $('#filter-value-1').val([part]).trigger('change');
-    // Gọi hàm applyFilters (đã được định nghĩa trong script xử lý lọc toàn cục)
-    applyFilters();
+  if (!part) {
+    console.warn("Không có Part Number để lọc.");
+    return;
   }
+
+  // Đảm bảo cột tiêu chí là "Part Number"
+  $('#filter-column-1').val('Part Number').trigger('change');
+
+  // Đặt giá trị lọc vào Select2
+  $('#filter-value-1').val([part]).trigger('change');
+
+  // Gọi hàm lọc
+  if (typeof applyFilters === 'function') {
+    applyFilters();
+  } else {
+    console.error("applyFilters() không tồn tại!");
+  }
+}
+
 </script>
 
 
