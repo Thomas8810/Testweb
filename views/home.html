@@ -1058,133 +1058,132 @@
     });
     
   </script>
+  
 <!-- Nút Quét Camera -->
 <div class="scan-camera">
   <button id="btnScanCamera">📷 Quét Camera</button>
 </div>
 
-<!-- Modal Quét Camera (phiên bản hợp nhất, không trùng lặp) -->
-<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;">
+<!-- Đảm bảo chỉ có 1 phần modal duy nhất trong HTML -->
+<div id="cameraModal" style="display:none; position:fixed; top:0; left:0;
+     width:100%; height:100%; background:rgba(0,0,0,0.8); 
+     justify-content:center; align-items:center; z-index:1000;">
   <div style="position:relative; background:#fff; padding:20px; border-radius:8px; text-align:center; max-width:90vw;">
     <h2>📷 Quét Part Number</h2>
-    <!-- Video hiển thị từ camera (kích thước được tăng lên để dễ quan sát) -->
-    <video id="video" width="640" height="480" autoplay playsinline style="border:1px solid #ccc;"></video>
-    <!-- Canvas dùng để chụp ảnh tạm thời (ẩn đi) -->
-    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-    <!-- Thông báo trạng thái quét -->
+    <video id="video" width="320" height="240" autoplay playsinline style="border: 1px solid #ccc;"></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <p id="ocrStatus" style="margin: 10px 0; font-weight: bold;">Chờ quét...</p>
-    <!-- Input hiển thị kết quả nhận diện (cho phép người dùng chỉnh sửa) -->
+    <!-- Nhập kết quả OCR nếu muốn chỉnh sửa -->
     <input id="ocrInput" type="text" style="padding:6px; font-size:16px; width:90%; margin:5px auto; display:block;" placeholder="Kết quả nhận diện">
-    <!-- Các nút chức năng -->
-    <div style="margin-top:10px;">
-      <button id="btnCapture">📸 Chụp & Quét</button>
-      <button id="btnApplyOcrFilter">✅ Lọc Part Number</button>
-      <button id="btnCloseCamera" style="margin-left:10px;">❌ Đóng</button>
-    </div>
+    <button id="btnApplyOcrFilter" style="margin-bottom:10px;">✅ Lọc Part Number</button>
+    <p id="ocrResult" style="color: green; font-size: 16px; font-weight: bold;"></p>
+    <button id="btnCapture">📸 Chụp & Quét</button>
+    <button id="btnCloseCamera">❌ Đóng</button>
   </div>
 </div>
 
-<!-- Script xử lý chức năng quét OCR từ camera -->
+<!-- Phần script cho camera & OCR -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Lấy các phần tử cần thiết
-  const btnScan = document.getElementById('btnScanCamera');
-  const modal = document.getElementById('cameraModal');
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const ocrStatus = document.getElementById('ocrStatus');
-  const ocrInput = document.getElementById('ocrInput');
+// Sử dụng Tesseract.createWorker để tối ưu hiệu năng
+document.addEventListener('DOMContentLoaded', async () => {
+  // Khai báo các phần tử
+  const btnScan    = document.getElementById('btnScanCamera');
+  const modal      = document.getElementById('cameraModal');
+  const video      = document.getElementById('video');
+  const canvas     = document.getElementById('canvas');
+  const statusP    = document.getElementById('ocrStatus');
+  const resultP    = document.getElementById('ocrResult');
+  const inputOCR   = document.getElementById('ocrInput');
   const btnCapture = document.getElementById('btnCapture');
-  const btnApplyOcrFilter = document.getElementById('btnApplyOcrFilter');
-  const btnClose = document.getElementById('btnCloseCamera');
+  const btnClose   = document.getElementById('btnCloseCamera');
+  const btnApply   = document.getElementById('btnApplyOcrFilter');
   let stream;
 
-  // Mở modal và khởi động camera khi nhấn nút Quét Camera
+  // Khởi tạo Tesseract Worker
+  const worker = Tesseract.createWorker({
+    logger: m => console.log(m)
+  });
+  await worker.load();
+  await worker.loadLanguage('eng');
+  await worker.initialize('eng');
+
+  // Mở camera khi nhấn nút quét
   btnScan.addEventListener('click', async () => {
     modal.style.display = 'flex';
-    ocrStatus.textContent = '🔄 Đang khởi động camera...';
-    ocrInput.value = '';
+    statusP.textContent = '🔄 Đang khởi động camera...';
+    resultP.textContent = '';
+    inputOCR.value = '';
     try {
-      // Sử dụng getUserMedia với tùy chọn ưu tiên sử dụng camera sau (ideal) 
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } }
+        video: { facingMode: { exact: "environment" } }
       });
       video.srcObject = stream;
       video.play();
-      ocrStatus.textContent = '✅ Camera đã sẵn sàng. Nhấn "Chụp & Quét" để quét.';
+      statusP.textContent = '✅ Camera đã hoạt động. Nhấn "Chụp & Quét".';
     } catch (err) {
       console.error(err);
-      ocrStatus.textContent = '❌ Không thể truy cập camera.';
+      statusP.textContent = '❌ Không thể truy cập camera.';
     }
   });
 
-  // Hàm chụp ảnh từ video và tiến hành OCR với Tesseract.js
-  btnCapture.addEventListener('click', () => {
-    ocrStatus.textContent = '🔍 Đang quét...';
+  // Chụp ảnh và thực hiện OCR
+  btnCapture.addEventListener('click', async () => {
+    statusP.textContent = '🔍 Đang quét...';
+    resultP.textContent = '';
     const ctx = canvas.getContext('2d');
-    // Vẽ hình ảnh từ video lên canvas
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    // Sử dụng Tesseract để nhận dạng văn bản từ ảnh
-    Tesseract.recognize(
-      canvas.toDataURL('image/png'),
-      'eng',
-      { logger: m => console.log(m) }
-    )
-    .then(({ data: { text } }) => {
-      const resultText = text.trim();
-      if (!resultText) {
-        ocrStatus.textContent = '⚠️ Không nhận diện được ký tự. Vui lòng thử lại.';
+    const imageData = canvas.toDataURL('image/png');
+    try {
+      // Sử dụng whitelist để chỉ nhận diện ký tự mong muốn
+      const { data: { text } } = await worker.recognize(imageData, { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-' });
+      const rawText = text.trim();
+      if (!rawText) {
+        statusP.textContent = '⚠️ Không nhận diện được ký tự. Vui lòng thử lại.';
         return;
       }
-      // Sử dụng regex để trích xuất chuỗi ký tự phù hợp (có thể là Part Number)
-      const match = resultText.match(/[A-Z0-9\-]+/i);
-      const partNumber = match ? match[0] : resultText;
-      ocrInput.value = partNumber;
-      ocrStatus.textContent = '✅ Kết quả đã nhận. Bạn có thể chỉnh sửa trước khi áp dụng lọc.';
-    })
-    .catch(err => {
+      // Lấy phần chuỗi phù hợp với Part Number (có thể chỉnh sửa regex nếu cần)
+      const match = rawText.match(/[A-Z0-9\-]+/i);
+      const partNumber = match ? match[0] : rawText;
+      inputOCR.value = partNumber;
+      statusP.textContent = '✅ Nhận diện thành công. Bạn có thể chỉnh sửa kết quả nếu cần.';
+    } catch (err) {
       console.error(err);
-      ocrStatus.textContent = '❌ Lỗi khi thực hiện OCR.';
-    });
+      statusP.textContent = '❌ Lỗi khi thực hiện OCR.';
+    }
   });
 
-  // Áp dụng kết quả OCR vào bộ lọc (giả sử hàm applyFilters() của bạn đã tồn tại)
-  btnApplyOcrFilter.addEventListener('click', () => {
-    const part = ocrInput.value.trim();
+  // Áp dụng lọc dựa trên kết quả nhận dạng
+  btnApply.addEventListener('click', () => {
+    const part = inputOCR.value.trim();
     if (!part) {
-      alert('Bạn chưa có giá trị Part Number để lọc!');
+      alert('Bạn chưa nhập Part Number!');
       return;
     }
-    // Đảm bảo rằng tiêu chí lọc là "Part Number"
+    // Cập nhật Select2 và gọi hàm lọc (đảm bảo hàm applyFilters tồn tại trong code của bạn)
     $('#filter-column-1').val('Part Number').trigger('change');
-    // Đưa kết quả OCR vào dropdown (Select2) cho giá trị lọc
     $('#filter-value-1').val([part]).trigger('change');
-    // Gọi hàm lọc (nếu có)
-    if (typeof applyFilters === 'function') {
-      applyFilters();
-    } else {
-      console.error('applyFilters() không tồn tại.');
-    }
-    ocrStatus.textContent = `✅ Đã áp dụng lọc cho Part Number: ${part}`;
-    // Tự động đóng modal sau một khoảng thời gian ngắn
-    setTimeout(() => {
-      btnClose.click();
-    }, 1500);
+    applyFilters();
+    statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
+    setTimeout(() => btnClose.click(), 1500);
   });
 
-  // Đóng modal và dừng camera
+  // Đóng modal và tắt camera
   btnClose.addEventListener('click', () => {
     modal.style.display = 'none';
-    ocrStatus.textContent = 'Chờ quét...';
-    ocrInput.value = '';
+    resultP.textContent = '';
+    inputOCR.value = '';
     if (stream) {
-      stream.getTracks().forEach(t => t.stop());
+      stream.getTracks().forEach(track => track.stop());
     }
   });
+
+  // Tắt worker khi trang được đóng (tuỳ chọn)
+  window.addEventListener('beforeunload', async () => {
+    await worker.terminate();
+  });
 });
-
-
 </script>
+
 
 
 </body>
