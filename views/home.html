@@ -1185,178 +1185,95 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
-</script>
-<!-- Nút và vùng biểu đồ tổng quan -->
-<style>
-  #chartOverviewSection {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: white;
-    z-index: 9999;
-    overflow-y: auto;
-    padding: 16px;
-    box-sizing: border-box;
-  }
-  #chartOverviewSection .close-btn {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    font-size: 24px;
-    background: #eee;
-    border: none;
-    border-radius: 6px;
-    padding: 4px 10px;
-    cursor: pointer;
-  }
-  #chartOverviewSection h2 {
-    font-size: 22px;
-    text-align: center;
-    margin-top: 50px;
-    margin-bottom: 10px;
-  }
-  #chartOverviewSection canvas {
-    max-width: 100%;
-    margin: 0 auto 10px auto;
-    display: block;
-  }
-  .download-btn {
-    display: block;
-    margin: 0 auto 30px auto;
-    font-size: 14px;
-    padding: 6px 12px;
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  @media (max-width: 768px) {
-    #chartOverviewSection h2 {
-      font-size: 18px;
-      margin-top: 60px;
-    }
-    #chartOverviewSection .close-btn {
-      font-size: 20px;
-      top: 10px;
-      right: 12px;
-    }
-  }
-</style>
+</script><div class="chart-container">
+        <button onclick="toggleView()">Chuyển đổi Biểu đồ / Bảng</button>
+        <canvas id="myChart" height="300"></canvas>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Dự án</th>
+                    <th>Total</th>
+                    <th>Approved</th>
+                    <th>On going</th>
+                </tr>
+            </thead>
+            <tbody id="dataRows"></tbody>
+        </table>
+    </div>
 
-<div style="text-align:center; margin-top:10px;">
-  <button id="showMapBtn" style="padding:10px 20px; font-size:16px;">📊 Xem bản đồ tổng quan</button>
-</div>
+    <script>
+        const labels = ["GUMI Sheetmetal", "LAM Sheetmetal", "UCT", "LAM Plastics", "LAM Machining"];
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Total",
+                    backgroundColor: "#3498db",
+                    data: [680, 150, 20, 80, 110]
+                },
+                {
+                    label: "Approved",
+                    backgroundColor: "#2ecc71",
+                    data: [230, 100, 5, 60, 90]
+                },
+                {
+                    label: "On going",
+                    backgroundColor: "#f1c40f",
+                    data: [450, 50, 15, 20, 20]
+                }
+            ]
+        };
 
-<div id="chartOverviewSection">
-  <button class="close-btn" onclick="document.getElementById('chartOverviewSection').style.display='none'">✖</button>
+        const config = {
+            type: "bar",
+            data: data,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { labels: { color: "white" } },
+                    title: {
+                        display: true,
+                        text: "Tổng quan các Project",
+                        color: "white",
+                        font: { size: 20 }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: "white" } },
+                    y: { ticks: { color: "white" } }
+                }
+            }
+        };
 
-  <h2>📊 Tổng quan tất cả các Project</h2>
-  <canvas id="allProjectChart" height="200"></canvas>
-  <button class="download-btn" onclick="downloadChart('allProjectChart', 'chart_all_project')">Tải biểu đồ này</button>
+        const myChart = new Chart(document.getElementById("myChart"), config);
 
-  <h2>📊 Tổng quan các Project - CRITICAL ONLY (C1, C4, C8, CV)</h2>
-  <canvas id="criticalProjectChart" height="200"></canvas>
-  <button class="download-btn" onclick="downloadChart('criticalProjectChart', 'chart_critical_project')">Tải biểu đồ này</button>
-</div>
+        function toggleView() {
+            const chartCanvas = document.getElementById("myChart");
+            const dataTable = document.getElementById("dataTable");
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            if (dataTable.style.display === "none") {
+                chartCanvas.style.display = "none";
+                dataTable.style.display = "table";
+                populateTable();
+            } else {
+                chartCanvas.style.display = "block";
+                dataTable.style.display = "none";
+            }
+        }
 
-<script>
-  const showBtn = document.getElementById('showMapBtn');
-  const section = document.getElementById('chartOverviewSection');
-  let chart1 = null, chart2 = null;
-
-  showBtn.addEventListener('click', () => {
-    if (section.style.display === 'block') {
-      section.style.display = 'none';
-      return;
-    }
-    section.style.display = 'block';
-
-    chart1?.destroy();
-    chart2?.destroy();
-
-    const allGrouped = {};
-    allData.forEach(item => {
-      const name = item["Project"] || "Unknown";
-      if (!allGrouped[name]) {
-        allGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
-      }
-      allGrouped[name].total += 1;
-      if (item["Status"] === "Approved") allGrouped[name].approved += 1;
-      else allGrouped[name].ongoing += 1;
-    });
-
-    const critGrouped = {};
-    allData.forEach(item => {
-      const name = item["Project"] || "Unknown";
-      const criticalRaw = (item["Critical"] || "").toString().toUpperCase();
-      const isCritical = /(C1|C4|C8|CV)/.test(criticalRaw);
-      if (!isCritical) return;
-      if (!critGrouped[name]) {
-        critGrouped[name] = { total: 0, approved: 0, ongoing: 0 };
-      }
-      critGrouped[name].total += 1;
-      if (item["Status"] === "Approved") critGrouped[name].approved += 1;
-      else critGrouped[name].ongoing += 1;
-    });
-
-    const labels1 = Object.keys(allGrouped);
-    const data1 = labels1.map(l => allGrouped[l]);
-
-    const ctx1 = document.getElementById('allProjectChart').getContext('2d');
-    chart1 = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: labels1,
-        datasets: [
-          { label: 'Total', data: data1.map(d => d.total), backgroundColor: '#3498db' },
-          { label: 'Approved', data: data1.map(d => d.approved), backgroundColor: '#2ecc71' },
-          { label: 'On-going', data: data1.map(d => d.ongoing), backgroundColor: '#f1c40f' }
-        ]
-      },
-      options: {
-        plugins: { legend: { position: 'bottom' } },
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-
-    const labels2 = Object.keys(critGrouped);
-    const data2 = labels2.map(l => critGrouped[l]);
-
-    const ctx2 = document.getElementById('criticalProjectChart').getContext('2d');
-    chart2 = new Chart(ctx2, {
-      type: 'bar',
-      data: {
-        labels: labels2,
-        datasets: [
-          { label: 'Total (Critical)', data: data2.map(d => d.total), backgroundColor: '#e67e22' },
-          { label: 'Approved (Critical)', data: data2.map(d => d.approved), backgroundColor: '#27ae60' },
-          { label: 'On-going (Critical)', data: data2.map(d => d.ongoing), backgroundColor: '#f39c12' }
-        ]
-      },
-      options: {
-        plugins: { legend: { position: 'bottom' } },
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-  });
-
-  function downloadChart(canvasId, filename) {
-    const canvas = document.getElementById(canvasId);
-    const link = document.createElement('a');
-    link.download = filename + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  }
-</script>
+        function populateTable() {
+            const tbody = document.getElementById("dataRows");
+            tbody.innerHTML = "";
+            for (let i = 0; i < labels.length; i++) {
+                const row = `<tr>
+                    <td>${labels[i]}</td>
+                    <td>${data.datasets[0].data[i]}</td>
+                    <td>${data.datasets[1].data[i]}</td>
+                    <td>${data.datasets[2].data[i]}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            }
+        }
+    </script>
 </body>
 </html>
