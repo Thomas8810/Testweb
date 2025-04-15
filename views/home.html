@@ -370,6 +370,38 @@ th, td {
 td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
   background: #f3f3f3;
 }
+
+/* --- Cải tiến cho input khi focus --- */
+input:focus, select:focus {
+  outline: 2px solid #ff8c00;
+  background-color: #fffce6;
+}
+
+/* Tăng font input trên điện thoại để dễ nhập */
+@media (max-width: 768px) {
+  input, select {
+    font-size: 16px;
+  }
+}
+
+/* Cải thiện bảng khi xoay ngang */
+@media screen and (orientation: landscape) {
+  .top-container {
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+  .table-container {
+    height: auto;
+    max-height: 90vh;
+    min-height: 70vh;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+  table {
+    min-width: 1200px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1286,5 +1318,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 });
-</script></body>
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const inputs = document.querySelectorAll('input, select, textarea');
+  inputs.forEach((el) => {
+    el.addEventListener('focus', () => {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    });
+  });
+});
+</script>
+
+</body>
 </html>
