@@ -342,28 +342,53 @@ th, td {
   white-space: nowrap;
 }
 
-/* Chế độ card cho mobile */
+/* Giữ bảng ở mobile và desktop với cuộn ngang mượt */
+.table-container {
+  width: 100vw;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 60vh;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  touch-action: auto;
+}
+table {
+  min-width: 1000px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+th, td {
+  white-space: nowrap;
+  word-break: break-word;
+  font-size: 12px;
+  padding: 6px;
+}
+.sticky-col-1 {
+  position: sticky; left: 0; background: #4a76a8; z-index: 3;
+}
+.sticky-col-2 {
+  position: sticky; left: 40px; background: #4a76a8; z-index: 3;
+}
+.sticky-col-3 {
+  position: sticky; left: 140px; background: #4a76a8; z-index: 3;
+}
+td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+  background: #e6e6e6;
+}
+
 @media (max-width: 768px) {
-  .table-container {
-    display: none;
-  }
-  .mobile-card-view {
-    display: block !important;
-  }
-  .result-card {
-    background: #fff;
-    border-radius: 6px;
-    margin-bottom: 10px;
+  .filter-wrapper summary {
+    font-size: 16px;
     padding: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    font-size: 14px;
-    line-height: 1.4;
+    background: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+    text-align: center;
   }
-  .result-card strong {
-    display: inline-block;
-    min-width: 120px;
-    font-weight: bold;
-    color: #333;
+  .filter-wrapper {
+    margin-bottom: 10px;
   }
 }
 </style>
@@ -383,7 +408,9 @@ th, td {
 </div>
 </div>
 <!-- Phần tiêu chí lọc -->
-<div class="filter-bar">
+
+<!-- Khối chứa các nút chức năng -->
+<details class="filter-wrapper"><summary>🔍 Bộ lọc nâng cao</summary><div class="filter-bar">
 <!-- Filter Block Sheet -->
 <div class="filter-block" id="filter-block-sheet">
 <label for="filter-sheet" id="label-filter-sheet">Chọn dự án</label>
@@ -500,9 +527,7 @@ th, td {
 <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
 <select class="value-select" id="filter-value-3" multiple="multiple"></select>
 </div>
-</div>
-<!-- Khối chứa các nút chức năng -->
-<div class="action-bar">
+</div></details><div class="action-bar">
 <div class="filter-actions">
 <button id="apply-filters">Áp Dụng Lọc</button>
 <button id="clear-filters">Xóa Lọc</button>
@@ -563,7 +588,7 @@ th, td {
 <!-- Dữ liệu sẽ được load tại đây -->
 </tbody>
 </table>
-</div><div class="mobile-card-view" id="card-results" style="display:none; padding: 10px;">&lt;!-- Kết quả sẽ được hiển thị dạng card tại đây --&gt;</div>
+</div>
 <!-- Nút tải thêm -->
 <div id="load-more-container" style="text-align:center; margin:10px;">
 <button id="load-more">Load More</button>
@@ -1104,7 +1129,7 @@ th, td {
     });
   </script>
 <!-- Modal OCR (Không có xem trước ảnh) -->
-<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;">
+<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; overflow-y:auto; transition: all 0.3s ease; ">
 <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center;">
 <h3>📷 Quét Part Number</h3>
 <div style="position: relative; width: 100%; max-height:240px;"><video autoplay="" id="camera" playsinline="" style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video><div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div></div>
@@ -1269,30 +1294,6 @@ document.addEventListener('DOMContentLoaded', () => {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 300);
     });
-  }
-});
-</script><script>
-function renderCardsFromTable() {
-  const table = document.getElementById('results-table');
-  const cardContainer = document.getElementById('card-results');
-  if (!table || !cardContainer) return;
-
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr'));
-  cardContainer.innerHTML = '';
-
-  rows.forEach(row => {
-    const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim());
-    const card = document.createElement('div');
-    card.className = 'result-card';
-    card.innerHTML = cells.map((cell, i) => `<strong>${headers[i]}:</strong> ${cell}<br>`).join('');
-    cardContainer.appendChild(card);
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  if (window.innerWidth < 768) {
-    renderCardsFromTable();
   }
 });
 </script></body>
