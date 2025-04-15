@@ -309,6 +309,38 @@
     word-break: break-word;
   }
 }
+
+/* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
+.table-container {
+  width: 100vw;
+  max-height: 50vh;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  touch-action: auto;
+}
+
+@media screen and (orientation: landscape) {
+  .table-container {
+    max-height: 60vh;
+  }
+}
+
+@media screen and (orientation: portrait) {
+  .table-container {
+    max-height: 50vh;
+  }
+}
+
+table {
+  min-width: 800px;
+}
+
+th, td {
+  word-break: break-word;
+  white-space: nowrap;
+}
 </style>
 </head>
 <body>
