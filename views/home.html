@@ -342,59 +342,32 @@ th, td {
   white-space: nowrap;
 }
 
-/* Tối ưu vùng hiển thị bảng kết quả */
-.table-container {
-  width: 100vw;
-  max-height: 55vh;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  touch-action: pan-y;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 5px;
-}
-
-@media screen and (orientation: landscape) {
+/* Chế độ card cho mobile */
+@media (max-width: 768px) {
   .table-container {
-    max-height: 65vh;
+    display: none;
   }
-}
-
-@media screen and (orientation: portrait) {
-  .table-container {
-    max-height: 55vh;
+  .mobile-card-view {
+    display: block !important;
   }
-}
-
-.table-container table {
-  min-width: 1000px;
-}
-
-table th, table td {
-  white-space: nowrap;
-  word-break: break-word;
-  font-size: 12px;
+  .result-card {
+    background: #fff;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .result-card strong {
+    display: inline-block;
+    min-width: 120px;
+    font-weight: bold;
+    color: #333;
+  }
 }
 </style>
-<style>
-@media (max-width: 768px) {
-  .filter-bar, .action-bar {
-    flex-direction: column !important;
-    align-items: stretch;
-  }
-  .filter-block, .action-bar > div {
-    width: 95% !important;
-    margin: 5px auto;
-  }
-  .table-container {
-    margin-top: 10px;
-    padding-bottom: 80px;
-  }
-  .header h1 { font-size: 20px; }
-  .header p { font-size: 12px; }
-}
-</style></head>
+</head>
 <body>
 <div class="page-container">
 <div class="top-container">
@@ -590,7 +563,7 @@ table th, table td {
 <!-- Dữ liệu sẽ được load tại đây -->
 </tbody>
 </table>
-</div>
+</div><div class="mobile-card-view" id="card-results" style="display:none; padding: 10px;">&lt;!-- Kết quả sẽ được hiển thị dạng card tại đây --&gt;</div>
 <!-- Nút tải thêm -->
 <div id="load-more-container" style="text-align:center; margin:10px;">
 <button id="load-more">Load More</button>
@@ -1131,7 +1104,7 @@ table th, table td {
     });
   </script>
 <!-- Modal OCR (Không có xem trước ảnh) -->
-<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;; max-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;">
 <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center;">
 <h3>📷 Quét Part Number</h3>
 <div style="position: relative; width: 100%; max-height:240px;"><video autoplay="" id="camera" playsinline="" style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video><div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div></div>
@@ -1299,14 +1272,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script><script>
-document.addEventListener('DOMContentLoaded', function () {
-  const ocrInput = document.getElementById('ocrInput');
-  if (ocrInput) {
-    ocrInput.addEventListener('focus', () => {
-      setTimeout(() => {
-        ocrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    });
+function renderCardsFromTable() {
+  const table = document.getElementById('results-table');
+  const cardContainer = document.getElementById('card-results');
+  if (!table || !cardContainer) return;
+
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  cardContainer.innerHTML = '';
+
+  rows.forEach(row => {
+    const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim());
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.innerHTML = cells.map((cell, i) => `<strong>${headers[i]}:</strong> ${cell}<br>`).join('');
+    cardContainer.appendChild(card);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.innerWidth < 768) {
+    renderCardsFromTable();
   }
 });
 </script></body>
