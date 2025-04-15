@@ -370,6 +370,15 @@ th, td {
 td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
   background: #f3f3f3;
 }
+
+@media screen and (orientation: landscape) and (max-width: 1024px) {
+  .table-container {
+    max-height: 75vh !important;
+  }
+  body {
+    font-size: 14px;
+  }
+}
 </style>
 </head>
 <body>
@@ -1260,17 +1269,6 @@ document.addEventListener('DOMContentLoaded', function () {
     ocrInput.addEventListener('focus', () => {
       setTimeout(() => {
         ocrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    });
-  }
-});
-</script><script>
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('ocrInput');
-  if (input) {
-    input.addEventListener('focus', () => {
-      setTimeout(() => {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 300);
     });
   }
