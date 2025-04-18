@@ -510,15 +510,15 @@ app.get('/export', (req, res) => {
       });
     }
   }
-const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
-const isValidYMD = str => /^\d{4}-\d{2}-\d{2}$/.test(str);
+  // Danh sách các cột ngày cần xử lý
+  const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
+  const isValidYMD = str => /^\d{4}-\d{2}-\d{2}$/.test(str);
 
-filtered = filtered.map(row => {
-  const newRow = { ...row };
-  dateColumns.forEach(col => {
-    const val = newRow[col];
-    if (val && typeof val === 'string') {
-      if (!isValidYMD(val)) {
+  filtered = filtered.map(row => {
+    const newRow = { ...row };
+    dateColumns.forEach(col => {
+      const val = newRow[col];
+      if (val && typeof val === 'string' && !isValidYMD(val)) {
         const date = new Date(val);
         if (!isNaN(date)) {
           const yyyy = date.getFullYear();
@@ -526,11 +526,20 @@ filtered = filtered.map(row => {
           const dd = String(date.getDate()).padStart(2, '0');
           newRow[col] = `${yyyy}-${mm}-${dd}`;
         }
+      } else if (typeof val === 'number') {
+        // Nếu là số serial ngày từ Excel
+        const date = new Date((val - 25569) * 86400 * 1000);
+        if (!isNaN(date)) {
+          const yyyy = date.getFullYear();
+          const mm = String(date.getMonth() + 1).padStart(2, '0');
+          const dd = String(date.getDate()).padStart(2, '0');
+          newRow[col] = `${yyyy}-${mm}-${dd}`;
+        }
       }
-    }
+    });
+    return newRow;
   });
-  return newRow;
-});
+
 
   const wb = XLSX.utils.book_new();
 
