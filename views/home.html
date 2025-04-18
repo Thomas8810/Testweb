@@ -497,7 +497,7 @@ input:focus, select:focus {
   height: calc(100vh - 60px);
 }
 </style>
-</head>
+<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet"/><script src="https://cdn.jsdelivr.net/npm/flatpickr"></script></head>
 <body>
 <div id="loading-spinner" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:99;">
 <div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
@@ -635,6 +635,23 @@ input:focus, select:focus {
 </select>
 <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
 <select class="value-select" id="filter-value-3" multiple="multiple"></select>
+</div>
+
+<!-- Date Filters -->
+<div class="filter-block">
+<label>PO Received Date</label>
+<input class="date-filter" id="filter-po-from" placeholder="Từ ngày"/>
+<input class="date-filter" id="filter-po-to" placeholder="Đến ngày"/>
+</div>
+<div class="filter-block">
+<label>Customer Need Date</label>
+<input class="date-filter" id="filter-need-from" placeholder="Từ ngày"/>
+<input class="date-filter" id="filter-need-to" placeholder="Đến ngày"/>
+</div>
+<div class="filter-block">
+<label>Submit Date</label>
+<input class="date-filter" id="filter-submit-from" placeholder="Từ ngày"/>
+<input class="date-filter" id="filter-submit-to" placeholder="Đến ngày"/>
 </div>
 </div>
 <!-- Khối chứa các nút chức năng -->
@@ -1633,12 +1650,10 @@ document.addEventListener('DOMContentLoaded', () => {
 <ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
 <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">🗑️ Xóa lịch sử</button>
 </div>
-
 <!-- 🔊 Nút chuyển sang trang voice -->
 <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
   🎤
 </a>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const historyList = document.getElementById("history-list");
@@ -1665,7 +1680,45 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
-</body></html>
+<script>
+// Flatpickr init
+["po", "need", "submit"].forEach(prefix => {
+  flatpickr(`#filter-${prefix}-from`, { dateFormat: "Y-m-d" });
+  flatpickr(`#filter-${prefix}-to`, { dateFormat: "Y-m-d" });
+});
+
+function dateToSerial(dateString) {
+  const date = new Date(dateString);
+  return Math.floor((date - new Date(Date.UTC(1899, 11, 30))) / (1000 * 60 * 60 * 24));
+}
+function serialToDateString(serial) {
+  if (isNaN(serial)) return "";
+  const utc_days = Math.floor(serial - 25569);
+  const date = new Date(utc_days * 86400 * 1000);
+  return date.toISOString().slice(0, 10);
+}
+function filterByDateSerial(data, fieldName, from, to) {
+  return data.filter(row => {
+    const value = Number(row[fieldName]);
+    if (isNaN(value)) return false;
+    if (from && to) {
+      const fromSerial = dateToSerial(from);
+      const toSerial = dateToSerial(to);
+      return value >= fromSerial && value <= toSerial;
+    } else if (from) {
+      return value === dateToSerial(from);
+    }
+    return true;
+  });
+}
+function applyFilters() {
+  let result = originalData;
+  result = filterByDateSerial(result, "PO received date", document.getElementById("filter-po-from").value, document.getElementById("filter-po-to").value);
+  result = filterByDateSerial(result, "Customer need date", document.getElementById("filter-need-from").value, document.getElementById("filter-need-to").value);
+  result = filterByDateSerial(result, "Submit date", document.getElementById("filter-submit-from").value, document.getElementById("filter-submit-to").value);
+  renderTable(result);
+}
+</script></body></html>
 <script>
 function toggleHistoryPopup() {
   const popup = document.getElementById("floating-history-popup");
