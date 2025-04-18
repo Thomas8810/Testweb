@@ -636,7 +636,6 @@ input:focus, select:focus {
 <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
 <select class="value-select" id="filter-value-3" multiple="multiple"></select>
 </div>
-
 <div class="form-group" style="margin-left: 10px;">
 <label for="dateColumnSelect">Chọn cột ngày:</label>
 <select class="form-control" id="dateColumnSelect">
@@ -646,6 +645,23 @@ input:focus, select:focus {
 </select>
 <input class="form-control flatpickr" id="startDate" placeholder="Từ ngày" style="margin-top: 5px;" type="text"/>
 <input class="form-control flatpickr" id="endDate" placeholder="Đến ngày" style="margin-top: 5px;" type="text"/>
+</div>
+
+<div class="form-group" style="margin-top: 10px;">
+<label for="dateColumnSelect">Chọn cột ngày:</label>
+<select class="form-control" id="dateColumnSelect">
+<option value="PO received date">PO Received Date</option>
+<option value="Customer need date">Customer Need Date</option>
+<option value="Submit date">Submit Date</option>
+</select>
+</div>
+<div class="form-group">
+<label for="startDate">Từ ngày:</label>
+<input class="form-control flatpickr" id="startDate" placeholder="Từ ngày" type="text"/>
+</div>
+<div class="form-group">
+<label for="endDate">Đến ngày:</label>
+<input class="form-control flatpickr" id="endDate" placeholder="Đến ngày" type="text"/>
 </div>
 </div>
 <!-- Khối chứa các nút chức năng -->
@@ -1690,28 +1706,32 @@ function filterByDateRange(data, colName, startDate, endDate) {
   const endSerial = endDate ? toExcelSerial(endDate) : null;
 
   return data.filter(row => {
-    const cellVal = row[colName];
-    if (!cellVal) return false;
-    const serial = parseFloat(cellVal);
-    if (isNaN(serial)) return false;
-    if (startSerial && serial < startSerial) return false;
-    if (endSerial && serial > endSerial) return false;
+    let val = row[colName];
+    if (typeof val === 'string') val = parseFloat(val);
+    if (isNaN(val)) return false;
+    if (startSerial && val < startSerial) return false;
+    if (endSerial && val > endSerial) return false;
     return true;
   });
 }
 
 const originalApplyFilter = applyFilter;
 applyFilter = function () {
-  let filtered = originalData;
+  let filtered = [...originalData]; // always start from original
+
+  // filter by date
   const colName = document.getElementById("dateColumnSelect").value;
   const startDate = document.getElementById("startDate").value;
   const endDate = document.getElementById("endDate").value;
-
   if (startDate || endDate) {
     filtered = filterByDateRange(filtered, colName, startDate, endDate);
   }
 
-  filtered = originalApplyFilter(filtered); // Gọi lại lọc cũ nếu có
+  // apply other existing filters
+  if (typeof originalApplyFilter === "function") {
+    filtered = originalApplyFilter(filtered);
+  }
+
   displayTable(filtered);
 };
 </script></body></html>
