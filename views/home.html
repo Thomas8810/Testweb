@@ -1731,6 +1731,15 @@ function applyDateFilter(data) {
 }
 </script>
 
+
+<script>
+function applyAllFilters() {
+  let filteredData = [...originalData]; // sao chép dữ liệu gốc
+  filteredData = applyDateFilter(filteredData);
+  renderTable(filteredData);
+}
+</script>
+
 </body></html>
 <script>
 function toggleHistoryPopup() {
