@@ -35,20 +35,46 @@ const upload = multer({ storage: storage });
 // ----------------------- DỮ LIỆU TRA CỨU & NGƯỜI DÙNG -----------------------
 const dataFilePath = path.join(__dirname, 'data.json');
 let cachedData = [];
+
+
+let headerOrder = [];
+
 function loadDataFromFile() {
   try {
     if (fs.existsSync(dataFilePath)) {
       const fileData = fs.readFileSync(dataFilePath, 'utf8');
-      cachedData = JSON.parse(fileData);
+      let raw = JSON.parse(fileData);
+
+      // Tự động lấy cột
+      const headerSet = new Set();
+raw.forEach(row => {
+  Object.keys(row).forEach(key => headerSet.add(key));
+});
+headerOrder = Array.from(headerSet);
+
+      cachedData = raw.map(row => {
+        const normalized = {};
+        headerOrder.forEach(key => {
+          normalized[key] = row[key] || "";
+        });
+        return normalized;
+      });
+
+      console.log("✅ data.json loaded with dynamic headers:", headerOrder);
     } else {
       cachedData = [];
+      headerOrder = [];
+      console.log("⚠️ File data.json not found.");
     }
-    console.log("Data loaded from data.json");
   } catch (err) {
-    console.error("Error reading data.json:", err);
+    console.error("❌ Error reading data.json:", err);
+    cachedData = [];
+    headerOrder = [];
   }
 }
+
 loadDataFromFile();
+
 
 const usersFilePath = path.join(__dirname, 'users.json');
 let usersData = [];
@@ -115,8 +141,15 @@ app.get('/home.html', isAuthenticated, (req, res) => {
 app.get('/tasks', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'tasks.html'));
 });
+app.get('/voice_search', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'voice_search.html'));
+});
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`Chào mừng ${req.session.user.name || req.session.user.email}, đây là trang dashboard.`);
+});
+// Phần này bổ sung cho voice
+app.get('/data.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'data.json'));
 });
 
 // ----------------------- AUDIT LOG -----------------------
@@ -396,44 +429,37 @@ app.get('/api/progress', isAuthenticated, async (req, res) => {
 
 // API lấy danh sách giá trị lọc
 app.get('/filters', (req, res) => {
-  const getDistinct = (col) => {
-    const values = cachedData.map(row => row[col]).filter(v => v != null);
-    return Array.from(new Set(values));
-  };
+  const fs = require('fs');
+  const path = require('path');
+  const filePath = path.join(__dirname, 'data.json');
 
-  res.json({
-    "Sheet": getDistinct("Sheet"),
-    "PO Number": getDistinct("PO Number"),
-    "Project": getDistinct("Project"),
-    "Part Number": getDistinct("Part Number"),
-    "REV": getDistinct("REV"),
-    "Description": getDistinct("Description"),
-    "Note Number": getDistinct("Note Number"),
-    "Critical": getDistinct("Critical"),
-    "CE": getDistinct("CE"),
-    "Material": getDistinct("Material"),
-    "Plating": getDistinct("Plating"),
-    "Painting": getDistinct("Painting"),
-    "Tiêu chuẩn mạ sơn": getDistinct("Tiêu chuẩn mạ sơn"),
-    "Ngày Nhận PO": getDistinct("Ngày Nhận PO"),
-    "Cover sheet": getDistinct("Cover sheet"),
-    "Drawing": getDistinct("Drawing"),
-    "Datasheet form": getDistinct("Datasheet form"),
-    "Data": getDistinct("Data"),
-    "COC": getDistinct("COC"),
-    "BOM": getDistinct("BOM"),
-    "Mill": getDistinct("Mill"),
-    "Part Pictures": getDistinct("Part Pictures"),
-    "Packaging Pictures": getDistinct("Packaging Pictures"),
-    "Submit date": getDistinct("Submit date"),
-    "Take pictures": getDistinct("Take pictures"),
-    "OK": getDistinct("OK"),
-    "Remark": getDistinct("Remark"),
-    "Remark 2": getDistinct("Remark 2"),
-    "Status": getDistinct("Status"),
-    "Note": getDistinct("Note")
+  let rawData;
+  try {
+    rawData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (err) {
+    console.error('Error reading data.json:', err);
+    return res.status(500).json({ error: 'Failed to load data' });
+  }
+
+  const uniqueValues = {};
+
+  rawData.forEach(row => {
+    Object.entries(row).forEach(([key, val]) => {
+      if (val !== null && val !== undefined && val !== "") {
+        if (!uniqueValues[key]) uniqueValues[key] = new Set();
+        uniqueValues[key].add(val.toString().trim());
+      }
+    });
   });
+
+  const result = {};
+  Object.entries(uniqueValues).forEach(([key, set]) => {
+    result[key] = Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'));
+  });
+
+  res.json(result);
 });
+
 
 // API tìm kiếm dữ liệu có phân trang
 app.get('/search', (req, res) => {
@@ -462,6 +488,12 @@ app.get('/search', (req, res) => {
 });
 
 // API xuất dữ liệu sang file Excel
+
+// Route API JSON cho voice_search.html
+app.get('/api/data', isAuthenticated, (req, res) => {
+  res.json(cachedData);
+});
+
 app.get('/export', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
@@ -480,13 +512,7 @@ app.get('/export', (req, res) => {
   }
 
   const wb = XLSX.utils.book_new();
-  const headerOrder = [
-    "Part Number", "REV", "PO Number", "Project", "Description", "Note Number",
-    "Critical", "CE", "Material", "Plating", "Painting", "Tiêu chuẩn mạ sơn",
-    "Ngày Nhận PO", "Cover sheet", "Drawing", "Datasheet form", "Data",
-    "COC", "BOM", "Mill", "Part Pictures", "Packaging Pictures", "Submit date",
-    "Take pictures", "OK", "Remark", "Remark 2", "Status", "Note"
-  ];
+
   const ws = XLSX.utils.json_to_sheet(filtered, { header: headerOrder });
 
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
