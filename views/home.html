@@ -920,6 +920,32 @@ if (data['Customer']) {
 
 
     $(document).ready(function() {
+        // Khi thay đổi cột lọc, nếu là cột ngày thì hiển thị input type="date"
+const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
+
+['1', '2', '3'].forEach(block => {
+  $(`#filter-column-${block}`).on('change', function () {
+    const col = $(this).val();
+    const $select = $(`#filter-value-${block}`);
+    const $container = $select.parent();
+    $container.find('input[type="date"]').remove();
+
+    if (dateColumns.includes(col)) {
+      const inputId = `date-input-${block}`;
+      const $dateInput = $(`<input type="date" id="${inputId}" class="form-control" style="width:100%; padding:5px; font-size:14px;" />`);
+      $container.append($dateInput);
+      $select.parent().find('.select2').hide();
+
+      $dateInput.on('change', function () {
+        const val = this.value;
+        $select.empty().append(new Option(val, val, true, true)).trigger('change');
+      });
+    } else {
+      $select.parent().find('.select2').show();
+    }
+  });
+});
+
       loadAllData(); // Tải toàn bộ dữ liệu một lần
 
       // Khởi tạo Select2 ban đầu
