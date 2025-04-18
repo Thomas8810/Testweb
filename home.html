@@ -1705,16 +1705,22 @@ function applyDateFilter(data) {
   const poEnd = document.getElementById("filter-po-date-end").value;
   const needStart = document.getElementById("filter-need-date-start").value;
   const needEnd = document.getElementById("filter-need-date-end").value;
+  const submitStart = document.getElementById("filter-submit-date-start").value;
+  const submitEnd = document.getElementById("filter-submit-date-end").value;
 
   const poStartSerial = poStart ? dateToExcelSerial(poStart) : null;
   const poEndSerial = poEnd ? dateToExcelSerial(poEnd) : null;
   const needStartSerial = needStart ? dateToExcelSerial(needStart) : null;
   const needEndSerial = needEnd ? dateToExcelSerial(needEnd) : null;
+  const submitStartSerial = submitStart ? dateToExcelSerial(submitStart) : null;
+  const submitEndSerial = submitEnd ? dateToExcelSerial(submitEnd) : null;
 
   return data.filter(row => {
     const poDate = parseInt(row["PO received date"]);
     const needDate = parseInt(row["Customer need date"]);
-    let poValid = true, needValid = true;
+    const submitDate = parseInt(row["Submit date"]);
+
+    let poValid = true, needValid = true, submitValid = true;
 
     if (!isNaN(poDate)) {
       if (poStartSerial && poEndSerial) poValid = poDate >= poStartSerial && poDate <= poEndSerial;
@@ -1726,23 +1732,13 @@ function applyDateFilter(data) {
       else if (needStartSerial) needValid = needDate === needStartSerial;
     }
 
-    return poValid && needValid;
-  });
-}
-</script>
-
-</body></html>
-<script>
-function toggleHistoryPopup() {
-  const popup = document.getElementById("floating-history-popup");
-  if (popup) {
-    const isOpen = popup.style.display === "block";
-    popup.style.display = isOpen ? "none" : "block";
-
-    if (!isOpen) {
-      renderSearchHistory(); // Gọi lại để load mới lịch sử
+    if (!isNaN(submitDate)) {
+      if (submitStartSerial && submitEndSerial) submitValid = submitDate >= submitStartSerial && submitDate <= submitEndSerial;
+      else if (submitStartSerial) submitValid = submitDate === submitStartSerial;
     }
-  }
+
+    return poValid && needValid && submitValid;
+  });
 }
 
 </script>
