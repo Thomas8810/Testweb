@@ -637,21 +637,15 @@ input:focus, select:focus {
 <select class="value-select" id="filter-value-3" multiple="multiple"></select>
 </div>
 
-<!-- Date Filters -->
-<div class="filter-block">
-<label>PO Received Date</label>
-<input class="date-filter" id="filter-po-from" placeholder="Từ ngày"/>
-<input class="date-filter" id="filter-po-to" placeholder="Đến ngày"/>
-</div>
-<div class="filter-block">
-<label>Customer Need Date</label>
-<input class="date-filter" id="filter-need-from" placeholder="Từ ngày"/>
-<input class="date-filter" id="filter-need-to" placeholder="Đến ngày"/>
-</div>
-<div class="filter-block">
-<label>Submit Date</label>
-<input class="date-filter" id="filter-submit-from" placeholder="Từ ngày"/>
-<input class="date-filter" id="filter-submit-to" placeholder="Đến ngày"/>
+<div class="form-group" style="margin-left: 10px;">
+<label for="dateColumnSelect">Chọn cột ngày:</label>
+<select class="form-control" id="dateColumnSelect">
+<option value="PO received date">PO Received Date</option>
+<option value="Customer need date">Customer Need Date</option>
+<option value="Submit date">Submit Date</option>
+</select>
+<input class="form-control flatpickr" id="startDate" placeholder="Từ ngày" style="margin-top: 5px;" type="text"/>
+<input class="form-control flatpickr" id="endDate" placeholder="Đến ngày" style="margin-top: 5px;" type="text"/>
 </div>
 </div>
 <!-- Khối chứa các nút chức năng -->
@@ -1681,43 +1675,45 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 <script>
-// Flatpickr init
-["po", "need", "submit"].forEach(prefix => {
-  flatpickr(`#filter-${prefix}-from`, { dateFormat: "Y-m-d" });
-  flatpickr(`#filter-${prefix}-to`, { dateFormat: "Y-m-d" });
+flatpickr(".flatpickr", {
+  dateFormat: "Y-m-d",
 });
 
-function dateToSerial(dateString) {
-  const date = new Date(dateString);
-  return Math.floor((date - new Date(Date.UTC(1899, 11, 30))) / (1000 * 60 * 60 * 24));
+function toExcelSerial(dateStr) {
+  const date = new Date(dateStr);
+  const utcDays = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
+  return utcDays + 25569;
 }
-function serialToDateString(serial) {
-  if (isNaN(serial)) return "";
-  const utc_days = Math.floor(serial - 25569);
-  const date = new Date(utc_days * 86400 * 1000);
-  return date.toISOString().slice(0, 10);
-}
-function filterByDateSerial(data, fieldName, from, to) {
+
+function filterByDateRange(data, colName, startDate, endDate) {
+  const startSerial = startDate ? toExcelSerial(startDate) : null;
+  const endSerial = endDate ? toExcelSerial(endDate) : null;
+
   return data.filter(row => {
-    const value = Number(row[fieldName]);
-    if (isNaN(value)) return false;
-    if (from && to) {
-      const fromSerial = dateToSerial(from);
-      const toSerial = dateToSerial(to);
-      return value >= fromSerial && value <= toSerial;
-    } else if (from) {
-      return value === dateToSerial(from);
-    }
+    const cellVal = row[colName];
+    if (!cellVal) return false;
+    const serial = parseFloat(cellVal);
+    if (isNaN(serial)) return false;
+    if (startSerial && serial < startSerial) return false;
+    if (endSerial && serial > endSerial) return false;
     return true;
   });
 }
-function applyFilters() {
-  let result = originalData;
-  result = filterByDateSerial(result, "PO received date", document.getElementById("filter-po-from").value, document.getElementById("filter-po-to").value);
-  result = filterByDateSerial(result, "Customer need date", document.getElementById("filter-need-from").value, document.getElementById("filter-need-to").value);
-  result = filterByDateSerial(result, "Submit date", document.getElementById("filter-submit-from").value, document.getElementById("filter-submit-to").value);
-  renderTable(result);
-}
+
+const originalApplyFilter = applyFilter;
+applyFilter = function () {
+  let filtered = originalData;
+  const colName = document.getElementById("dateColumnSelect").value;
+  const startDate = document.getElementById("startDate").value;
+  const endDate = document.getElementById("endDate").value;
+
+  if (startDate || endDate) {
+    filtered = filterByDateRange(filtered, colName, startDate, endDate);
+  }
+
+  filtered = originalApplyFilter(filtered); // Gọi lại lọc cũ nếu có
+  displayTable(filtered);
+};
 </script></body></html>
 <script>
 function toggleHistoryPopup() {
