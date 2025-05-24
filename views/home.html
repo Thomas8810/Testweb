@@ -439,7 +439,7 @@ input:focus, select:focus {
 
 @media (max-width: 768px) {
   .top-container {
-    max-height: 25vh !important;
+    max-height: 40vh !important;
     padding: 8px !important;
     overflow-y: auto;
   }
@@ -497,7 +497,7 @@ input:focus, select:focus {
   height: calc(100vh - 60px);
 }
 </style>
-<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet"/><script src="https://cdn.jsdelivr.net/npm/flatpickr"></script></head>
+</head>
 <body>
 <div id="loading-spinner" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:99;">
 <div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
@@ -635,33 +635,6 @@ input:focus, select:focus {
 </select>
 <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
 <select class="value-select" id="filter-value-3" multiple="multiple"></select>
-</div>
-<div class="form-group" style="margin-left: 10px;">
-<label for="dateColumnSelect">Chọn cột ngày:</label>
-<select class="form-control" id="dateColumnSelect">
-<option value="PO received date">PO Received Date</option>
-<option value="Customer need date">Customer Need Date</option>
-<option value="Submit date">Submit Date</option>
-</select>
-<input class="form-control flatpickr" id="startDate" placeholder="Từ ngày" style="margin-top: 5px;" type="text"/>
-<input class="form-control flatpickr" id="endDate" placeholder="Đến ngày" style="margin-top: 5px;" type="text"/>
-</div>
-
-<div class="form-group" style="margin-top: 10px;">
-<label for="dateColumnSelect">Chọn cột ngày:</label>
-<select class="form-control" id="dateColumnSelect">
-<option value="PO received date">PO Received Date</option>
-<option value="Customer need date">Customer Need Date</option>
-<option value="Submit date">Submit Date</option>
-</select>
-</div>
-<div class="form-group">
-<label for="startDate">Từ ngày:</label>
-<input class="form-control flatpickr" id="startDate" placeholder="Từ ngày" type="text"/>
-</div>
-<div class="form-group">
-<label for="endDate">Đến ngày:</label>
-<input class="form-control flatpickr" id="endDate" placeholder="Đến ngày" type="text"/>
 </div>
 </div>
 <!-- Khối chứa các nút chức năng -->
@@ -1660,10 +1633,12 @@ document.addEventListener('DOMContentLoaded', () => {
 <ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
 <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">🗑️ Xóa lịch sử</button>
 </div>
+
 <!-- 🔊 Nút chuyển sang trang voice -->
 <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
   🎤
 </a>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const historyList = document.getElementById("history-list");
@@ -1690,51 +1665,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
-<script>
-flatpickr(".flatpickr", {
-  dateFormat: "Y-m-d",
-});
-
-function toExcelSerial(dateStr) {
-  const date = new Date(dateStr);
-  const utcDays = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
-  return utcDays + 25569;
-}
-
-function filterByDateRange(data, colName, startDate, endDate) {
-  const startSerial = startDate ? toExcelSerial(startDate) : null;
-  const endSerial = endDate ? toExcelSerial(endDate) : null;
-
-  return data.filter(row => {
-    let val = row[colName];
-    if (typeof val === 'string') val = parseFloat(val);
-    if (isNaN(val)) return false;
-    if (startSerial && val < startSerial) return false;
-    if (endSerial && val > endSerial) return false;
-    return true;
-  });
-}
-
-const originalApplyFilter = applyFilter;
-applyFilter = function () {
-  let filtered = [...originalData]; // always start from original
-
-  // filter by date
-  const colName = document.getElementById("dateColumnSelect").value;
-  const startDate = document.getElementById("startDate").value;
-  const endDate = document.getElementById("endDate").value;
-  if (startDate || endDate) {
-    filtered = filterByDateRange(filtered, colName, startDate, endDate);
-  }
-
-  // apply other existing filters
-  if (typeof originalApplyFilter === "function") {
-    filtered = originalApplyFilter(filtered);
-  }
-
-  displayTable(filtered);
-};
-</script></body></html>
+</body></html>
 <script>
 function toggleHistoryPopup() {
   const popup = document.getElementById("floating-history-popup");

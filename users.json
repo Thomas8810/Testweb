@@ -42,9 +42,21 @@
     "role": "user"
   },
   {
-    "name": "Ha",
-    "email": "Ha@gmail.com",
-    "password": "Ha123",
+    "name": "Tam",
+    "email": "Tam@gmail.com",
+    "password": "Tam123",
+    "role": "user"
+  },
+    {
+    "name": "Thang",
+    "email": "Thang@gmail.com",
+    "password": "Thang123",
+    "role": "user"
+  },
+    {
+    "name": "Phuoc",
+    "email": "Phuoc@gmail.com",
+    "password": "Phuoc123",
     "role": "user"
   },
     {
