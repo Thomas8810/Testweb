@@ -421,7 +421,54 @@ function showImage(erpCode, button) {
   }
 }
 </script>
+
+<script>
+function showImage(erpCode, button) {
+  const imgId = `preview-${erpCode}`;
+  const rowId = `row-${erpCode}`;
+
+  document.querySelectorAll('.image-row').forEach(row => row.style.display = 'none');
+  document.querySelectorAll('.image-preview').forEach(img => img.remove());
+
+  const existingRow = document.getElementById(rowId);
+  if (existingRow && existingRow.style.display === 'table-row') {
+    existingRow.style.display = 'none';
+    return;
+  }
+
+  const tr = existingRow || document.createElement('tr');
+  tr.id = rowId;
+  tr.className = 'image-row';
+  tr.style.display = 'table-row';
+
+  const td = tr.firstChild || document.createElement('td');
+  td.colSpan = 30;
+  td.style.textAlign = 'center';
+  td.innerHTML = '';
+
+  const img = document.createElement('img');
+  img.className = 'image-preview';
+  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
+  img.style.maxWidth = '90%';
+  img.style.maxHeight = '300px';
+  img.style.border = '2px solid black';
+  img.style.margin = '10px auto';
+  img.loading = 'lazy';
+
+  img.onerror = function() {
+    img.remove();
+    td.innerHTML = '<div style="padding:10px;font-style:italic;color:gray">No photo</div>';
+  };
+
+  td.appendChild(img);
+  if (!existingRow) {
+    tr.appendChild(td);
+    button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
+  }
+}
+</script>
 </body>
+
 
 <script>
   function saveToHistory(partNumber) {
