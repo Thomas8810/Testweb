@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tra cứu Part Number bằng giọng nói</title>
   <style>
     body {
@@ -13,14 +13,12 @@
       padding: 1rem;
       text-align: center;
     }
-
     .mode-select {
       display: flex;
       justify-content: center;
       gap: 1rem;
       margin-bottom: 1rem;
     }
-
     .mode-select button {
       padding: 0.5rem 1rem;
       border: none;
@@ -28,17 +26,14 @@
       font-size: 1rem;
       cursor: pointer;
     }
-
     .mode-active {
       background: #00cc99;
       color: white;
     }
-
     .mode-inactive {
       background: #444;
       color: #ccc;
     }
-
     #recordBtn {
       margin-top: 1rem;
       font-size: 1.2rem;
@@ -49,50 +44,55 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
-    #statusListening {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #00ffcc;
-      animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.1); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
     .table-scroll {
       overflow-x: auto;
       margin-top: 1rem;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 1000px;
       font-size: 0.9rem;
     }
-
     thead th {
       position: sticky;
       top: 0;
       background: #333;
       color: #fff;
       z-index: 3;
-      cursor: pointer;
     }
-
     th, td {
       border: 1px solid #ccc;
       padding: 6px;
       white-space: nowrap;
     }
-
     tr.active-row {
       background-color: #2a2a4d;
+    }
+
+    /* Sticky first 3 columns on wider screens */
+    @media (min-width: 600px) {
+      th:first-child, td:first-child {
+        position: sticky;
+        left: 0;
+        min-width: 80px;
+        background: #1e1e2f;
+        z-index: 4;
+      }
+      th:nth-child(2), td:nth-child(2) {
+        position: sticky;
+        left: 80px;
+        min-width: 180px;
+        background: #1e1e2f;
+        z-index: 4;
+      }
+      th:nth-child(3), td:nth-child(3) {
+        position: sticky;
+        left: 260px;
+        min-width: 100px;
+        background: #1e1e2f;
+        z-index: 4;
+      }
     }
 
     #backHome {
@@ -106,6 +106,20 @@
       text-decoration: none;
       border: 1px solid #ccc;
     }
+      
+    #statusListening {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00ffcc;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.1); }
+      100% { opacity: 1; transform: scale(1); }
+    }
   </style>
 </head>
 <body>
@@ -118,211 +132,304 @@
 
   <button id="recordBtn">🎙️ Nhấn để bắt đầu</button>
   <div id="statusListening"></div>
-  <div id="result"></div>
+  <div id="result" style="margin-top:1rem;"></div>
   <div class="table-scroll" id="relatedResults"></div>
 
   <a href="/home" id="backHome">← Trang chủ</a>
 
-  <hr style="margin-top:2rem; border:none; border-top:1px solid #666;">
-  <h3>📜 Lịch sử tìm kiếm gần đây</h3>
-  <ul id="historyList" style="list-style:none; padding:0; text-align:left;"></ul>
-  <button onclick="clearHistory()" style="margin-top:0.5rem; background:#cc4444; color:white; padding:8px 16px; border:none; border-radius:6px; cursor:pointer;">
-    🗑️ Xóa lịch sử
-  </button>
+<script>
+  // Chuyển đổi chế độ Image / Status
+  let mode = 'image';
+  const btnImage = document.getElementById('modeImage');
+  const btnStatus = document.getElementById('modeStatus');
+  const recordBtn = document.getElementById("recordBtn");
+  const resultDiv = document.getElementById("result");
+  const statusDiv = document.getElementById("statusListening");
+  let recognition;
+  let isListening = false;
 
-  <script>
-    let mode = 'image';
-    let isListening = false;
-    let recognition;
+  btnImage.onclick = () => {
+    mode = 'image';
+    btnImage.classList.add('mode-active');
+    btnImage.classList.remove('mode-inactive');
+    btnStatus.classList.remove('mode-active');
+    btnStatus.classList.add('mode-inactive');
+  };
 
-    const DOM = {
-      btnImage: document.getElementById('modeImage'),
-      btnStatus: document.getElementById('modeStatus'),
-      recordBtn: document.getElementById('recordBtn'),
-      resultDiv: document.getElementById('result'),
-      statusDiv: document.getElementById('statusListening'),
-      historyList: document.getElementById('historyList'),
-      relatedResults: document.getElementById('relatedResults'),
-    };
+  btnStatus.onclick = () => {
+    mode = 'status';
+    btnStatus.classList.add('mode-active');
+    btnStatus.classList.remove('mode-inactive');
+    btnImage.classList.remove('mode-active');
+    btnImage.classList.add('mode-inactive');
+  };
 
-    DOM.btnImage.onclick = () => {
-      mode = 'image';
-      DOM.btnImage.classList.add('mode-active');
-      DOM.btnStatus.classList.remove('mode-active');
-    };
+  // Lấy dữ liệu từ API (giả định API trả về mảng JSON)
+  async function fetchData() {
+    const res = await fetch("/api/data");
+    return res.json();
+  }
 
-    DOM.btnStatus.onclick = () => {
-      mode = 'status';
-      DOM.btnStatus.classList.add('mode-active');
-      DOM.btnImage.classList.remove('mode-active');
-    };
+  // Đọc bằng giọng nói
+  function speak(text) {
+    if (!text) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "vi-VN";
+    speechSynthesis.speak(utterance);
+  }
 
-    async function fetchData() {
-      const res = await fetch("/api/data");
-      return res.json();
-    }
+  // Phân tích Part Number theo trạng thái và mode
+  function analyzePart(part) {
+    const status = (part["Approval Status"] || "").toUpperCase();
+    const partPic = part["Part Pictures"];
+    const packPic = part["Packaging Pictures"];
 
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "vi-VN";
-      speechSynthesis.speak(utterance);
-    }
-
-    function analyzePart(part) {
-      const status = (part["Approval Status"] || "").toUpperCase();
-      const partPic = part["Part Pictures"];
-      const packPic = part["Packaging Pictures"];
-      if (mode === 'image') {
-        if (["REJECTED", "EXPIRED"].includes(status)) return "Part này cần hỏi lại quản lý.";
-        if (["APPROVED", "CLOSED", "SUBMITTED"].includes(status)) return "Part này không cần chụp ảnh.";
-        if (status === "ON GOING") {
-          if (!partPic || partPic === '-') return "Cần chụp ảnh sản phẩm.";
-          if (!packPic || packPic === '-') return "Cần chụp ảnh đóng gói.";
-          if (partPic === "OK" && packPic === "OK") return "Không cần chụp ảnh.";
-        }
-      } else {
-        const map = {
-          "APPROVED": "Đã phê duyệt",
-          "CLOSED": "Đã đóng",
-          "EXPIRED": "Hết hạn",
-          "ON GOING": "Đang thực hiện",
-          "REJECTED": "Bị từ chối",
-          "SUBMITTED": "Đã gửi"
-        };
-        return map[status] || `Trạng thái: ${status}`;
+    if (mode === 'image') {
+      if (["REJECTED", "EXPIRED"].includes(status)) return "Part này cần hỏi lại quản lý.";
+      if (["APPROVED", "CLOSED", "SUBMITTED"].includes(status)) return "Part này không cần chụp ảnh.";
+      if (status === "ON GOING") {
+        if (!partPic || partPic === '-') return "Cần chụp ảnh sản phẩm.";
+        if (!packPic || packPic === '-') return "Cần chụp ảnh đóng gói.";
+        if (partPic === "OK" && packPic === "OK") return "Không cần chụp ảnh.";
       }
-      return "Không rõ trạng thái.";
+    } else {
+      const map = {
+        "APPROVED": "Đã phê duyệt",
+        "CLOSED": "Đã đóng",
+        "EXPIRED": "Hết hạn",
+        "ON GOING": "Đang thực hiện",
+        "REJECTED": "Bị từ chối",
+        "SUBMITTED": "Đã gửi"
+      };
+      return map[status] || `Trạng thái: ${status}`;
+    }
+    return "Không rõ trạng thái.";
+  }
+
+  // Tạo bảng có thể sắp xếp theo cột
+  function makeTableSortable(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const headers = table.querySelectorAll('th');
+    headers.forEach((th, colIndex) => {
+      th.style.cursor = 'pointer';
+      const arrow = document.createElement('span');
+      arrow.style.marginLeft = '6px';
+      arrow.style.fontSize = '0.8rem';
+      th.appendChild(arrow);
+
+      th.addEventListener('click', () => {
+        const rows = Array.from(table.querySelectorAll('tbody > tr'));
+        const asc = th.dataset.order !== 'asc';
+        rows.sort((a, b) => {
+          const aText = a.children[colIndex].textContent.trim();
+          const bText = b.children[colIndex].textContent.trim();
+          return asc ? aText.localeCompare(bText, 'vi', { numeric: true }) : bText.localeCompare(aText, 'vi', { numeric: true });
+        });
+        rows.forEach(row => table.querySelector('tbody').appendChild(row));
+        headers.forEach(h => {
+          h.dataset.order = '';
+          h.querySelector('span').textContent = '';
+        });
+        th.dataset.order = asc ? 'asc' : 'desc';
+        arrow.textContent = asc ? '▲' : '▼';
+      });
+    });
+  }
+
+  // Xử lý văn bản nhận dạng giọng nói
+  async function processTranscript(transcript, fromHistory = false) {
+    const cleaned = transcript.replace(/\s+/g, '').toUpperCase();
+    if (!fromHistory) saveToHistory(cleaned);
+    resultDiv.innerHTML = `🗣 Bạn nói: <b>${transcript}</b><br>→ Chuẩn hóa: <b>${cleaned}</b>`;
+    const data = await fetchData();
+    const results = data.filter(row => typeof row["Part Number"] === "string" && row["Part Number"].toUpperCase().includes(cleaned));
+
+    if (results.length === 0) {
+      statusDiv.innerText = "";
+      speak("Không tìm thấy Part Number.");
+      resultDiv.innerHTML += `<br>❌ Không tìm thấy Part Number.`;
+      document.getElementById("relatedResults").innerHTML = '';
+      return;
     }
 
-    async function processTranscript(transcript, fromHistory = false) {
-      const cleaned = transcript.replace(/\s+/g, '').toUpperCase();
-      if (!fromHistory) saveToHistory(cleaned);
-      DOM.resultDiv.innerHTML = `🗣 Bạn nói: <b>${transcript}</b><br>→ Chuẩn hóa: <b>${cleaned}</b>`;
-
-      const data = await fetchData();
-      const results = data.filter(row => typeof row["Part Number"] === "string" && row["Part Number"].toUpperCase().includes(cleaned));
-
-      if (results.length === 0) {
-        DOM.statusDiv.innerText = "";
-        speak("Không tìm thấy Part Number.");
-        DOM.resultDiv.innerHTML += `<br>❌ Không tìm thấy Part Number.`;
-        DOM.relatedResults.innerHTML = "";
-        return;
-      }
-
-      const msg = results.length === 1 ? analyzePart(results[0]) : `Tìm thấy ${results.length} kết quả gần giống.`;
+    if (results.length === 1) {
+      const msg = analyzePart(results[0]);
+      statusDiv.innerText = "";
+      resultDiv.innerHTML += `<br/>✅ ${msg}`;
       speak(msg);
-      DOM.statusDiv.innerText = "";
-      DOM.resultDiv.innerHTML += `<br/>✅ ${msg}`;
 
+      // Hiển thị bảng cho 1 kết quả
+      const erpCode = (results[0]["ERP-CODE"] || "").toUpperCase();
       let html = `<table id='resultsTable'><thead><tr>
         <th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th>
-        <th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th><th>CE</th><th>Xem ảnh</th>
+        <th>Commodity</th><th>Product Name</th><th>Supplier</th><th>ERP-CODE</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Ghi chú</th>
       </tr></thead><tbody>`;
-
-      results.slice(0, 10).forEach((item, index) => {
-        const erp = item["ERP-CODE"]?.toUpperCase() || "";
-        html += `<tr onclick="speak('${analyzePart(item)}')">
-          <td>${index + 1}</td>
-          <td>${item["Part Number"] || ""}</td>
-          <td>${item["REV"] || ""}</td>
-          <td>${item["Approval Status"] || ""}</td>
-          <td>${item["Customer"] || ""}</td>
-          <td>${item["Commodity"] || ""}</td>
-          <td>${item["Part Pictures"] || ""}</td>
-          <td>${item["Packaging Pictures"] || ""}</td>
-          <td>${item["Critical"] || ""}</td>
-          <td>${item["CE"] || ""}</td>
-          <td>
-            ${erp ? `<img src="https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erp}.jpg" 
-              style="max-height:60px;border:1px solid #ccc"
-              onerror="this.outerHTML='<div style=\\'color:gray;font-style:italic\\'>No photo</div>'"/>` : 'No image'}
-          </td>
+      results.forEach((r, i) => {
+        const highlight = r["ERP-CODE"] && r["ERP-CODE"].toUpperCase() === erpCode ? 'class="active-row"' : '';
+        html += `<tr ${highlight}>
+          <td>${i+1}</td>
+          <td>${r["Part Number"]}</td>
+          <td>${r["REV"]}</td>
+          <td>${r["Approval Status"]}</td>
+          <td>${r["Customer"]}</td>
+          <td>${r["Commodity"]}</td>
+          <td>${r["Product Name"]}</td>
+          <td>${r["Supplier"]}</td>
+          <td>${r["ERP-CODE"]}</td>
+          <td>${r["Part Pictures"]}</td>
+          <td>${r["Packaging Pictures"]}</td>
+          <td>${r["Ghi chú"] || ""}</td>
         </tr>`;
       });
+      html += "</tbody></table>";
+      document.getElementById("relatedResults").innerHTML = html;
+      makeTableSortable('resultsTable');
 
-      html += `</tbody></table>`;
-      DOM.relatedResults.innerHTML = html;
+      // Nếu mode image và có ảnh, hiển thị ảnh
+      if (mode === 'image') {
+        showImages(results[0]);
+      } else {
+        clearImages();
+      }
+      return;
     }
 
-    function startRecognition() {
-      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = "vi-VN";
-      recognition.interimResults = true;
+    // Nhiều kết quả, hiển thị danh sách
+    let html = `<p>🔍 Có ${results.length} kết quả tìm thấy:</p>`;
+    html += `<table id='resultsTable'><thead><tr>
+      <th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th>
+      <th>Commodity</th><th>Product Name</th><th>Supplier</th><th>ERP-CODE</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Ghi chú</th>
+    </tr></thead><tbody>`;
+    results.forEach((r, i) => {
+      html += `<tr>
+        <td>${i+1}</td>
+        <td>${r["Part Number"]}</td>
+        <td>${r["REV"]}</td>
+        <td>${r["Approval Status"]}</td>
+        <td>${r["Customer"]}</td>
+        <td>${r["Commodity"]}</td>
+        <td>${r["Product Name"]}</td>
+        <td>${r["Supplier"]}</td>
+        <td>${r["ERP-CODE"]}</td>
+        <td>${r["Part Pictures"]}</td>
+        <td>${r["Packaging Pictures"]}</td>
+        <td>${r["Ghi chú"] || ""}</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+    document.getElementById("relatedResults").innerHTML = html;
+    makeTableSortable('resultsTable');
+    statusDiv.innerText = "";
+    clearImages();
+  }
 
-      recognition.onstart = () => {
-        isListening = true;
-        DOM.recordBtn.innerText = "🛑 Nhấn để dừng";
-        DOM.statusDiv.innerText = "🎧 Đang nghe...";
-        DOM.resultDiv.innerHTML = "";
-        DOM.relatedResults.innerHTML = "";
-      };
+  // Hiển thị ảnh sản phẩm và đóng gói (nếu có)
+  function showImages(part) {
+    const containerId = 'imageContainer';
+    let container = document.getElementById(containerId);
+    if (!container) {
+      container = document.createElement('div');
+      container.id = containerId;
+      container.style.marginTop = '1rem';
+      container.style.display = 'flex';
+      container.style.justifyContent = 'center';
+      container.style.gap = '20px';
+      document.getElementById("relatedResults").appendChild(container);
+    } else {
+      container.innerHTML = '';
+    }
 
-      recognition.onresult = (event) => {
-        let finalTranscript = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          }
-        }
-        if (finalTranscript) processTranscript(finalTranscript);
-      };
+    const baseURL = "https://erp.sgcarmart.vn/PartPicture/";
 
-      recognition.onerror = (e) => {
-        DOM.statusDiv.innerText = "";
-        speak("Đã xảy ra lỗi nhận diện giọng nói.");
-        DOM.resultDiv.innerHTML = `❌ Lỗi: ${e.error}`;
-        DOM.recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
-        isListening = false;
-      };
+    if (part["Part Pictures"] && part["Part Pictures"] !== '-' && part["Part Pictures"] !== 'OK') {
+      const imgPart = document.createElement('img');
+      imgPart.src = baseURL + part["Part Pictures"];
+      imgPart.alt = "Ảnh sản phẩm";
+      imgPart.style.width = '300px';
+      imgPart.style.borderRadius = '10px';
+      imgPart.style.boxShadow = '0 0 10px #00cc99';
+      container.appendChild(imgPart);
+    }
 
-      recognition.onend = () => {
-        if (isListening) DOM.statusDiv.innerText = "⏳ Đang xử lý...";
-        isListening = false;
-        DOM.recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
-      };
+    if (part["Packaging Pictures"] && part["Packaging Pictures"] !== '-' && part["Packaging Pictures"] !== 'OK') {
+      const imgPack = document.createElement('img');
+      imgPack.src = baseURL + part["Packaging Pictures"];
+      imgPack.alt = "Ảnh đóng gói";
+      imgPack.style.width = '300px';
+      imgPack.style.borderRadius = '10px';
+      imgPack.style.boxShadow = '0 0 10px #00cc99';
+      container.appendChild(imgPack);
+    }
 
+    // Nếu không có ảnh nào hợp lệ
+    if (container.children.length === 0) {
+      container.innerHTML = "<p>Không có ảnh sản phẩm hoặc đóng gói.</p>";
+    }
+  }
+
+  function clearImages() {
+    const container = document.getElementById('imageContainer');
+    if (container) container.innerHTML = '';
+  }
+
+  // Lịch sử tìm kiếm đơn giản lưu trên sessionStorage
+  function saveToHistory(text) {
+    const history = JSON.parse(sessionStorage.getItem("searchHistory") || "[]");
+    if (!history.includes(text)) {
+      history.push(text);
+      sessionStorage.setItem("searchHistory", JSON.stringify(history));
+    }
+  }
+
+  // Khởi tạo nhận dạng giọng nói
+  function initRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Trình duyệt không hỗ trợ nhận dạng giọng nói.");
+      recordBtn.disabled = true;
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = "vi-VN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      isListening = true;
+      recordBtn.textContent = "🎙️ Đang nghe... Nhấn để dừng";
+      statusDiv.textContent = "Đang nghe giọng nói...";
+    };
+    recognition.onend = () => {
+      isListening = false;
+      recordBtn.textContent = "🎙️ Nhấn để bắt đầu";
+      statusDiv.textContent = "";
+    };
+    recognition.onerror = (event) => {
+      statusDiv.textContent = `Lỗi nhận dạng: ${event.error}`;
+      isListening = false;
+      recordBtn.textContent = "🎙️ Nhấn để bắt đầu";
+    };
+    recognition.onresult = (event) => {
+      if (event.results.length > 0) {
+        const transcript = event.results[0][0].transcript.trim();
+        processTranscript(transcript);
+      }
+    };
+  }
+
+  recordBtn.onclick = () => {
+    if (isListening) {
+      recognition.stop();
+    } else {
       recognition.start();
     }
+  };
 
-    function stopRecognition() {
-      if (recognition) recognition.stop();
-    }
-
-    DOM.recordBtn.onclick = () => {
-      isListening ? stopRecognition() : startRecognition();
-    };
-
-    function saveToHistory(partNumber) {
-      const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-      const now = new Date().toLocaleString("vi-VN");
-      history.unshift({ partNumber, time: now });
-      if (history.length > 20) history.pop();
-      localStorage.setItem("searchHistory", JSON.stringify(history));
-      renderHistory();
-    }
-
-    function renderHistory() {
-      const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-      DOM.historyList.innerHTML = "";
-      history.forEach(item => {
-        const li = document.createElement("li");
-        li.style.marginBottom = "6px";
-        li.innerHTML = `<button onclick="processTranscript('${item.partNumber}', true)" 
-          style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;">
-          ${item.partNumber}</button> <small style="color:#ccc">(${item.time})</small>`;
-        DOM.historyList.appendChild(li);
-      });
-    }
-
-    function clearHistory() {
-      if (confirm("Bạn có chắc muốn xóa toàn bộ lịch sử?")) {
-        localStorage.removeItem("searchHistory");
-        renderHistory();
-      }
-    }
-
-    window.onload = renderHistory;
-  </script>
+  window.onload = () => {
+    initRecognition();
+  };
+</script>
 </body>
 </html>
