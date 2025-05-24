@@ -248,7 +248,7 @@
   speak(msg);
 
   // Hiển thị bảng cho 1 dòng
-  let html = `<table id='resultsTable'><thead><tr><th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th><th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th><th>CE</th></tr></thead><tbody>`;
+  let html = `<table id='resultsTable'><thead><tr><th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th><th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th><th>CE</th><th>Xem ảnh</th></tr></thead><tbody>`;
   html += `<tr onclick="speak('${msg}')">
     <td>1</td>
     <td>${results[0]["Part Number"] || ""}</td>
@@ -268,7 +268,7 @@
       } else {
         statusDiv.innerText = "";
         speak(`Tìm thấy ${results.length} kết quả gần giống.`);
-        let html = `<table id='resultsTable'><thead><tr><th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th><th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th><th>CE</th></tr></thead><tbody>`;
+        let html = `<table id='resultsTable'><thead><tr><th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th><th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th><th>CE</th><th>Xem ảnh</th></tr></thead><tbody>`;
         results.slice(0, 10).forEach((item, index) => {
   const erpCode = item["ERP-CODE"]?.toUpperCase() || item["Part Number"]?.toUpperCase() || "";
   html += `<tr onclick="speak('${analyzePart(item)}')">
@@ -382,7 +382,6 @@ function showImage(erpCode, button) {
   const imgId = `preview-${erpCode}`;
   const rowId = `row-${erpCode}`;
 
-  // Hide other previews
   document.querySelectorAll('.image-row').forEach(row => row.style.display = 'none');
   document.querySelectorAll('.image-preview').forEach(img => img.src = '');
 
@@ -399,7 +398,7 @@ function showImage(erpCode, button) {
     tr.style.display = 'table-row';
 
     const td = document.createElement('td');
-    td.colSpan = 11;
+    td.colSpan = 30;
     td.style.textAlign = 'center';
 
     const img = document.createElement('img');
@@ -408,12 +407,13 @@ function showImage(erpCode, button) {
     img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
     img.style.maxWidth = '90%';
     img.style.maxHeight = '300px';
-    img.style.border = '2px solid white';
+    img.style.border = '2px solid black';
     img.style.margin = '10px auto';
     img.loading = 'lazy';
 
     td.appendChild(img);
     tr.appendChild(td);
+
     button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
   } else {
     existingRow.style.display = 'table-row';
@@ -422,7 +422,6 @@ function showImage(erpCode, button) {
 }
 </script>
 </body>
-
 
 <script>
   function saveToHistory(partNumber) {
