@@ -467,7 +467,34 @@ function showImage(erpCode, button) {
   }
 }
 </script>
+
+<script>
+function showImage(erpCode, button) {
+  const cell = button.parentNode;
+  const rowId = `row-${erpCode}`;
+
+  document.querySelectorAll('.image-row').forEach(row => row.remove());
+
+  const img = document.createElement('img');
+  img.className = 'image-preview';
+  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
+  img.style.maxWidth = '120px';
+  img.style.maxHeight = '80px';
+  img.style.border = '1px solid gray';
+  img.style.marginTop = '5px';
+  img.loading = 'lazy';
+
+  img.onerror = function() {
+    cell.innerHTML = '<div style="padding:4px;font-style:italic;color:gray">No photo</div>';
+  };
+
+  // Clear cell and show image
+  cell.innerHTML = '';
+  cell.appendChild(img);
+}
+</script>
 </body>
+
 
 
 <script>
