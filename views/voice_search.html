@@ -252,6 +252,7 @@
   html += `<tr onclick="speak('${msg}')">
     <td>1</td>
     <td>${results[0]["Part Number"] || ""}</td>
+    <td><button onclick="showImage('${item["ERP-CODE"]}', this)">🖼️</button></td>
     <td>${results[0]["REV"] || ""}</td>
     <td>${results[0]["Approval Status"] || ""}</td>
     <td>${results[0]["Customer"] || ""}</td>
@@ -260,6 +261,8 @@
     <td>${results[0]["Packaging Pictures"] || ""}</td>
     <td>${results[0]["Critical"] || ""}</td>
     <td>${results[0]["CE"] || ""}</td>
+    <td><button onclick="showImage('${item["ERP-CODE"]}', this)">🖼️</button></td>
+
   </tr>`;
   html += `</tbody></table>`;
   document.getElementById("relatedResults").innerHTML = html;
@@ -273,6 +276,7 @@
           html += `<tr onclick="speak('${analyzePart(item)}')">
             <td>${index + 1}</td>
             <td>${item["Part Number"] || ""}</td>
+            <td><button onclick="showImage('${item["ERP-CODE"]}', this)">🖼️</button></td>
             <td>${item["REV"] || ""}</td>
             <td>${item["Approval Status"] || ""}</td>
             <td>${item["Customer"] || ""}</td>
