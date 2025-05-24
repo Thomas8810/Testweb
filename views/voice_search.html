@@ -13,12 +13,14 @@
       padding: 1rem;
       text-align: center;
     }
+
     .mode-select {
       display: flex;
       justify-content: center;
       gap: 1rem;
       margin-bottom: 1rem;
     }
+
     .mode-select button {
       padding: 0.5rem 1rem;
       border: none;
@@ -26,8 +28,16 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    .mode-active { background: #00cc99; color: white; }
-    .mode-inactive { background: #444; color: #ccc; }
+
+    .mode-active {
+      background: #00cc99;
+      color: white;
+    }
+
+    .mode-inactive {
+      background: #444;
+      color: #ccc;
+    }
 
     #recordBtn {
       margin-top: 1rem;
@@ -47,19 +57,25 @@
       color: #00ffcc;
       animation: pulse 1s infinite;
     }
+
     @keyframes pulse {
       0% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(1.1); }
       100% { opacity: 1; transform: scale(1); }
     }
 
-    .table-scroll { overflow-x: auto; margin-top: 1rem; }
+    .table-scroll {
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 1000px;
       font-size: 0.9rem;
     }
+
     thead th {
       position: sticky;
       top: 0;
@@ -68,23 +84,15 @@
       z-index: 3;
       cursor: pointer;
     }
+
     th, td {
       border: 1px solid #ccc;
       padding: 6px;
       white-space: nowrap;
     }
-    tr.active-row { background-color: #2a2a4d; }
 
-    @media (min-width: 600px) {
-      th:first-child, td:first-child {
-        position: sticky; left: 0; background: #1e1e2f; z-index: 4;
-      }
-      th:nth-child(2), td:nth-child(2) {
-        position: sticky; left: 80px; background: #1e1e2f; z-index: 4;
-      }
-      th:nth-child(3), td:nth-child(3) {
-        position: sticky; left: 260px; background: #1e1e2f; z-index: 4;
-      }
+    tr.active-row {
+      background-color: #2a2a4d;
     }
 
     #backHome {
@@ -102,6 +110,7 @@
 </head>
 <body>
   <h2>🎤 Tra cứu Part Number bằng giọng nói</h2>
+
   <div class="mode-select">
     <button id="modeImage" class="mode-active">🖼️ Kiểm tra ảnh</button>
     <button id="modeStatus" class="mode-inactive">📄 Kiểm tra trạng thái</button>
@@ -111,6 +120,7 @@
   <div id="statusListening"></div>
   <div id="result"></div>
   <div class="table-scroll" id="relatedResults"></div>
+
   <a href="/home" id="backHome">← Trang chủ</a>
 
   <hr style="margin-top:2rem; border:none; border-top:1px solid #666;">
@@ -121,247 +131,198 @@
   </button>
 
   <script>
-let mode = 'image';
-let recognition;
-let isListening = false;
+    let mode = 'image';
+    let isListening = false;
+    let recognition;
 
-const DOM = {
-  btnImage: document.getElementById('modeImage'),
-  btnStatus: document.getElementById('modeStatus'),
-  recordBtn: document.getElementById("recordBtn"),
-  resultDiv: document.getElementById("result"),
-  statusDiv: document.getElementById("statusListening"),
-  relatedResults: document.getElementById("relatedResults"),
-  historyList: document.getElementById("historyList"),
-};
-
-DOM.btnImage.onclick = () => toggleMode('image');
-DOM.btnStatus.onclick = () => toggleMode('status');
-DOM.recordBtn.onclick = () => isListening ? stopRecognition() : startRecognition();
-
-function toggleMode(newMode) {
-  mode = newMode;
-  [DOM.btnImage, DOM.btnStatus].forEach(btn => btn.classList.remove('mode-active', 'mode-inactive'));
-  if (newMode === 'image') {
-    DOM.btnImage.classList.add('mode-active');
-    DOM.btnStatus.classList.add('mode-inactive');
-  } else {
-    DOM.btnStatus.classList.add('mode-active');
-    DOM.btnImage.classList.add('mode-inactive');
-  }
-}
-
-function speak(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "vi-VN";
-  speechSynthesis.speak(utterance);
-}
-
-function cleanTranscript(text) {
-  return text.replace(/\s+/g, '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
-}
-
-async function fetchData() {
-  const res = await fetch("/api/data");
-  return res.json();
-}
-
-function analyzePart(part) {
-  const status = part["Approval Status"]?.toUpperCase() || "";
-  const partPic = part["Part Pictures"];
-  const packPic = part["Packaging Pictures"];
-
-  if (mode === 'image') {
-    if (["REJECTED", "EXPIRED"].includes(status)) return "Part này cần hỏi lại quản lý.";
-    if (["APPROVED", "CLOSED", "SUBMITTED"].includes(status)) return "Part này không cần chụp ảnh.";
-    if (status === "ON GOING") {
-      if (!partPic || partPic === '-') return "Cần chụp ảnh sản phẩm.";
-      if (!packPic || packPic === '-') return "Cần chụp ảnh đóng gói.";
-      if (partPic === "OK" && packPic === "OK") return "Không cần chụp ảnh.";
-    }
-  } else {
-    const map = {
-      "APPROVED": "Đã phê duyệt",
-      "CLOSED": "Đã đóng",
-      "EXPIRED": "Hết hạn",
-      "ON GOING": "Đang thực hiện",
-      "REJECTED": "Bị từ chối",
-      "SUBMITTED": "Đã gửi"
+    const DOM = {
+      btnImage: document.getElementById('modeImage'),
+      btnStatus: document.getElementById('modeStatus'),
+      recordBtn: document.getElementById('recordBtn'),
+      resultDiv: document.getElementById('result'),
+      statusDiv: document.getElementById('statusListening'),
+      historyList: document.getElementById('historyList'),
+      relatedResults: document.getElementById('relatedResults'),
     };
-    return map[status] || `Trạng thái: ${status}`;
-  }
-  return "Không rõ trạng thái.";
-}
 
-async function processTranscript(transcript, fromHistory = false) {
-  const cleaned = cleanTranscript(transcript);
-  if (!fromHistory) saveToHistory(cleaned);
+    DOM.btnImage.onclick = () => {
+      mode = 'image';
+      DOM.btnImage.classList.add('mode-active');
+      DOM.btnStatus.classList.remove('mode-active');
+    };
 
-  DOM.resultDiv.innerHTML = `🗣 Bạn nói: <b>${transcript}</b><br>→ Chuẩn hóa: <b>${cleaned}</b>`;
-  const data = await fetchData();
-  const results = data.filter(row => row["Part Number"]?.toUpperCase().includes(cleaned));
+    DOM.btnStatus.onclick = () => {
+      mode = 'status';
+      DOM.btnStatus.classList.add('mode-active');
+      DOM.btnImage.classList.remove('mode-active');
+    };
 
-  DOM.statusDiv.innerText = "";
+    async function fetchData() {
+      const res = await fetch("/api/data");
+      return res.json();
+    }
 
-  if (results.length === 0) {
-    speak("Không tìm thấy Part Number.");
-    DOM.resultDiv.innerHTML += `<br>❌ Không tìm thấy Part Number.`;
-    DOM.relatedResults.innerHTML = "";
-    return;
-  }
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "vi-VN";
+      speechSynthesis.speak(utterance);
+    }
 
-  const html = renderResultsTable(results);
-  DOM.relatedResults.innerHTML = html;
-  makeTableSortable('resultsTable');
+    function analyzePart(part) {
+      const status = (part["Approval Status"] || "").toUpperCase();
+      const partPic = part["Part Pictures"];
+      const packPic = part["Packaging Pictures"];
+      if (mode === 'image') {
+        if (["REJECTED", "EXPIRED"].includes(status)) return "Part này cần hỏi lại quản lý.";
+        if (["APPROVED", "CLOSED", "SUBMITTED"].includes(status)) return "Part này không cần chụp ảnh.";
+        if (status === "ON GOING") {
+          if (!partPic || partPic === '-') return "Cần chụp ảnh sản phẩm.";
+          if (!packPic || packPic === '-') return "Cần chụp ảnh đóng gói.";
+          if (partPic === "OK" && packPic === "OK") return "Không cần chụp ảnh.";
+        }
+      } else {
+        const map = {
+          "APPROVED": "Đã phê duyệt",
+          "CLOSED": "Đã đóng",
+          "EXPIRED": "Hết hạn",
+          "ON GOING": "Đang thực hiện",
+          "REJECTED": "Bị từ chối",
+          "SUBMITTED": "Đã gửi"
+        };
+        return map[status] || `Trạng thái: ${status}`;
+      }
+      return "Không rõ trạng thái.";
+    }
 
-  const msg = results.length === 1 ? analyzePart(results[0]) : `Tìm thấy ${results.length} kết quả gần giống.`;
-  DOM.resultDiv.innerHTML += `<br/>✅ ${msg}`;
-  speak(msg);
-}
+    async function processTranscript(transcript, fromHistory = false) {
+      const cleaned = transcript.replace(/\s+/g, '').toUpperCase();
+      if (!fromHistory) saveToHistory(cleaned);
+      DOM.resultDiv.innerHTML = `🗣 Bạn nói: <b>${transcript}</b><br>→ Chuẩn hóa: <b>${cleaned}</b>`;
 
-function renderResultsTable(results) {
-  let html = `<table id="resultsTable"><thead><tr>
-    <th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th>
-    <th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th>
-    <th>CE</th><th>Ảnh</th>
-  </tr></thead><tbody>`;
+      const data = await fetchData();
+      const results = data.filter(row => typeof row["Part Number"] === "string" && row["Part Number"].toUpperCase().includes(cleaned));
 
-  results.slice(0, 10).forEach((item, index) => {
-    const erp = item["ERP-CODE"]?.toUpperCase() || "";
-    const msg = analyzePart(item);
-    html += `<tr onclick="speak('${msg}')">
-      <td>${index + 1}</td>
-      <td>${item["Part Number"]}</td>
-      <td>${item["REV"]}</td>
-      <td>${item["Approval Status"]}</td>
-      <td>${item["Customer"]}</td>
-      <td>${item["Commodity"]}</td>
-      <td>${item["Part Pictures"]}</td>
-      <td>${item["Packaging Pictures"]}</td>
-      <td>${item["Critical"]}</td>
-      <td>${item["CE"]}</td>
-      <td><button onclick="event.stopPropagation(); showImage('${erp}', this)">📷</button></td>
-    </tr>`;
-  });
+      if (results.length === 0) {
+        DOM.statusDiv.innerText = "";
+        speak("Không tìm thấy Part Number.");
+        DOM.resultDiv.innerHTML += `<br>❌ Không tìm thấy Part Number.`;
+        DOM.relatedResults.innerHTML = "";
+        return;
+      }
 
-  html += `</tbody></table>`;
-  return html;
-}
+      const msg = results.length === 1 ? analyzePart(results[0]) : `Tìm thấy ${results.length} kết quả gần giống.`;
+      speak(msg);
+      DOM.statusDiv.innerText = "";
+      DOM.resultDiv.innerHTML += `<br/>✅ ${msg}`;
 
-function showImage(erpCode, button) {
-  const rowId = `row-${erpCode}`;
-  document.querySelectorAll('.image-row').forEach(row => row.remove());
+      let html = `<table id='resultsTable'><thead><tr>
+        <th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th>
+        <th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th><th>CE</th><th>Xem ảnh</th>
+      </tr></thead><tbody>`;
 
-  const img = document.createElement('img');
-  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
-  img.style.maxWidth = '90%';
-  img.style.maxHeight = '300px';
-  img.style.border = '2px solid black';
-  img.loading = 'lazy';
-  img.onerror = () => img.replaceWith(document.createTextNode('Ảnh không tồn tại'));
-
-  const tr = document.createElement('tr');
-  tr.className = 'image-row';
-
-  const td = document.createElement('td');
-  td.colSpan = 30;
-  td.style.textAlign = 'center';
-  td.appendChild(img);
-  tr.appendChild(td);
-
-  button.closest('tr').after(tr);
-}
-
-function makeTableSortable(id) {
-  const table = document.getElementById(id);
-  const headers = table.querySelectorAll('th');
-  headers.forEach((th, i) => {
-    const arrow = document.createElement('span');
-    arrow.style.marginLeft = '6px';
-    th.appendChild(arrow);
-
-    th.addEventListener('click', () => {
-      const rows = Array.from(table.querySelectorAll('tbody > tr:not(.image-row)'));
-      const asc = th.dataset.order !== 'asc';
-      rows.sort((a, b) => {
-        const aText = a.children[i].textContent.trim();
-        const bText = b.children[i].textContent.trim();
-        return asc ? aText.localeCompare(bText, 'vi', { numeric: true }) : bText.localeCompare(aText, 'vi', { numeric: true });
+      results.slice(0, 10).forEach((item, index) => {
+        const erp = item["ERP-CODE"]?.toUpperCase() || "";
+        html += `<tr onclick="speak('${analyzePart(item)}')">
+          <td>${index + 1}</td>
+          <td>${item["Part Number"] || ""}</td>
+          <td>${item["REV"] || ""}</td>
+          <td>${item["Approval Status"] || ""}</td>
+          <td>${item["Customer"] || ""}</td>
+          <td>${item["Commodity"] || ""}</td>
+          <td>${item["Part Pictures"] || ""}</td>
+          <td>${item["Packaging Pictures"] || ""}</td>
+          <td>${item["Critical"] || ""}</td>
+          <td>${item["CE"] || ""}</td>
+          <td>
+            ${erp ? `<img src="https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erp}.jpg" 
+              style="max-height:60px;border:1px solid #ccc"
+              onerror="this.outerHTML='<div style=\\'color:gray;font-style:italic\\'>No photo</div>'"/>` : 'No image'}
+          </td>
+        </tr>`;
       });
 
-      rows.forEach(row => table.querySelector('tbody').appendChild(row));
-      headers.forEach(h => (h.dataset.order = '', h.querySelector('span').textContent = ''));
-      th.dataset.order = asc ? 'asc' : 'desc';
-      arrow.textContent = asc ? '▲' : '▼';
-    });
-  });
-}
+      html += `</tbody></table>`;
+      DOM.relatedResults.innerHTML = html;
+    }
 
-function startRecognition() {
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "vi-VN";
-  recognition.interimResults = true;
+    function startRecognition() {
+      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "vi-VN";
+      recognition.interimResults = true;
 
-  recognition.onstart = () => {
-    isListening = true;
-    DOM.recordBtn.innerText = "🛑 Nhấn để dừng";
-    DOM.statusDiv.innerText = "🎧 Đang nghe...";
-    DOM.resultDiv.innerHTML = "";
-    DOM.relatedResults.innerHTML = "";
-  };
+      recognition.onstart = () => {
+        isListening = true;
+        DOM.recordBtn.innerText = "🛑 Nhấn để dừng";
+        DOM.statusDiv.innerText = "🎧 Đang nghe...";
+        DOM.resultDiv.innerHTML = "";
+        DOM.relatedResults.innerHTML = "";
+      };
 
-  recognition.onresult = (event) => {
-    let finalTranscript = "";
-    for (let i = event.resultIndex; i < event.results.length; ++i)
-      if (event.results[i].isFinal)
-        finalTranscript += event.results[i][0].transcript;
-    if (finalTranscript) processTranscript(finalTranscript);
-  };
+      recognition.onresult = (event) => {
+        let finalTranscript = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        if (finalTranscript) processTranscript(finalTranscript);
+      };
 
-  recognition.onerror = (e) => {
-    DOM.statusDiv.innerText = "";
-    DOM.recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
-    DOM.resultDiv.innerHTML = `❌ Lỗi: ${e.error}`;
-    speak("Đã xảy ra lỗi nhận diện giọng nói.");
-    isListening = false;
-  };
+      recognition.onerror = (e) => {
+        DOM.statusDiv.innerText = "";
+        speak("Đã xảy ra lỗi nhận diện giọng nói.");
+        DOM.resultDiv.innerHTML = `❌ Lỗi: ${e.error}`;
+        DOM.recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
+        isListening = false;
+      };
 
-  recognition.onend = () => {
-    isListening = false;
-    DOM.statusDiv.innerText = "";
-    DOM.recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
-  };
+      recognition.onend = () => {
+        if (isListening) DOM.statusDiv.innerText = "⏳ Đang xử lý...";
+        isListening = false;
+        DOM.recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
+      };
 
-  recognition.start();
-}
+      recognition.start();
+    }
 
-function stopRecognition() {
-  recognition?.stop();
-}
+    function stopRecognition() {
+      if (recognition) recognition.stop();
+    }
 
-function saveToHistory(query) {
-  let history = JSON.parse(localStorage.getItem("history")) || [];
-  if (!history.includes(query)) {
-    history.unshift(query);
-    if (history.length > 10) history = history.slice(0, 10);
-    localStorage.setItem("history", JSON.stringify(history));
-  }
-  renderHistory();
-}
+    DOM.recordBtn.onclick = () => {
+      isListening ? stopRecognition() : startRecognition();
+    };
 
-function renderHistory() {
-  const history = JSON.parse(localStorage.getItem("history")) || [];
-  DOM.historyList.innerHTML = "";
-  history.forEach(query => {
-    const li = document.createElement("li");
-    li.textContent = query;
-    li.onclick = () => processTranscript(query, true);
-    DOM.historyList.appendChild(li);
-  });
-}
+    function saveToHistory(partNumber) {
+      const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+      const now = new Date().toLocaleString("vi-VN");
+      history.unshift({ partNumber, time: now });
+      if (history.length > 20) history.pop();
+      localStorage.setItem("searchHistory", JSON.stringify(history));
+      renderHistory();
+    }
 
-renderHistory();
+    function renderHistory() {
+      const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+      DOM.historyList.innerHTML = "";
+      history.forEach(item => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "6px";
+        li.innerHTML = `<button onclick="processTranscript('${item.partNumber}', true)" 
+          style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;">
+          ${item.partNumber}</button> <small style="color:#ccc">(${item.time})</small>`;
+        DOM.historyList.appendChild(li);
+      });
+    }
 
+    function clearHistory() {
+      if (confirm("Bạn có chắc muốn xóa toàn bộ lịch sử?")) {
+        localStorage.removeItem("searchHistory");
+        renderHistory();
+      }
+    }
+
+    window.onload = renderHistory;
   </script>
 </body>
 </html>
