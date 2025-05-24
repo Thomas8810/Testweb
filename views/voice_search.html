@@ -284,7 +284,7 @@
     <td>${item["CE"] || ""}</td>
     <td>${
             erpCode
-            ? `<img src="https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg"
+            ? `<img src="https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg"
                 onerror=\"this.outerHTML='<div style=\\'color:gray;font-style:italic\\'>No photo</div>'\"
                 style=\"max-height:60px;border:1px solid #ccc\"/>`
             : `<div style='color:gray;font-style:italic'>No photo</div>`
@@ -410,7 +410,7 @@ function showImage(erpCode, button) {
     const img = document.createElement('img');
     img.id = imgId;
     img.className = 'image-preview';
-    img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
+    img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
     img.style.maxWidth = '90%';
     img.style.maxHeight = '300px';
     img.style.border = '2px solid black';
@@ -423,7 +423,7 @@ function showImage(erpCode, button) {
     button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
   } else {
     existingRow.style.display = 'table-row';
-    document.getElementById(imgId).src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
+    document.getElementById(imgId).src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
   }
 }
 </script>
@@ -454,7 +454,7 @@ function showImage(erpCode, button) {
 
   const img = document.createElement('img');
   img.className = 'image-preview';
-  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
+  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
   img.style.maxWidth = '90%';
   img.style.maxHeight = '300px';
   img.style.border = '2px solid black';
@@ -483,7 +483,7 @@ function showImage(erpCode, button) {
 
   const img = document.createElement('img');
   img.className = 'image-preview';
-  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
+  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
   img.style.maxWidth = '120px';
   img.style.maxHeight = '80px';
   img.style.border = '1px solid gray';
