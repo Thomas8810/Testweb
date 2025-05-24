@@ -252,7 +252,6 @@
   html += `<tr onclick="speak('${msg}')">
     <td>1</td>
     <td>${results[0]["Part Number"] || ""}</td>
-    <td><button onclick="showImage('${item["ERP-CODE"]}', this)">🖼️</button></td>
     <td>${results[0]["REV"] || ""}</td>
     <td>${results[0]["Approval Status"] || ""}</td>
     <td>${results[0]["Customer"] || ""}</td>
@@ -261,8 +260,6 @@
     <td>${results[0]["Packaging Pictures"] || ""}</td>
     <td>${results[0]["Critical"] || ""}</td>
     <td>${results[0]["CE"] || ""}</td>
-    <td><button onclick="showImage('${item["ERP-CODE"]}', this)">🖼️</button></td>
-
   </tr>`;
   html += `</tbody></table>`;
   document.getElementById("relatedResults").innerHTML = html;
@@ -273,10 +270,23 @@
         speak(`Tìm thấy ${results.length} kết quả gần giống.`);
         let html = `<table id='resultsTable'><thead><tr><th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th><th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th><th>CE</th></tr></thead><tbody>`;
         results.slice(0, 10).forEach((item, index) => {
+  const erpCode = item["ERP-CODE"]?.toUpperCase() || item["Part Number"]?.toUpperCase() || "";
+  html += `<tr onclick="speak('${analyzePart(item)}')">
+    <td>${index + 1}</td>
+    <td>${item["Part Number"] || ""}</td>
+    <td>${item["REV"] || ""}</td>
+    <td>${item["Approval Status"] || ""}</td>
+    <td>${item["Customer"] || ""}</td>
+    <td>${item["Commodity"] || ""}</td>
+    <td>${item["Part Pictures"] || ""}</td>
+    <td>${item["Packaging Pictures"] || ""}</td>
+    <td>${item["Critical"] || ""}</td>
+    <td>${item["CE"] || ""}</td>
+    <td><button onclick="event.stopPropagation(); showImage('${erpCode}', this)">🖼️</button></td>
+  </tr>`;
           html += `<tr onclick="speak('${analyzePart(item)}')">
             <td>${index + 1}</td>
             <td>${item["Part Number"] || ""}</td>
-            <td><button onclick="showImage('${item["ERP-CODE"]}', this)">🖼️</button></td>
             <td>${item["REV"] || ""}</td>
             <td>${item["Approval Status"] || ""}</td>
             <td>${item["Customer"] || ""}</td>
@@ -372,18 +382,16 @@ function showImage(erpCode, button) {
   const imgId = `preview-${erpCode}`;
   const rowId = `row-${erpCode}`;
 
-  // Ẩn tất cả ảnh đang mở
+  // Hide other previews
   document.querySelectorAll('.image-row').forEach(row => row.style.display = 'none');
   document.querySelectorAll('.image-preview').forEach(img => img.src = '');
 
-  // Nếu đã hiện, thì ẩn
   const existingRow = document.getElementById(rowId);
   if (existingRow && existingRow.style.display === 'table-row') {
     existingRow.style.display = 'none';
     return;
   }
 
-  // Nếu chưa có, tạo dòng mới bên dưới
   if (!existingRow) {
     const tr = document.createElement('tr');
     tr.id = rowId;
@@ -391,7 +399,7 @@ function showImage(erpCode, button) {
     tr.style.display = 'table-row';
 
     const td = document.createElement('td');
-    td.colSpan = 30;
+    td.colSpan = 11;
     td.style.textAlign = 'center';
 
     const img = document.createElement('img');
@@ -406,16 +414,15 @@ function showImage(erpCode, button) {
 
     td.appendChild(img);
     tr.appendChild(td);
-
-    // Chèn ngay sau dòng nút nhấn
     button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
   } else {
-    document.getElementById(rowId).style.display = 'table-row';
+    existingRow.style.display = 'table-row';
     document.getElementById(imgId).src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
   }
 }
 </script>
 </body>
+
 
 <script>
   function saveToHistory(partNumber) {
