@@ -1782,6 +1782,29 @@ function showImage(erpCode, button) {
   cell.appendChild(img);
 }
 </script>
+
+<!-- Modal for image -->
+<div id="imageModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;z-index:9999;align-items:center;justify-content:center;">
+  <div onclick="closeModal()" style="position:absolute;top:10px;right:20px;font-size:28px;color:white;cursor:pointer;">×</div>
+  <img id="modalImg" style="max-width:90%;max-height:90%;border:4px solid white;border-radius:10px;" />
+</div>
+
+<script>
+function showImagePopup(erpCode) {
+  const modal = document.getElementById('imageModal');
+  const img = document.getElementById('modalImg');
+  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
+  img.onerror = () => {
+    img.src = '';
+    img.alt = "No photo";
+    img.outerHTML = "<div style='color:white;font-size:20px;font-style:italic'>No photo</div>";
+  };
+  modal.style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('imageModal').style.display = 'none';
+}
+</script>
 </body>
 
 </html>
