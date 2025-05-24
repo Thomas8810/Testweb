@@ -20,6 +20,9 @@
     #backHome { position: fixed; bottom: 10px; right: 10px; background: rgba(255,255,255,0.1); color: white; padding: 10px 16px; border-radius: 20px; text-decoration: none; border: 1px solid #ccc; }
     #statusListening { margin-top: 1rem; font-size: 1.2rem; font-weight: bold; color: #00ffcc; animation: pulse 1s infinite; }
     @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+    #history { margin-top: 1.5rem; padding: 1rem; background: #333; border-radius: 8px; }
+    #history ul { list-style-type: none; padding: 0; }
+    #history li { margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -34,11 +37,16 @@
   <div class="table-scroll" id="relatedResults"></div>
   <a href="/home" id="backHome">← Trang chủ</a>
 
+  <div id="history">
+    <h3>Lịch sử tìm kiếm:</h3>
+    <ul id="historyList"></ul>
+  </div>
+
   <script>
     let mode = 'image', recognition, isListening = false;
     const btnImage = document.getElementById('modeImage'), btnStatus = document.getElementById('modeStatus');
     const recordBtn = document.getElementById("recordBtn"), resultDiv = document.getElementById("result");
-    const statusDiv = document.getElementById("statusListening");
+    const statusDiv = document.getElementById("statusListening"), historyList = document.getElementById("historyList");
 
     btnImage.onclick = () => setMode('image');
     btnStatus.onclick = () => setMode('status');
@@ -100,6 +108,20 @@
       });
     }
 
+    function saveToHistory(query) {
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      if (!history.includes(query)) {
+        history.push(query);
+        localStorage.setItem('history', JSON.stringify(history));
+        updateHistory();
+      }
+    }
+
+    function updateHistory() {
+      const history = JSON.parse(localStorage.getItem('history')) || [];
+      historyList.innerHTML = history.map(item => `<li>${item}</li>`).join('');
+    }
+
     async function processTranscript(transcript, fromHistory = false) {
       const cleaned = transcript.replace(/\s+/g, '').toUpperCase();
       if (!fromHistory) saveToHistory(cleaned);
@@ -115,28 +137,33 @@
         const tableHtml = results.length === 1 ? analyzePart(results[0]) : `
           <table id="resultTable">
             <thead><tr><th>Part Number</th><th>Part Name</th><th>Xem ảnh</th></tr></thead>
-            <tbody>${results.map(item => `<tr class="active-row"><td>${item["Part Number"]}</td><td>${item["Part Name"]}</td><td><img src="${item["Part Pictures"]}" width="120" height="80" alt="Part Image"></td></tr>`).join('')}</tbody>
-          </table>`;
-        resultDiv.innerHTML += `<br>✅ Tìm thấy ${results.length} kết quả:`;
-        document.getElementById("relatedResults").innerHTML = tableHtml;
+            <tbody>${results.map(item => `<tr class="active-row"><td>${item["Part Number"]}</td><td>${item["Part Name"]}</td><td><button>🖼️</button></td></tr>`).join('')}</tbody>
+          </table>
+        `;
+        resultDiv.innerHTML += tableHtml;
         makeTableSortable("resultTable");
       }
     }
 
-    async function startListening() {
-      if (isListening) return;
-      isListening = true;
+    function startListening() {
       recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       recognition.lang = "vi-VN";
-      recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.onstart = () => { statusDiv.innerText = "Đang nghe... 🎙️"; speak("Đang nghe..."); };
-      recognition.onend = () => { statusDiv.innerText = "Ngừng nghe."; speak("Ngừng nghe."); isListening = false; };
-      recognition.onresult = (event) => processTranscript(event.results[event.resultIndex][0].transcript);
+      recognition.onstart = () => {
+        isListening = true;
+        recordBtn.innerText = "🔴 Dừng ghi âm";
+        statusDiv.innerText = "Đang lắng nghe...";
+      };
+      recognition.onend = () => {
+        isListening = false;
+        recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
+      };
+      recognition.onresult = event => processTranscript(event.results[event.resultIndex][0].transcript);
       recognition.start();
     }
 
-    recordBtn.onclick = () => { isListening ? recognition.stop() : startListening(); };
+    recordBtn.onclick = () => isListening ? recognition.stop() : startListening();
+    updateHistory();  // Load history on page load
   </script>
 </body>
 </html>
