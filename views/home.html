@@ -696,7 +696,7 @@ input:focus, select:focus {
 <th data-column="Remark 2">Remark 2</th>
 <th data-column="Submit date">Submit date</th>
 <th data-column="Reject comments">Reject comments</th>
-</tr></thead>
+<th>Xem ảnh</th></tr></thead>
 <tbody>
 <!-- Dữ liệu sẽ được load tại đây -->
 </tbody>
@@ -1671,18 +1671,15 @@ function showImage(erpCode, button) {
   const imgId = `preview-${erpCode}`;
   const rowId = `row-${erpCode}`;
 
-  // Ẩn tất cả ảnh đang mở
   document.querySelectorAll('.image-row').forEach(row => row.style.display = 'none');
   document.querySelectorAll('.image-preview').forEach(img => img.src = '');
 
-  // Nếu đã hiện, thì ẩn
   const existingRow = document.getElementById(rowId);
   if (existingRow && existingRow.style.display === 'table-row') {
     existingRow.style.display = 'none';
     return;
   }
 
-  // Nếu chưa có, tạo dòng mới bên dưới
   if (!existingRow) {
     const tr = document.createElement('tr');
     tr.id = rowId;
@@ -1699,17 +1696,16 @@ function showImage(erpCode, button) {
     img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
     img.style.maxWidth = '90%';
     img.style.maxHeight = '300px';
-    img.style.border = '2px solid white';
+    img.style.border = '2px solid black';
     img.style.margin = '10px auto';
     img.loading = 'lazy';
 
     td.appendChild(img);
     tr.appendChild(td);
 
-    // Chèn ngay sau dòng nút nhấn
     button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
   } else {
-    document.getElementById(rowId).style.display = 'table-row';
+    existingRow.style.display = 'table-row';
     document.getElementById(imgId).src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/${erpCode}.jpg`;
   }
 }
