@@ -113,6 +113,7 @@
             font-weight: bold;
             color: #00ffcc;
             animation: pulse 1s infinite;
+            display: none; /* Mặc định ẩn, chỉ hiện khi có trạng thái */
         }
 
         @keyframes pulse {
@@ -172,8 +173,9 @@
         const relatedResultsDiv = document.getElementById("relatedResults");
         const historyList = document.getElementById("historyList");
 
-        let recognition;
+        let recognition = null; // Khởi tạo null, sẽ gán khi startRecognition
         let isListening = false;
+        let finalTranscriptReceived = false; // Biến cờ để kiểm soát onend
 
         // --- Hàm tiện ích ---
         function updateModeButtons() {
@@ -185,6 +187,8 @@
                 btnVoice.classList.add('mode-inactive');
                 searchTextArea.style.display = 'block';
                 recordBtn.style.display = 'none';
+                statusDiv.style.display = 'none'; // Ẩn trạng thái khi ở chế độ nhập tay
+                stopRecognition(); // Dừng ghi âm nếu đang ở chế độ giọng nói
             } else { // voice mode
                 btnVoice.classList.add('mode-active');
                 btnVoice.classList.remove('mode-inactive');
@@ -192,6 +196,7 @@
                 btnText.classList.add('mode-inactive');
                 searchTextArea.style.display = 'none';
                 recordBtn.style.display = 'inline-block';
+                // statusDiv sẽ được hiển thị khi startRecognition
             }
 
             // Cập nhật nút analysisMode
@@ -217,20 +222,19 @@
                 return await res.json();
             } catch (error) {
                 console.error("Error fetching data:", error);
+                statusDiv.style.display = 'block'; // Hiển thị trạng thái lỗi
                 statusDiv.innerText = "❌ Lỗi khi tải dữ liệu. Vui lòng thử lại sau.";
                 return []; // Trả về mảng rỗng để tránh lỗi khi filter
             }
         }
 
         function speak(text) {
-            // Kiểm tra xem SpeechSynthesis có sẵn không
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = "vi-VN";
                 speechSynthesis.speak(utterance);
             } else {
                 console.warn("Speech Synthesis API không được hỗ trợ trên trình duyệt này.");
-                // Có thể hiển thị thông báo cho người dùng
             }
         }
 
@@ -268,7 +272,6 @@
             const headers = table.querySelectorAll('th');
             headers.forEach((th, colIndex) => {
                 th.style.cursor = 'pointer';
-                // Xóa các mũi tên cũ nếu có
                 const oldArrow = th.querySelector('span');
                 if (oldArrow) oldArrow.remove();
 
@@ -279,22 +282,19 @@
 
                 th.addEventListener('click', () => {
                     const rows = Array.from(table.querySelectorAll('tbody > tr'));
-                    const isAsc = th.dataset.order !== 'asc'; // Ngược lại với trạng thái hiện tại
+                    const isAsc = th.dataset.order !== 'asc';
                     rows.sort((a, b) => {
                         const aText = a.children[colIndex].textContent.trim();
                         const bText = b.children[colIndex].textContent.trim();
-                        // LocaleCompare với tùy chọn numeric để sắp xếp số đúng
                         return isAsc ? aText.localeCompare(bText, 'vi', { numeric: true }) : bText.localeCompare(aText, 'vi', { numeric: true });
                     });
                     rows.forEach(row => table.querySelector('tbody').appendChild(row));
 
-                    // Reset các mũi tên và trạng thái sắp xếp của các cột khác
                     headers.forEach(h => {
                         h.dataset.order = '';
                         h.querySelector('span').textContent = '';
                     });
 
-                    // Cập nhật mũi tên và trạng thái cho cột hiện tại
                     th.dataset.order = isAsc ? 'asc' : 'desc';
                     arrow.textContent = isAsc ? '▲' : '▼';
                 });
@@ -302,7 +302,7 @@
         }
 
         function showImageInCell(erpCode, cellElement) {
-            cellElement.innerHTML = ''; // Xóa nội dung hiện có (ví dụ: "No photo" hoặc button)
+            cellElement.innerHTML = ''; 
 
             if (!erpCode) {
                 cellElement.innerHTML = '<div style="padding:4px;font-style:italic;color:gray">No photo</div>';
@@ -310,21 +310,17 @@
             }
 
             const img = document.createElement('img');
-            img.className = 'table-thumbnail-image'; // Thêm class để dễ style nếu cần
-            img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_80,h_60,c_fit/ERP-CODE/${erpCode}.jpg`; // Tối ưu ảnh nhỏ
+            img.className = 'table-thumbnail-image'; 
+            img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_80,h_60,c_fit/ERP-CODE/${erpCode}.jpg`;
             img.alt = `Ảnh Part ${erpCode}`;
-            img.style.maxWidth = '80px'; // Giữ kích thước nhỏ cho thumbnail
+            img.style.maxWidth = '80px';
             img.style.maxHeight = '60px';
             img.style.border = '1px solid gray';
-            img.style.cursor = 'pointer'; // Thể hiện có thể click
+            img.style.cursor = 'pointer'; 
 
             img.onerror = function() {
                 cellElement.innerHTML = '<div style="padding:4px;font-style:italic;color:gray">No photo</div>';
             };
-
-            // Bạn có thể thêm chức năng hiển thị ảnh lớn hơn khi click vào thumbnail này
-            // img.onclick = () => showFullImagePopup(erpCode);
-
             cellElement.appendChild(img);
         }
 
@@ -333,13 +329,13 @@
             if (!fromHistory) saveToHistory(cleaned);
             
             resultDiv.innerHTML = `🗣 Bạn nói: <b>${transcript}</b><br>→ Chuẩn hóa: <b>${cleaned}</b>`;
+            statusDiv.style.display = 'block';
             statusDiv.innerText = "⏳ Đang tìm kiếm...";
-            relatedResultsDiv.innerHTML = ""; // Xóa kết quả cũ
+            relatedResultsDiv.innerHTML = ""; 
 
             const data = await fetchData();
             if (data.length === 0) {
-                statusDiv.innerText = "";
-                resultDiv.innerHTML += `<br>❌ Không tìm thấy dữ liệu để tra cứu.`;
+                statusDiv.innerText = "❌ Không tìm thấy dữ liệu để tra cứu.";
                 speak("Không tìm thấy dữ liệu để tra cứu.");
                 return;
             }
@@ -351,8 +347,8 @@
                 speak("Không tìm thấy Part Number.");
                 resultDiv.innerHTML += `<br>❌ Không tìm thấy Part Number.`;
             } else {
-                statusDiv.innerText = ""; // Clear status
-                const msg = analyzePart(results[0]); // Lấy thông báo cho kết quả đầu tiên
+                statusDiv.innerText = ""; 
+                const msg = analyzePart(results[0]); 
 
                 if (results.length === 1) {
                     resultDiv.innerHTML += `<br/>✅ ${msg}`;
@@ -368,7 +364,6 @@
                     <th>CE</th><th>Ảnh</th></tr></thead><tbody>`;
 
                 results.slice(0, 10).forEach((item, index) => {
-                    const erpCode = item["ERP-CODE"]?.toUpperCase() || "";
                     html += `<tr onclick="speak('${analyzePart(item).replace(/'/g, "\\'")}')">
                         <td>${index + 1}</td>
                         <td>${item["Part Number"] || ""}</td>
@@ -380,17 +375,18 @@
                         <td>${item["Packaging Pictures"] || ""}</td>
                         <td>${item["Critical"] || ""}</td>
                         <td>${item["CE"] || ""}</td>
-                        <td id="imageCell-${item["Part Number"]}-${index}"></td> </tr>`;
+                        <td id="imageCell-${item["Part Number"].replace(/\s+/g, '-')}-${index}"></td>
+                    </tr>`;
                 });
 
                 html += `</tbody></table>`;
                 relatedResultsDiv.innerHTML = html;
                 makeTableSortable('resultsTable');
 
-                // Sau khi bảng được render, chèn ảnh vào các ô ảnh
                 results.slice(0, 10).forEach((item, index) => {
                     const erpCode = item["ERP-CODE"]?.toUpperCase() || "";
-                    const imageCell = document.getElementById(`imageCell-${item["Part Number"]}-${index}`);
+                    // Sử dụng ID chuẩn hóa để tránh lỗi nếu Part Number có khoảng trắng hoặc ký tự đặc biệt
+                    const imageCell = document.getElementById(`imageCell-${item["Part Number"].replace(/\s+/g, '-')}-${index}`);
                     if (imageCell) {
                         showImageInCell(erpCode, imageCell);
                     }
@@ -402,12 +398,11 @@
         function saveToHistory(partNumber) {
             const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
             const now = new Date().toLocaleString("vi-VN");
-            // Kiểm tra nếu mục gần nhất giống thì không thêm nữa để tránh trùng lặp liên tục
             if (history.length > 0 && history[0].partNumber === partNumber) {
                 return;
             }
             history.unshift({ partNumber, time: now });
-            if (history.length > 20) history.pop(); // Giới hạn 20 mục
+            if (history.length > 20) history.pop();
             localStorage.setItem("searchHistory", JSON.stringify(history));
             renderHistory();
         }
@@ -436,21 +431,27 @@
 
         // --- Xử lý sự kiện nhận diện giọng nói ---
         function startRecognition() {
-            // Kiểm tra hỗ trợ SpeechRecognition
             if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
-                statusDiv.innerText = "Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Google Chrome hoặc trình duyệt khác có hỗ trợ.";
+                statusDiv.style.display = 'block';
+                statusDiv.innerText = "❌ Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Google Chrome hoặc trình duyệt khác có hỗ trợ.";
                 speak("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
                 recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
                 return;
             }
 
+            if (recognition) {
+                recognition.stop(); // Đảm bảo dừng phiên trước nếu có
+            }
+
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = "vi-VN";
-            recognition.interimResults = true; // Cho phép kết quả tạm thời
+            recognition.interimResults = true;
+            finalTranscriptReceived = false; // Reset cờ
 
             recognition.onstart = () => {
                 isListening = true;
                 recordBtn.innerText = "🛑 Nhấn để dừng";
+                statusDiv.style.display = 'block';
                 statusDiv.innerText = "🎧 Đang nghe...";
                 resultDiv.innerHTML = "";
                 relatedResultsDiv.innerHTML = "";
@@ -462,29 +463,41 @@
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         finalTranscript += event.results[i][0].transcript;
+                        finalTranscriptReceived = true; // Đặt cờ khi có kết quả cuối cùng
                     } else {
                         interimTranscript += event.results[i][0].transcript;
                     }
                 }
                 resultDiv.innerHTML = `🗣 Bạn nói: <b>${finalTranscript || interimTranscript}</b>`;
+                if (finalTranscript) {
+                    processTranscript(finalTranscript); // Xử lý ngay khi có final transcript
+                }
             };
 
             recognition.onerror = (e) => {
-                statusDiv.innerText = "";
+                statusDiv.style.display = 'block';
+                statusDiv.innerText = `❌ Lỗi: ${e.error}. Vui lòng thử lại.`;
                 speak("Đã xảy ra lỗi nhận diện giọng nói.");
-                resultDiv.innerHTML = `❌ Lỗi: ${e.error}`;
                 recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
                 isListening = false;
             };
 
             recognition.onend = () => {
-                if (isListening) { // Nếu kết thúc do người dùng dừng hoặc không có kết quả cuối cùng
-                    statusDiv.innerText = "⏳ Đang xử lý...";
-                    // Lấy lại transcript cuối cùng (nếu onresult đã xử lý rồi thì không cần làm lại)
-                    // Nếu cần xử lý final transcript ở đây, bạn có thể lưu nó từ onresult vào một biến global
-                }
                 isListening = false;
                 recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
+                if (!finalTranscriptReceived) {
+                    // Nếu không có kết quả cuối cùng được nhận (ví dụ: người dùng không nói gì)
+                    statusDiv.style.display = 'block';
+                    statusDiv.innerText = "Không nhận diện được giọng nói. Vui lòng thử lại.";
+                    resultDiv.innerHTML = ""; // Xóa nội dung "Bạn nói: "
+                } else {
+                    // Nếu đã có kết quả cuối cùng, trạng thái sẽ được cập nhật bởi processTranscript
+                    // Hoặc bạn có thể xóa trạng thái nghe nếu processTranscript đã xong
+                    if (statusDiv.innerText.includes("Đang nghe...")) { // Chỉ xóa nếu không có lỗi hoặc kết quả từ processTranscript
+                       statusDiv.innerText = "";
+                       statusDiv.style.display = 'none';
+                    }
+                }
             };
 
             recognition.start();
@@ -494,6 +507,7 @@
             if (recognition && isListening) {
                 recognition.stop();
                 isListening = false;
+                // statusDiv sẽ được cập nhật trong onend
             }
         }
 
@@ -513,6 +527,7 @@
             } else {
                 resultDiv.innerHTML = "Vui lòng nhập từ khóa để tìm kiếm.";
                 relatedResultsDiv.innerHTML = "";
+                statusDiv.style.display = 'none'; // Ẩn trạng thái khi không tìm kiếm
             }
         };
 
