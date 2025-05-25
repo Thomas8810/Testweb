@@ -581,6 +581,7 @@ input:focus, select:focus {
     padding: 2px;
     text-align: center;
     border: none; /* Remove default border */
+    background: none; /* Remove default background */
 }
 .ui-datepicker-calendar span, .ui-datepicker-calendar a {
     display: block;
@@ -659,7 +660,7 @@ input:focus, select:focus {
 <option value="FAIR Data">FAIR Data</option>
 <option value="COC">COC</option>
 <option value="BOM">BOM</option>
-<option value="Mill">Mill</option>
+<option value="Mill">Mill</s>
 <option value="Test reports / evidences">Test reports / evidences</option>
 <option value="Remark 1">Remark 1</option>
 <option value="Remark 2">Remark 2</option>
@@ -807,8 +808,8 @@ input:focus, select:focus {
 <th data-column="FAIR Data">FAIR Data</th>
 <th data-column="COC">COC</th>
 <th data-column="BOM">BOM</th>
-<th data-column="Mill">Mill</th>
-<th data-column="Test reports / evidences">Test reports / evidences</th>
+<th data-column="Mill">Mill</s>
+<th data-column="Test reports / evidences">Test reports / evidences</option>
 <th data-column="Remark 1">Remark 1</th>
 <th data-column="Remark 2">Remark 2</th>
 <th data-column="Submit date">Submit date</th>
@@ -865,7 +866,7 @@ input:focus, select:focus {
         return null; // Return null for invalid or unparseable dates
     }
 
-    // Hàm format Date object hoặc số Excel ra chuỗi YYYY-MM-DD
+    // Hàm format Date object hoặc số Excel ra chuỗi Букмекерлар-MM-DD
     function formatExcelDate(val) {
         if (!val) return '';
 
@@ -1709,7 +1710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 300);
     });
-  }
+  });
 });
 </script><script>
 document.addEventListener('DOMContentLoaded', function () {
