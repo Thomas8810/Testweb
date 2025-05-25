@@ -756,11 +756,10 @@
         <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
-    <div id="image-popup">
-        <img src="" alt="Part Image" style="display:none;">
-        <span class="no-image-text" style="display:none;"></span>
-    </div>
-
+<div id="image-popup" style="display:none; position: fixed; border: 1px solid #ccc; background: white; padding: 5px; z-index: 10000; box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 250px; max-height: 250px; overflow: hidden;">
+    <img src="" alt="Part Image" style="display:none; max-width: 100%; max-height: 100%; display: block;">
+    <span class="no-image-text" style="display:none; padding: 10px; text-align: center; color: #555;"></span>
+</div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1300,111 +1299,132 @@
             });
         }
 
-        function updateTable(data, reset) {
-            const tbody = $('#results-table tbody');
-            if (reset) tbody.empty();
+function updateTable(data, reset) {
+    const tbody = $('#results-table tbody');
+    if (reset) tbody.empty();
 
-            const imagePopup = $('#image-popup');
-            const popupImg = imagePopup.find('img');
-            const popupText = imagePopup.find('span.no-image-text');
+    // Tham chiếu đến các phần tử của popup (đảm bảo HTML của popup đã tồn tại trong body)
+    const imagePopup = $('#image-popup');
+    const popupImg = imagePopup.find('img');
+    const popupText = imagePopup.find('span.no-image-text');
 
-            data.forEach(function(row) {
-                const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
-                const tr = $('<tr>');
+    data.forEach(function(row) {
+        const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
+        const tr = $('<tr>');
 
-                tr.append(`<td class="sticky-col-1">${serial}</td>`);
+        tr.append(`<td class="sticky-col-1">${serial}</td>`);
+        
+        const partNumberCell = $(`<td>${row['Part Number'] || ''}</td>`).addClass('sticky-col-2');
+        
+        partNumberCell.on('mousemove', function(e) {
+            const erpCode = row['ERP-CODE']?.trim().toUpperCase(); // Lấy ERP-CODE và chuẩn hóa
+
+            popupImg.hide().attr('src', ''); // Reset ảnh
+            popupText.hide().text('');   // Reset text
+
+            if (erpCode) {
+                // Sử dụng URL Cloudinary với các tham số transform để giới hạn kích thước ảnh popup
+                // Ví dụ: w_250,h_250,c_limit sẽ giữ tỷ lệ và không vượt quá 250x250
+                const cloudinaryUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit/ERP-CODE/${erpCode}.jpg`;
                 
-                const partNumberCell = $(`<td>${row['Part Number'] || ''}</td>`).addClass('sticky-col-2');
-                partNumberCell.on('mousemove', function(e) {
-                    const imageUrl = row['Part Pictures'];
-                    popupImg.hide(); // Ẩn ảnh và text trước khi kiểm tra
-                    popupText.hide();
+                popupImg.attr('src', cloudinaryUrl);
 
-                    if (imageUrl && imageUrl.toLowerCase() !== 'ok' && imageUrl.trim() !== '' && !imageUrl.toLowerCase().startsWith('http')) {
-                        popupImg.hide().attr('src', '');
-                        popupText.text('No Image Available').show();
-                    } else if (imageUrl && imageUrl.toLowerCase().startsWith('http')) {
-                        popupImg.attr('src', imageUrl).show();
-                        popupText.hide();
-                    }
-                    else { 
-                        popupImg.hide().attr('src', '');
-                        popupText.text('No Image Available').show();
-                    }
+                // Xử lý khi ảnh tải thành công
+                popupImg.off('load').on('load', function() {
+                    $(this).show(); // Hiện thẻ img
+                    popupText.hide(); // Ẩn text báo lỗi (nếu có)
                     imagePopup.css({
+                        top: e.pageY + 15 + 'px', // Hiển thị popup dưới con trỏ chuột
+                        left: e.pageX + 15 + 'px'
+                    }).show(); // Hiện div popup
+                });
+
+                // Xử lý khi ảnh tải lỗi (ví dụ: không tìm thấy ảnh trên Cloudinary)
+                popupImg.off('error').on('error', function() {
+                    $(this).hide(); // Ẩn biểu tượng ảnh hỏng
+                    popupText.text(`Ảnh không tồn tại cho ${erpCode}`).show();
+                    imagePopup.css({ // Vẫn hiện popup để hiển thị text báo lỗi
                         top: e.pageY + 15 + 'px',
                         left: e.pageX + 15 + 'px'
                     }).show();
                 });
-                partNumberCell.on('mouseout', function() {
-                    imagePopup.hide();
-                });
-                tr.append(partNumberCell);
-
-                tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
-                tr.append(`<td>${row['Approval Status'] || ''}</td>`);
-                tr.append(`<td>${row['Customer'] || ''}</td>`);
-                tr.append(`<td>${row['Commodity'] || ''}</td>`);
-                tr.append(`<td>${row['Production Status'] || ''}</td>`);
-                
-                let partPicContent = row['Part Pictures'] || '';
-                if (partPicContent.toLowerCase().startsWith('http')) {
-                    partPicContent = `<a href="${partPicContent}" target="_blank">Link</a>`;
-                } else if (partPicContent.toLowerCase() === 'ok') {
-                    partPicContent = 'OK';
-                } else if (partPicContent.trim() !== '') {
-                     partPicContent = partPicContent; 
-                }
-
-                tr.append(`<td>${partPicContent}</td>`);
-
-                let pkgPicContent = row['Packaging Pictures'] || '';
-                 if (pkgPicContent.toLowerCase().startsWith('http')) {
-                    pkgPicContent = `<a href="${pkgPicContent}" target="_blank">Link</a>`;
-                } else if (pkgPicContent.toLowerCase() === 'ok') {
-                    pkgPicContent = 'OK';
-                } else if (pkgPicContent.trim() !== '') {
-                    pkgPicContent = pkgPicContent; 
-                }
-                tr.append(`<td>${pkgPicContent}</td>`);
-
-                tr.append(`<td>${row['Critical'] || ''}</td>`);
-                tr.append(`<td>${row['CE'] || ''}</td>`);
-                tr.append(`<td>${row['PO Number'] || ''}</td>`);
-                tr.append(`<td>${row['Description'] || ''}</td>`);
-                tr.append(`<td>${row['ERP-CODE'] || ''}</td>`);
-                tr.append(`<td>${row['Note Number'] || ''}</td>`);
-                tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
-                tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
-                tr.append(`<td>${row['Requirements'] || ''}</td>`);
-                tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
-                tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
-                tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
-                tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
-                tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
-                tr.append(`<td>${row['COC'] || ''}</td>`);
-                tr.append(`<td>${row['BOM'] || ''}</td>`);
-                tr.append(`<td>${row['Mill'] || ''}</td>`);
-                tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
-                tr.append(`<td>${row['Remark 1'] || ''}</td>`);
-                tr.append(`<td>${row['Remark 2'] || ''}</td>`);
-                tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
-                tr.append(`<td>${row['Reject comments'] || ''}</td>`);
-
-                tbody.append(tr);
-            });
-
-            var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
-            $('#results-count').text(totalText);
-
-            try {
-                if ($.fn.colResizable) {
-                  $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
-                }
-            } catch (e) {
-                console.log("colResizable not available in updateTable:", e);
+                // Nếu ảnh đã có trong cache, sự kiện 'load' có thể kích hoạt ngay.
+                // Nếu src không hợp lệ ngay từ đầu, 'error' sẽ kích hoạt.
+            } else {
+                popupImg.hide();
+                popupText.text('Không có ERP-CODE').show();
+                imagePopup.css({
+                    top: e.pageY + 15 + 'px',
+                    left: e.pageX + 15 + 'px'
+                }).show();
             }
+        });
+
+        partNumberCell.on('mouseout', function() {
+            imagePopup.hide();
+            popupImg.attr('src', ''); // Xóa src để dừng tải (nếu đang tải) và tránh nhấp nháy ảnh cũ lần sau
+            popupText.hide();
+        });
+        
+        tr.append(partNumberCell);
+
+        // Các cột còn lại như cũ
+        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
+        tr.append(`<td>${row['Approval Status'] || ''}</td>`);
+        tr.append(`<td>${row['Customer'] || ''}</td>`);
+        tr.append(`<td>${row['Commodity'] || ''}</td>`);
+        tr.append(`<td>${row['Production Status'] || ''}</td>`);
+        
+        let partPicContent = row['Part Pictures'] || '';
+        if (typeof partPicContent === 'string' && partPicContent.toLowerCase().startsWith('http')) {
+            partPicContent = `<a href="${partPicContent}" target="_blank">Link</a>`;
         }
+        tr.append(`<td>${partPicContent}</td>`);
+
+        let pkgPicContent = row['Packaging Pictures'] || '';
+        if (typeof pkgPicContent === 'string' && pkgPicContent.toLowerCase().startsWith('http')) {
+            pkgPicContent = `<a href="${pkgPicContent}" target="_blank">Link</a>`;
+        }
+        tr.append(`<td>${pkgPicContent}</td>`);
+
+        tr.append(`<td>${row['Critical'] || ''}</td>`);
+        tr.append(`<td>${row['CE'] || ''}</td>`);
+        tr.append(`<td>${row['PO Number'] || ''}</td>`);
+        tr.append(`<td>${row['Description'] || ''}</td>`);
+        tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); 
+        tr.append(`<td>${row['Note Number'] || ''}</td>`);
+        tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
+        tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
+        tr.append(`<td>${row['Requirements'] || ''}</td>`);
+        tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
+        tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
+        tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
+        tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
+        tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
+        tr.append(`<td>${row['COC'] || ''}</td>`);
+        tr.append(`<td>${row['BOM'] || ''}</td>`);
+        tr.append(`<td>${row['Mill'] || ''}</td>`);
+        tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
+        tr.append(`<td>${row['Remark 1'] || ''}</td>`);
+        tr.append(`<td>${row['Remark 2'] || ''}</td>`);
+        tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
+        tr.append(`<td>${row['Reject comments'] || ''}</td>`);
+
+        tbody.append(tr);
+    });
+
+    var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
+    $('#results-count').text(totalText);
+
+    try {
+        if ($.fn.colResizable) {
+          $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
+        }
+    } catch (e) {
+        console.log("colResizable not available in updateTable:", e);
+    }
+}
+
 
         function downloadExcel() {
             const table = document.getElementById('results-table');
