@@ -1,1995 +1,706 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Web Tra Cứu - Nguyễn Văn Đạo</title>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-<script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
-<script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
-<style>
-    /* Đoạn CSS responsive máy tính */
-@media (min-width: 768px) {
-  html, body {
-    height: 100%;
-    overflow: hidden;
-  }
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
+    <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
 
-  body {
-    overflow-y: auto;
-  }
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"> <style>
+        /* Đoạn CSS responsive máy tính */
+        @media (min-width: 768px) {
+            html, body {
+                height: 100%;
+                overflow: hidden;
+            }
 
-  input, select, textarea {
-    touch-action: manipulation;
-    -webkit-user-select: text;
-    user-select: text;
-    caret-color: auto;
-  }
+            body {
+                overflow-y: auto;
+            }
 
-  input:focus,
-  select:focus,
-  textarea:focus {
-    outline: none;
-    box-shadow: none;
-  }
-}
-    /* Cài đặt CSS cơ bản */
-    html, body { height: 100%; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
-      background: url('background.jpg') no-repeat center center/cover;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-    }
-    .page-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .top-container {
-      flex: 0 0 auto;
-      background: rgba(0, 0, 0, 0.85);
-      padding: 15px;
-      max-height: 40vh;
-      overflow-y: auto;
-      position: relative;
-    }
-    .header {
-      text-align: center;
-      padding: 10px;
-      position: relative;
-    }
-    .tasks-link {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: #fff;
-  background: #007bff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: bold;
-  transition: background 0.3s;
-}
-.tasks-link:hover {
-  background: #0056b3;
-}
-    .header h1 { margin: 0; font-size: 28px; color: white; }
-    .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
-    /* Language switcher ở góc trên bên phải */
-    .language-switcher {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
-    .language-switcher button {
-      padding: 4px 8px;
-      margin-left: 5px;
-      font-size: 12px;
-      cursor: pointer;
-      border: none;
-      border-radius: 3px;
-      background: #ff8c00;
-      color: white;
-      transition: background 0.3s;
-    }
-    .language-switcher button:hover {
-      background: #ff6500;
-    }
-    /* Khối chứa các tiêu chí lọc */
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 5px;
-    }
-    .filter-block {
-      background: #444;
-      border-radius: 5px;
-      padding: 5px;
-      margin: 5px;
-      width: 180px;
-      font-size: 12px;
-      color: white;
-    }
-    .filter-block label {
-      display: block;
-      margin-bottom: 3px;
-      font-weight: bold;
-    }
-    .filter-block select, .filter-block input[type="text"] { /* Apply styles to text inputs as well */
-      width: 100%;
-      padding: 3px;
-      margin-bottom: 3px;
-      font-size: 12px;
-      box-sizing: border-box; /* Ensure padding doesn't increase width */
-    }
-    /* Khối chứa các nút chức năng */
-    .action-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 5px;
-    }
-    .action-bar > div {
-      background: #444;
-      border-radius: 5px;
-      padding: 5px;
-      margin: 5px;
-      font-size: 12px;
-      color: white;
-      text-align: center;
-    }
-    .action-bar button {
-      padding: 6px 12px;
-      font-size: 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: 0.3s;
-      margin: 3px;
-    }
-    .filter-actions button {
-      background: linear-gradient(45deg, #ff8c00, #ff4500);
-      color: white;
-    }
-    .filter-actions button:hover {
-      background: linear-gradient(45deg, #ff6500, #ff0000);
-    }
-    .download-container button {
-      background: linear-gradient(45deg, #007bff, #0056b3);
-      color: white;
-    }
-    .download-container button:hover {
-      background: linear-gradient(45deg, #3399ff, #007bff);
-    }
-    .zoom-controls button {
-      background: linear-gradient(45deg, #28a745, #218838);
-      color: white;
-    }
-    .zoom-controls button:hover {
-      background: linear-gradient(45deg, #34d058, #28a745);
-    }
-    /* Phần hiển thị tổng số dòng */
-    .results-count {
-      text-align: center;
-      margin: 5px;
-      font-size: 14px;
-      color: white;
-    }
-    /* Bảng dữ liệu */
-    .table-container {
-      flex: 1 1 auto;
-      margin: 5px auto;
-      width: 98%;
-      max-height: calc(100vh - 260px);
-      overflow-y: auto;
-      overflow-x: auto;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    }
-    table {
-      width: auto;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-    th, td {
-      padding: 6px 8px;
-      border: 1px solid #ccc;
-      font-size: 12px;
-      text-align: center;
-      white-space: nowrap;
-    }
-    th {
-      background: #4a76a8;
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    .sticky-col-1 {
-      position: sticky;
-      left: 0;
-      width: 40px;
-      min-width: 40px;
-      background: #4a76a8;
-      z-index: 3;
-    }
-    .sticky-col-2 {
-      position: sticky;
-      left: 40px;
-      width: 100px;
-      min-width: 100px;
-      background: #4a76a8;
-      z-index: 3;
-    }
-    .sticky-col-3 {
-      position: sticky;
-      left: 140px;
-      width: 50px;
-      min-width: 50px;
-      background: #4a76a8;
-      z-index: 3;
-    }
-    td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
-      background: #e6e6e6;
-      color: #333;
-      z-index: 1;
-    }
-    tr.selected { background-color: #ffeb99 !important; }
-    .footer {
-      flex: 0 0 auto;
-      text-align: center;
-      padding: 5px;
-      font-size: 14px;
-      background: #333;
-      color: white;
-    }
-    @media (max-width: 768px) {
-  /* Đưa language switcher xuống dưới tiêu đề */
-  .language-switcher {
-    position: static;
-    margin-top: 10px;
-    text-align: center;
-  }
-  .language-switcher button {
-    padding: 3px 6px;
-    margin: 0 3px;
-    font-size: 10px;
-  }
+            input, select, textarea {
+                touch-action: manipulation;
+                -webkit-user-select: text;
+                user-select: text;
+                caret-color: auto;
+            }
 
-  /* Giảm khoảng cách và kích thước nút chức năng */
-  .action-bar {
-    justify-content: center;
-    padding: 3px;
-  }
-  .action-bar > div {
-    margin: 3px auto;
-    padding: 3px;
-    font-size: 14px;
-  }
-  .action-bar button {
-    padding: 4px 8px;
-    margin: 2px;
-    font-size: 14px;
-  }
-}
+            input:focus,
+            select:focus,
+            textarea:focus {
+                outline: none;
+                box-shadow: none;
+            }
+        }
+        /* Cài đặt CSS cơ bản */
+        html {line-height:1.15;-webkit-text-size-adjust:100%}body{margin:0}main{display:block}h1{font-size:2em;margin:.67em 0}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace,monospace;font-size:1em}a{background-color:transparent}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}img{border-style:none}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,input{overflow:visible}button,select{text-transform:none}[type=button],[type=reset],[type=submit]{-webkit-appearance:button}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring{outline:1px dotted ButtonText}fieldset{padding:.35em .75em .625em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{vertical-align:baseline}textarea{overflow:auto}[type=checkbox],[type=radio]{box-sizing:border-box;padding:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details{display:block}summary{display:list-item}template{display:none}[hidden]{display:none}
+        /* Thêm đoạn CSS của Tailwind CSS */
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
 
-    @media (max-width: 768px) {
-      .filter-bar, .action-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .filter-block, .action-bar > div {
-        width: 90%;
-        margin: 5px auto;
-      }
-      .header h1 { font-size: 24px; }
-      .header p { font-size: 14px; }
-      table, th, td { font-size: 10px; }
-      .table-container {
-        max-height: calc(100vh - 320px);
-      }
-    }
-    @media (max-width: 480px) {
-      .tasks-link {
-    position: relative;
-    top: 0;
-    left: 0;
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 10px 0;
-    font-size: 16px;
-  }
-      .header h1 { font-size: 20px; }
-      .header p { font-size: 12px; }
-      table, th, td { font-size: 9px; }
-    }
-  
-@media (max-width: 768px) {
-  body {
-    padding-bottom: 300px; /* chừa chỗ cho bàn phím */
-  }
-}
+        /* Căn giữa popup lịch sử tìm kiếm */
+        #floating-history-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none; /* Mặc định ẩn */
+        }
 
-@media screen and (orientation: landscape), (orientation: portrait) {
-  .table-container {
-    max-height: 60vh;
-    overflow-y: auto;
-    overflow-x: auto;
-    touch-action: pan-y;
-  }
+        /* Hiệu ứng mờ nền khi popup hiện ra */
+        #floating-history-popup.show {
+            display: block;
+        }
 
-  table {
-    width: auto;
-    min-width: 100%;
-  }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
 
-  td, th {
-    word-break: break-word;
-  }
-}
+        .select2-container .select2-selection--single {
+            height: 40px !important; /* Adjust as needed */
+            display: flex;
+            align-items: center;
+            border-radius: 6px;
+            border: 1px solid #4a4a4a !important;
+            background-color: #333 !important;
+            color: white !important;
+        }
 
-/* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
-.table-container {
-  width: 100vw;
-  max-height: 50vh;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  touch-action: auto;
-}
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: white !important; /* Text color */
+            line-height: 40px; /* Vertically align text */
+        }
 
-@media screen and (orientation: landscape) {
-  .table-container {
-    max-height: 60vh;
-  }
-}
+        .select2-container--default .select2-selection--single .select2-selection__arrow b {
+            border-color: white transparent transparent transparent !important; /* Arrow color */
+        }
 
-@media screen and (orientation: portrait) {
-  .table-container {
-    max-height: 50vh;
-  }
-}
+        .select2-dropdown {
+            background-color: #333 !important;
+            border: 1px solid #4a4a4a !important;
+        }
 
-table {
-  min-width: 800px;
-}
+        .select2-results__option {
+            color: white !important;
+        }
 
-th, td {
-  word-break: break-word;
-  white-space: nowrap;
-}
+        .select2-results__option--highlighted {
+            background-color: #007bff !important;
+            color: white !important;
+        }
 
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 60vh;
-  -webkit-overflow-scrolling: touch;
-}
-table {
-  border-collapse: collapse;
-  min-width: 1000px;
-}
-th, td {
-  white-space: nowrap;
-  padding: 6px;
-  font-size: 12px;
-}
-.sticky-col-1 {
-  position: sticky; left: 0; background: #4a76a8; z-index: 3;
-}
-.sticky-col-2 {
-  position: sticky; left: 40px; background: #4a76a8; z-index: 3;
-}
-.sticky-col-3 {
-  position: sticky; left: 140px; background: #4a76a8; z-index: 3;
-}
-td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
-  background: #f3f3f3;
-}
+        .select2-search__field {
+            background-color: #4a4a4a !important;
+            color: white !important;
+            border: 1px solid #666 !important;
+        }
 
-/* --- Cải tiến cho input khi focus --- */
-input:focus, select:focus {
-  outline: 2px solid #ff8c00;
-  background-color: #fffce6;
-}
+        /* Ẩn input tìm kiếm và datepicker */
+        .search-input-group, .date-input-group {
+            display: none;
+        }
+        /* Hiển thị input tìm kiếm mặc định */
+        .search-input-group.active, .date-input-group.active {
+            display: block;
+        }
 
-/* Tăng font input trên điện thoại để dễ nhập */
-@media (max-width: 768px) {
-  input, select {
-    font-size: 16px;
-  }
-}
-
-/* Cải thiện bảng khi xoay ngang */
-@media screen and (orientation: landscape) {
-  .top-container {
-    max-height: 30vh;
-    overflow-y: auto;
-  }
-  .table-container {
-    height: auto;
-    max-height: 90vh;
-    min-height: 70vh;
-    overflow-x: auto;
-    overflow-y: auto;
-  }
-  table {
-    min-width: 1200px;
-  }
-}
-
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-#results-table td, #results-table th {
-  user-select: text;
-}
-
-
-@media (max-width: 768px) {
-  .top-container {
-    max-height: 40vh !important;
-    padding: 8px !important;
-    overflow-y: auto;
-  }
-
-  .header h1 { font-size: 20px; }
-  .header p { font-size: 12px; }
-
-  .filter-block,
-  .action-bar > div {
-    padding: 4px;
-    margin: 3px;
-    font-size: 11px;
-  }
-
-  .action-bar button,
-  .language-switcher button {
-    font-size: 16px;
-    padding: 10px 16px;
-  }
-
-  .filter-block select {
-    font-size: 12px;
-  }
-
-  .results-count {
-    font-size: 12px;
-  }
-
-  #quick-search {
-    font-size: 13px !important;
-  }
-}
-
-
-/* Hiệu ứng mượt cho vùng động */
-.top-container,
-.table-container,
-#quick-search {
-  transition: all 0.3s ease-in-out;
-}
-.full-top-container {
-  height: 100vh !important;
-  max-height: 100vh !important;
-  overflow-y: auto;
-}
-.hide-top-container {
-  height: 0 !important;
-  max-height: 0 !important;
-  overflow: hidden;
-  padding: 0 !important;
-  opacity: 0;
-  pointer-events: none;
-}
-.show-table-only {
-  height: calc(100vh - 60px);
-}
-/* Style cho datepicker inputs */
-.filter-block .datepicker {
-    width: calc(100% - 6px); /* Adjust for padding */
-    box-sizing: border-box;
-    padding: 3px;
-    margin-bottom: 3px;
-    font-size: 12px;
-}
-.filter-block .input-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px; /* Spacing between date inputs */
-}
-.filter-block .input-group-prepend .input-group-text {
-    background-color: #555;
-    color: white;
-    padding: 3px 6px;
-    border-radius: 3px 0 0 3px;
-    font-size: 12px;
-    white-space: nowrap;
-}
-
-/* Custom styles for jQuery UI Datepicker to improve appearance */
-.ui-datepicker {
-    background: #333; /* Darker background */
-    color: #eee; /* Lighter text */
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 14px; /* Slightly larger font */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-    z-index: 10000 !important; /* Ensure it's on top */
-}
-
-.ui-datepicker-header {
-    background: #4a76a8; /* Header background */
-    color: white;
-    padding: 8px;
-    border-radius: 5px 5px 0 0;
-    position: relative; /* For positioning prev/next buttons */
-}
-
-.ui-datepicker-prev, .ui-datepicker-next {
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2em;
-    height: 2em;
-    text-align: center;
-    line-height: 2em;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    transition: background 0.2s;
-}
-.ui-datepicker-prev:hover, .ui-datepicker-next:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-.ui-datepicker-prev { left: 5px; }
-.ui-datepicker-next { right: 5px; }
-
-.ui-datepicker-title {
-    text-align: center;
-    margin: 0 2.3em;
-    font-weight: bold;
-}
-.ui-datepicker-month, .ui-datepicker-year {
-    color: white; /* Ensure month/year text is visible */
-}
-
-.ui-datepicker-calendar {
-    width: 100%;
-    margin-top: 10px;
-    border-collapse: collapse;
-}
-.ui-datepicker-calendar th {
-    color: #bbb; /* Day names color */
-    padding: 5px;
-    text-align: center;
-    border: none; /* Remove default border */
-    background: none; /* Remove default background */
-}
-.ui-datepicker-calendar td {
-    padding: 2px;
-    text-align: center;
-    border: none; /* Remove default border */
-    background: none; /* Remove default background */
-}
-.ui-datepicker-calendar span, .ui-datepicker-calendar a {
-    display: block;
-    padding: 6px;
-    text-decoration: none;
-    color: #eee; /* Default day color */
-    border-radius: 4px;
-    transition: background 0.2s, color 0.2s;
-}
-.ui-datepicker-calendar .ui-state-default {
-    background: #555;
-}
-.ui-datepicker-calendar .ui-state-hover {
-    background: #ff8c00; /* Hover color */
-    color: white;
-}
-.ui-datepicker-calendar .ui-state-active,
-.ui-datepicker-calendar .ui-state-highlight { /* Selected day */
-    background: #007bff; /* Selected color */
-    color: white;
-    font-weight: bold;
-}
-.ui-datepicker-calendar .ui-state-highlight {
-    background: #28a745; /* Highlight for today */
-}
-.ui-datepicker-other-month .ui-state-default {
-    opacity: 0.5; /* Dim other month days */
-}
-</style>
+        /* Custom Flatpickr styles to match dark theme */
+        .flatpickr-calendar {
+            background-color: #333; /* Dark background */
+            border: 1px solid #555;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            color: #eee; /* Light text */
+        }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover {
+            background-color: #007bff; /* Highlight color */
+            border-color: #007bff;
+            color: white;
+        }
+        .flatpickr-day.start-date, .flatpickr-day.end-date {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        .flatpickr-day.in-range {
+            background-color: rgba(0, 123, 255, 0.2); /* Lighter blue for range */
+            border-color: rgba(0, 123, 255, 0.2);
+        }
+        .flatpickr-day.today {
+            border-color: #007bff;
+        }
+        .flatpickr-day:hover {
+            background-color: #555; /* Hover color */
+        }
+        .flatpickr-months .flatpickr-prev-month,
+        .flatpickr-months .flatpickr-next-month {
+            color: #eee; /* Arrows color */
+        }
+        .flatpickr-current-month .flatpickr-month,
+        .flatpickr-current-month .flatpickr-year {
+            color: #eee;
+        }
+        .numInputWrapper {
+            color: #eee; /* Year/month input color */
+        }
+        .flatpickr-weekdays {
+            background-color: #444;
+            color: #ccc;
+        }
+        .flatpickr-weekday {
+            color: #ccc;
+        }
+    </style>
 </head>
-<body>
-<div id="loading-spinner" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:99;">
-<div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
-</div>
-<div class="page-container">
-<div class="top-container">
-<div class="header">
-<a class="tasks-link" href="/tasks">Tasks</a>
-<h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
-<p id="header-subtitle">Tra cứu tình trạng FAIR</p>
-<div class="language-switcher">
-<button onclick="changeLanguage('vi')">Vi</button>
-<button onclick="changeLanguage('en')">En</button>
-<button onclick="changeLanguage('ko')">Ko</button>
-</div>
-</div>
-<div class="filter-bar">
-<div class="filter-block" id="filter-block-project">
-<label for="filter-project" id="label-filter-project">Chọn dự án (Customer)</label>
-<select class="value-select" id="filter-project" multiple="multiple"></select>
-</div>
-<div class="filter-block" id="filter-block-1">
-<label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
-<select id="filter-column-1">
-<option selected="" value="Part Number">Part Number</option>
-<option value="Approval Status">Approval Status</option>
-<option value="Production Status">Production Status</option>
-<option value="Part Pictures">Part Pictures</option>
-<option value="Packaging Pictures">Packaging Pictures</option>
-<option value="Customer">Customer</option>
-<option value="Commodity">Commodity</option>
-<option value="Critical">Critical</option>
-<option value="CE">CE</option>
-<option value="PO Number">PO Number</option>
-<option value="ERP-CODE">ERP-CODE</option>
-<option value="REV">REV</option>
-<option value="Description">Description</option>
-<option value="Note Number">Note Number</option>
-<option value="PO received date">PO received date</option>
-<option value="Customer need date">Customer need date</option>
-<option value="Requirements">Requirements</option>
-<option value="FAIR Cover sheet">FAIR Cover sheet</option>
-<option value="Bubble Drawings">Bubble Drawings</option>
-<option value="Datasheet form">Datasheet form</option>
-<option value="LAIR data">LAIR data</option>
-<option value="FAIR Data">FAIR Data</option>
-<option value="COC">COC</option>
-<option value="BOM">BOM</option>
-<option value="Mill">Mill</option>
-<option value="Test reports / evidences">Test reports / evidences</option>
-<option value="Remark 1">Remark 1</option>
-<option value="Remark 2">Remark 2</option>
-<option value="Submit date">Submit date</option>
-<option value="Reject comments">Reject comments</option>
-</select>
-<label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
-<div id="date-range-container-1" style="display: none;">
-    <div class="input-group">
-        <span class="input-group-text" id="label-1-from-date">Từ ngày</span>
-        <input class="datepicker" id="filter-1-date-from" type="text" placeholder="YYYY-MM-DD">
-    </div>
-    <div class="input-group">
-        <span class="input-group-text" id="label-1-to-date">Đến ngày</span>
-        <input class="datepicker" id="filter-1-date-to" type="text" placeholder="YYYY-MM-DD">
-    </div>
-</div>
-<select class="value-select" id="filter-value-1" multiple="multiple"></select>
-</div>
-<div class="filter-block" id="filter-block-2">
-    <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
-    <select id="filter-column-2">
-        <option selected="" value="Part Number">Part Number</option>
-        <option value="Approval Status">Approval Status</option>
-        <option value="Production Status">Production Status</option>
-        <option value="Part Pictures">Part Pictures</option>
-        <option value="Packaging Pictures">Packaging Pictures</option>
-        <option value="Customer">Customer</option>
-        <option value="Commodity">Commodity</option>
-        <option value="Critical">Critical</option>
-        <option value="CE">CE</option>
-        <option value="PO Number">PO Number</option>
-        <option value="ERP-CODE">ERP-CODE</option>
-        <option value="REV">REV</option>
-        <option value="Description">Description</option>
-        <option value="Note Number">Note Number</option>
-        <option value="PO received date">PO received date</option>
-        <option value="Customer need date">Customer need date</option>
-        <option value="Requirements">Requirements</option>
-        <option value="FAIR Cover sheet">FAIR Cover sheet</option>
-        <option value="Bubble Drawings">Bubble Drawings</option>
-        <option value="Datasheet form">Datasheet form</option>
-        <option value="LAIR data">LAIR data</option>
-        <option value="FAIR Data">FAIR Data</option>
-        <option value="COC">COC</option>
-        <option value="BOM">BOM</option>
-        <option value="Mill">Mill</option>
-        <option value="Test reports / evidences">Test reports / evidences</option>
-        <option value="Remark 1">Remark 1</option>
-        <option value="Remark 2">Remark 2</option>
-        <option value="Submit date">Submit date</option>
-        <option value="Reject comments">Reject comments</option>
-    </select>
-    <label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
-    <div id="date-range-container-2" style="display: none;">
-        <div class="input-group">
-            <span class="input-group-text" id="label-2-from-date">Từ ngày</span>
-            <input class="datepicker" id="filter-2-date-from" type="text" placeholder="YYYY-MM-DD">
-        </div>
-        <div class="input-group">
-            <span class="input-group-text" id="label-2-to-date">Đến ngày</span>
-            <input class="datepicker" id="filter-2-date-to" type="text" placeholder="YYYY-MM-DD">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
+<div class="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-lg">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-center text-blue-400" data-i18n="title">Tra cứu Part Number</h1>
+        <div class="flex items-center space-x-2">
+            <button class="bg-gray-600 text-white px-3 py-1 rounded-md" id="lang-vi">VI</button>
+            <button class="bg-gray-600 text-white px-3 py-1 rounded-md" id="lang-en">EN</button>
         </div>
     </div>
-    <select id="filter-value-2" multiple="multiple"></select>
-</div>
-<div class="filter-block" id="filter-block-3">
-<label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
-<select id="filter-column-3">
-<option selected="" value="Part Number">Part Number</option>
-<option value="Approval Status">Approval Status</option>
-<option value="Production Status">Production Status</option>
-<option value="Part Pictures">Part Pictures</option>
-<option value="Packaging Pictures">Packaging Pictures</option>
-<option value="Customer">Customer</option>
-<option value="Commodity">Commodity</option>
-<option value="Critical">Critical</option>
-<option value="CE">CE</option>
-<option value="PO Number">PO Number</option>
-<option value="ERP-CODE">ERP-CODE</option>
-<option value="REV">REV</option>
-<option value="Description">Description</option>
-<option value="Note Number">Note Number</option>
-<option value="PO received date">PO received date</option>
-<option value="Customer need date">Customer need date</option>
-<option value="Requirements">Requirements</option>
-<option value="FAIR Cover sheet">FAIR Cover sheet</option>
-<option value="Bubble Drawings">Bubble Drawings</option>
-<option value="Datasheet form">Datasheet form</option>
-<option value="LAIR data">LAIR data</option>
-<option value="FAIR Data">FAIR Data</option>
-<option value="COC">COC</option>
-<option value="BOM">BOM</option>
-<option value="Mill">Mill</option>
-<option value="Test reports / evidences">Test reports / evidences</option>
-<option value="Remark 1">Remark 1</option>
-<option value="Remark 2">Remark 2</option>
-<option value="Submit date">Submit date</option>
-<option value="Reject comments">Reject comments</option>
-</select>
-<label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
-<div id="date-range-container-3" style="display: none;">
-    <div class="input-group">
-        <span class="input-group-text" id="label-3-from-date">Từ ngày</span>
-        <input class="datepicker" id="filter-3-date-from" type="text" placeholder="YYYY-MM-DD">
+
+    <form id="search-form" class="mb-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-gray-400 text-sm font-bold mb-2" for="filter-select" data-i18n="filterLabel">
+                    Lọc theo:
+                </label>
+                <select class="shadow border border-gray-700 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700" id="filter-select">
+                    <option value="Part Number" data-i18n="partNumberOption">Part Number</option>
+                    <option value="Description" data-i18n="descriptionOption">Description</option>
+                    <option value="Customer" data-i18n="customerOption">Customer</option>
+                    <option value="Commodity" data-i18n="commodityOption">Commodity</option>
+                    <option value="PO Number" data-i18n="poNumberOption">PO Number</option>
+                    <option value="PO received date" data-i18n="poReceivedDateOption">PO received date</option> <option value="Customer need date" data-i18n="customerNeedDateOption">Customer need date</option> <option value="Approval Status" data-i18n="approvalStatusOption">Approval Status</option>
+                    <option value="Production Status" data-i18n="productionStatusOption">Production Status</option>
+                    <option value="ERP-CODE" data-i18n="erpCodeOption">ERP-CODE</option>
+                </select>
+            </div>
+            <div id="text-search-group" class="search-input-group active">
+                <label class="block text-gray-400 text-sm font-bold mb-2" for="search-input" data-i18n="partNumberLabel">
+                    Nhập giá trị:
+                </label>
+                <input autocomplete="off" class="shadow appearance-none border border-gray-700 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700" id="search-input" type="text"/>
+            </div>
+            <div id="date-search-group" class="date-input-group">
+                <label class="block text-gray-400 text-sm font-bold mb-2" data-i18n="dateRangeLabel">
+                    Chọn khoảng ngày:
+                </label>
+                <div class="flex space-x-2">
+                    <input class="shadow appearance-none border border-gray-700 rounded w-1/2 py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 flatpickr" id="date-start" type="text" placeholder="Từ ngày"/>
+                    <input class="shadow appearance-none border border-gray-700 rounded w-1/2 py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 flatpickr" id="date-end" type="text" placeholder="Đến ngày"/>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-center space-x-4">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" data-i18n="searchButton" type="submit">
+                Tìm kiếm
+            </button>
+            <button class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" data-i18n="viewAllButton" id="view-all-btn" type="button">
+                Xem tất cả
+            </button>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" data-i18n="historyButton" id="toggle-history-btn" type="button">
+                Lịch sử
+            </button>
+        </div>
+    </form>
+
+    <div class="mb-4">
+        <label class="block text-gray-400 text-sm font-bold mb-2" for="entries-per-page" data-i18n="showEntriesLabel">
+            Hiển thị:
+        </label>
+        <select class="shadow border border-gray-700 rounded py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700" id="entries-per-page">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
     </div>
-    <div class="input-group">
-        <span class="input-group-text" id="label-3-to-date">Đến ngày</span>
-        <input class="datepicker" id="filter-3-date-to" type="text" placeholder="YYYY-MM-DD">
+
+    <div class="overflow-x-auto bg-gray-700 rounded-lg shadow">
+        <table class="min-w-full leading-normal">
+            <thead>
+            <tr>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="flex justify-between items-center mt-4">
+        <span class="text-gray-400" id="pagination-info"></span>
+        <div class="flex space-x-2">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="prev-page" disabled>Trước</button>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="next-page" disabled>Tiếp</button>
+        </div>
     </div>
 </div>
-<select class="value-select" id="filter-value-3" multiple="multiple"></select>
-</div>
-</div>
-<div class="action-bar">
-<div class="filter-actions">
-<button id="apply-filters">Áp Dụng Lọc</button>
-<button id="clear-filters">Xóa Lọc</button>
-</div>
-<div class="download-container">
-<button id="download-excel">Xuất Excel (Đang xem)</button>
-<button id="export-all">Xuất Excel (Tất cả)</button>
-</div>
-<div class="zoom-controls">
-<button id="zoom-in">Phóng to</button>
-<button id="zoom-out">Thu nhỏ</button>
-</div>
-</div>
-<div class="scan-camera" style="text-align:center; margin-top:10px;">
-<button id="btnScanCamera">📷 Quét Camera</button>
-</div>
-<div class="results-count" id="results-count">Total rows: 0</div>
-</div>
-<div style="text-align:center; margin: 10px;">
-<input id="quick-search" placeholder="🔍 Tìm Part Number..." style="padding:5px; width: 60%; font-size:14px;" type="text"/>
-</div>
-<div class="table-container">
-<table id="results-table">
-<thead><tr>
-<th class="sticky-col-1" data-column="No">No</th>
-<th class="sticky-col-2" data-column="Part Number">Part Number</th>
-<th class="sticky-col-3" data-column="REV">REV</th>
-<th data-column="Approval Status">Approval Status</th>
-<th data-column="Customer">Customer</th>
-<th data-column="Commodity">Commodity</th>
-<th data-column="Production Status">Production Status</th>
-<th data-column="Part Pictures">Part Pictures</th>
-<th data-column="Packaging Pictures">Packaging Pictures</th>
-<th data-column="Critical">Critical</th>
-<th data-column="CE">CE</th>
-<th data-column="PO Number">PO Number</th>
-<th data-column="ERP-CODE">ERP-CODE</th>
-<th data-column="Description">Description</th>
-<th data-column="Note Number">Note Number</th>
-<th data-column="PO received date">PO received date</th>
-<th data-column="Customer need date">Customer need date</th>
-<th data-column="Requirements">Requirements</th>
-<th data-column="FAIR Cover sheet">FAIR Cover sheet</th>
-<th data-column="Bubble Drawings">Bubble Drawings</th>
-<th data-column="Datasheet form">Datasheet form</th>
-<th data-column="LAIR Data">LAIR Data</th>
-<th data-column="FAIR Data">FAIR Data</th>
-<th data-column="COC">COC</option>
-<th data-column="BOM">BOM</th>
-<th data-column="Mill">Mill</th>
-<th data-column="Test reports / evidences">Test reports / evidences</th>
-<th data-column="Remark 1">Remark 1</th>
-<th data-column="Remark 2">Remark 2</th>
-<th data-column="Submit date">Submit date</th>
-<th data-column="Reject comments">Reject comments</th>
-</tr></thead>
-<tbody>
-</tbody>
-</table>
-</div>
-<div id="load-more-container" style="text-align:center; margin:10px;">
-<button id="load-more">Load More</button>
-<button id="load-all">Load All</button>
-</div>
-<div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
-</div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
-<script>
-    // Hàm chuyển đổi số serial Excel sang đối tượng Date của JavaScript
-    function parseExcelDate(excelSerialDate) {
-        if (typeof excelSerialDate !== 'number' || isNaN(excelSerialDate)) {
-            return null;
-        }
-
-        // 25569 là số ngày từ 1899-12-31 đến 1970-01-01 (Unix epoch)
-        // Excel có một "lỗi" là coi năm 1900 là năm nhuận, nên ngày 29/02/1900 tồn tại trong Excel.
-        // Để khớp với JS (và các hệ thống chuẩn), cần điều chỉnh nếu ngày lớn hơn 28/02/1900.
-        let adjustedSerialDate = excelSerialDate;
-        if (excelSerialDate > 59) { // Ngày 59 là 28/02/1900 trong hệ thống Excel
-            adjustedSerialDate = excelSerialDate - 1; // Bỏ qua ngày 29/02/1900 giả định
-        }
-
-        const date = new Date(0); // Bắt đầu từ Unix epoch (01/01/1970 UTC)
-        date.setDate(adjustedSerialDate - 25569); // Cộng thêm số ngày đã điều chỉnh
-
-        // Đảm bảo trả về ngày theo múi giờ địa phương mà không bị lệch giờ
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-
-    // Hàm parse ngày từ nhiều định dạng (số Excel, chuỗi) về đối tượng Date (chuẩn hóa về 00:00:00)
-    function parseDate(dateValue) {
-        if (typeof dateValue === 'number') {
-            return parseExcelDate(dateValue);
-        } else if (typeof dateValue === 'string') {
-            const date = new Date(dateValue);
-            if (!isNaN(date.getTime())) { // Check if it's a valid date
-                return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Reset time to midnight for comparison
-            }
-        }
-        return null; // Return null for invalid or unparseable dates
-    }
-
-    // Hàm format Date object hoặc số Excel ra chuỗi YYYY-MM-DD
-    function formatExcelDate(val) {
-        if (!val) return '';
-
-        let date;
-        if (typeof val === 'number') {
-            date = parseExcelDate(val);
-        } else if (typeof val === 'string') {
-            date = new Date(val);
-        } else if (val instanceof Date) {
-            date = val;
-        } else {
-            return String(val); // Return as string if unknown type
-        }
-
-        if (date && !isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            return `${year}-${mm}-${dd}`;
-        }
-        return String(val); // Fallback if parsing fails
-    }
-
-    // Khởi tạo i18next với resource cho tiếng Anh và tiếng Việt
-    i18next.use(i18nextBrowserLanguageDetector).init({
-      fallbackLng: 'vi',
-      debug: false,
-      resources: {
-        en: {
-          translation: {
-            "header_title": "FAIR TEAM - Search Status",
-            "header_subtitle": "Search FAIR status",
-            "choose_project": "Choose Project",
-            "choose_value": "Choose Value",
-            "choose_criteria_1": "Select Criteria 1:",
-            "choose_criteria_2": "Select Criteria 2 (paste excel):",
-            "choose_criteria_3": "Select Criteria 3:",
-            "apply_filter": "Apply Filter",
-            "clear_filter": "Clear Filter",
-            "download_excel": "Export Excel (Current)",
-            "export_all": "Export Excel (All)",
-            "zoom_in": "Zoom In",
-            "zoom_out": "Zoom Out",
-            "load_more": "Load More",
-            "load_all": "Load All",
-            "total_rows": "Total rows: {{count}} / {{total}}",
-            "developer": "Developer: Nguyễn Văn Đạo",
-            "label.fromDate": "From Date",
-            "label.toDate": "To Date"
-          }
-        },
-        ko: {
-          translation: {
-            "header_title": "FAIR TEAM - 검색 상태",
-            "header_subtitle": "FAIR 상태 검색",
-            "choose_project": "프로젝트 선택",
-            "choose_value": "값 선택",
-            "choose_criteria_1": "기준 1 선택:",
-            "choose_criteria_2": "기준 2 선택 (엑셀 붙여넣기):",
-            "choose_criteria_3": "기준 3 선택:",
-            "apply_filter": "필터 적용",
-            "clear_filter": "필터 지우기",
-            "download_excel": "엑셀 내보내기 (현재 보기)",
-            "export_all": "엑셀 내보내기 (전체)",
-            "zoom_in": "확대",
-            "zoom_out": "축소",
-            "load_more": "더 불러오기",
-            "load_all": "전체 불러오기",
-            "total_rows": "총 행: {{count}} / {{total}}",
-            "developer": "개발자: Nguyễn Văn Đạo",
-            "label.fromDate": "시작일",
-            "label.toDate": "종료일"
-          }
-        },
-        vi: {
-          translation: {
-            "header_title": "FAIR TEAM - Tra cứu tình trạng FAIR",
-            "header_subtitle": "Tra cứu tình trạng FAIR",
-            "choose_project": "Chọn dự án",
-            "choose_value": "Chọn giá trị",
-            "choose_criteria_1": "Chọn tiêu chí số 1:",
-            "choose_criteria_2": "Chọn tiêu chí số 2 (paste ex):",
-            "choose_criteria_3": "Chọn tiêu chí số 3:",
-            "apply_filter": "Áp dụng lọc",
-            "clear_filter": "Xóa lọc",
-            "download_excel": "Xuất Excel (Đang xem)",
-            "export_all": "Xuất Excel (Tất cả)",
-            "zoom_in": "Phóng to",
-            "zoom_out": "Thu nhỏ",
-            "load_more": "Tải thêm",
-            "load_all": "Tải toàn bộ",
-            "total_rows": "Tổng số dòng: {{count}} / {{total}}",
-            "developer": "Người phát triển: Nguyễn Văn Đạo",
-            "label.fromDate": "Từ ngày",
-            "label.toDate": "Đến ngày"
-          }
-        }
-      }
-    }, function(err, t) {
-      updateStaticContent();
-    });
-
-    // Hàm tái khởi tạo lại widget Select2 để cập nhật placeholder và giữ lựa chọn hiện tại
-    function reinitializeSelect2(selector, placeholder, extraOptions) {
-      var $el = $(selector);
-      var currentValue = $el.val();
-      $el.select2("destroy");
-      $el.select2($.extend({
-        placeholder: placeholder,
-        allowClear: true,
-        width: '100%'
-      }, extraOptions));
-      $el.val(currentValue).trigger('change');
-    }
-
-    // Hàm cập nhật nội dung tĩnh theo ngôn ngữ hiện tại
-    function updateStaticContent() {
-      // Header
-      document.getElementById("header-title").innerText = i18next.t("header_title");
-      document.getElementById("header-subtitle").innerText = i18next.t("header_subtitle");
-
-      // Các label trong filter
-      var labelSheet = document.querySelector('label[for="filter-project"]');
-      if (labelSheet) { labelSheet.innerText = i18next.t("choose_project"); }
-      var labelCriteria1 = document.getElementById("label-criteria-1");
-      if (labelCriteria1) { labelCriteria1.innerText = i18next.t("choose_criteria_1"); }
-      var labelCriteria2 = document.getElementById("label-criteria-2");
-      if (labelCriteria2) { labelCriteria2.innerText = i18next.t("choose_criteria_2"); }
-      var labelCriteria3 = document.getElementById("label-criteria-3");
-      if (labelCriteria3) { labelCriteria3.innerText = i18next.t("choose_criteria_3"); }
-
-      // Cập nhật label cho các khối lọc giá trị/ngày tháng
-      for (let i = 1; i <= 3; i++) {
-          const labelValue = document.getElementById(`label-filter-value-${i}`);
-          const dateContainer = document.getElementById(`date-range-container-${i}`);
-          const selectedColumn = $(`#filter-column-${i}`).val();
-          const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
-
-          if (labelValue) {
-              if (dateColumns.includes(selectedColumn)) {
-                  labelValue.style.display = 'none'; // Hide generic "Chọn giá trị" label
-                  if (dateContainer) dateContainer.style.display = 'flex'; // Show date inputs
-              } else {
-                  labelValue.innerText = i18next.t("choose_value");
-                  labelValue.style.display = 'block'; // Show generic "Chọn giá trị" label
-                  if (dateContainer) dateContainer.style.display = 'none'; // Hide date inputs
-              }
-          }
-          // Update datepicker labels within each container
-          const labelFromDate = document.getElementById(`label-${i}-from-date`);
-          const labelToDate = document.getElementById(`label-${i}-to-date`);
-          if (labelFromDate) labelFromDate.innerText = i18next.t("label.fromDate");
-          if (labelToDate) labelToDate.innerText = i18next.t("label.toDate");
-      }
-
-      var tbodyCount = $('#results-table tbody').children().length;
-      $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: totalData }));
-
-      // Cập nhật lại các widget Select2 (để thay đổi placeholder mà vẫn giữ lựa chọn)
-      reinitializeSelect2('#filter-project', i18next.t("choose_project"), { closeOnSelect: false });
-      reinitializeSelect2('#filter-value-1', i18next.t("choose_value"), { closeOnSelect: false });
-      reinitializeSelect2('#filter-value-2', i18next.t("choose_value"), {});
-      reinitializeSelect2('#filter-value-3', i18next.t("choose_value"), { closeOnSelect: false });
-
-      // Action buttons
-      document.getElementById("apply-filters").innerText = i18next.t("apply_filter");
-      document.getElementById("clear-filters").innerText = i18next.t("clear_filter");
-      document.getElementById("download-excel").innerText = i18next.t("download_excel");
-      document.getElementById("export-all").innerText = i18next.t("export_all");
-      document.getElementById("zoom-in").innerText = i18next.t("zoom_in");
-      document.getElementById("zoom-out").innerText = i18next.t("zoom_out");
-
-      // Update "Load More" and "Load All" buttons
-      document.getElementById("load-more").innerText = i18next.t("load_more");
-      document.getElementById("load-all").innerText = i18next.t("load_all");
-
-      // Update footer text
-      document.getElementById("footer-text").innerText = i18next.t("developer");
-    }
-
-    // Hàm chuyển đổi ngôn ngữ khi bấm nút
-    function changeLanguage(lng) {
-      i18next.changeLanguage(lng, function() {
-        updateStaticContent();
-      });
-    }
-  </script>
-<script>
-    // Hàm chuyển đổi số serial Excel sang đối tượng Date của JavaScript
-    function parseExcelDate(excelSerialDate) {
-        if (typeof excelSerialDate !== 'number' || isNaN(excelSerialDate)) {
-            return null;
-        }
-
-        // 25569 là số ngày từ 1899-12-31 đến 1970-01-01 (Unix epoch)
-        // Excel có một "lỗi" là coi năm 1900 là năm nhuận, nên ngày 29/02/1900 tồn tại trong Excel.
-        // Để khớp với JS (và các hệ thống chuẩn), cần điều chỉnh nếu ngày lớn hơn 28/02/1900.
-        let adjustedSerialDate = excelSerialDate;
-        if (excelSerialDate > 59) { // Ngày 59 là 28/02/1900 trong hệ thống Excel
-            adjustedSerialDate = excelSerialDate - 1; // Bỏ qua ngày 29/02/1900 giả định
-        }
-
-        const date = new Date(0); // Bắt đầu từ Unix epoch (01/01/1970 UTC)
-        date.setDate(adjustedSerialDate - 25569); // Cộng thêm số ngày đã điều chỉnh
-
-        // Đảm bảo trả về ngày theo múi giờ địa phương mà không bị lệch giờ
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-
-    // Hàm parse ngày từ nhiều định dạng (số Excel, chuỗi) về đối tượng Date (chuẩn hóa về 00:00:00)
-    function parseDate(dateValue) {
-        if (typeof dateValue === 'number') {
-            return parseExcelDate(dateValue);
-        } else if (typeof dateValue === 'string') {
-            const date = new Date(dateValue);
-            if (!isNaN(date.getTime())) { // Check if it's a valid date
-                return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Reset time to midnight for comparison
-            }
-        }
-        return null; // Return null for invalid or unparseable dates
-    }
-
-    // Hàm format Date object hoặc số Excel ra chuỗi YYYY-MM-DD
-    function formatExcelDate(val) {
-        if (!val) return '';
-
-        let date;
-        if (typeof val === 'number') {
-            date = parseExcelDate(val);
-        } else if (typeof val === 'string') {
-            date = new Date(val);
-        } else if (val instanceof Date) {
-            date = val;
-        } else {
-            return String(val); // Return as string if unknown type
-        }
-
-        if (date && !isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            return `${year}-${mm}-${dd}`;
-        }
-        return String(val); // Fallback if parsing fails
-    }
-
-    let currentFilters = {};
-    let currentOffset = 0;
-    const pageSize = 50;
-    let totalData = 0;
-    let currentZoom = 1;
-    const DATE_COLUMNS = ['PO received date', 'Customer need date', 'Submit date'];
-    // Biến chứa toàn bộ dữ liệu
-    let allData = null;
-
-    // Hàm load toàn bộ dữ liệu khi trang mở
-    function loadAllData() {
-      $.getJSON('/search?limit=1000000', function(response) {
-        allData = response.data;
-        totalData = response.total; // Update totalData here
-      });
-    }
-
-    // Hàm load dữ liệu dự án cho phần "Chọn dự án"
-    function loadDistinctValuesForProject() {
-      const selectElem = $('#filter-project');
-      selectElem.empty();
-      $.getJSON('/filters', function(data) {
-        if (data['Customer']) {
-            data['Customer'].forEach(function(val) {
-                const option = new Option(val, val, false, false);
-                selectElem.append(option);
-            });
-        }
-        selectElem.trigger('change');
-      });
-    }
-
-
-
-
-    $(document).ready(function() {
-      loadAllData(); // Tải toàn bộ dữ liệu một lần
-
-      // Khởi tạo Select2 ban đầu
-      $('.value-select').select2({
-        placeholder: i18next.t("choose_value"),
-        allowClear: true,
-        width: '100%',
-        closeOnSelect: false
-      });
-      $('#filter-project').select2({
-        placeholder: i18next.t("choose_project"),
-        allowClear: true,
-        width: '100%',
-        closeOnSelect: false
-      });
-      // Initialize filter-value-2 as a Select2 for generic values
-      // This is now handled by updateStaticContent and the change listeners for filter-column-X
-
-      // Initialize Datepicker for date range inputs for all three blocks
-      for (let i = 1; i <= 3; i++) {
-          $(`#filter-${i}-date-from`).datepicker({
-              dateFormat: "yy-mm-dd",
-              changeMonth: true,
-              changeYear: true,
-              yearRange: '1900:2050', // Added wide year range
-              onSelect: function(selectedDate) {
-                  $(`#filter-${i}-date-to`).datepicker("option", "minDate", selectedDate);
-                  applyFilters(true);
-              }
-          });
-
-          $(`#filter-${i}-date-to`).datepicker({
-              dateFormat: "yy-mm-dd",
-              changeMonth: true,
-              changeYear: true,
-              yearRange: '1900:2050', // Added wide year range
-              onSelect: function(selectedDate) {
-                  $(`#filter-${i}-date-from`).datepicker("option", "maxDate", selectedDate);
-                  applyFilters(true);
-              }
-          });
-      }
-
-
-      // Load dữ liệu cho "Chọn dự án"
-      loadDistinctValuesForProject();
-
-      // Xử lý paste Excel cho filter-value-2 (và các filter-value khác)
-      $(document).on('paste', '.value-select ~ .select2 .select2-search__field', function(e) {
-        e.preventDefault();
-        var clipboardData = e.originalEvent.clipboardData.getData('text/plain');
-        var values = clipboardData.split(/\r?\n/).reduce(function(acc, line) {
-          return acc.concat(line.split('\t'));
-        }, []).filter(function(val) {
-          return val.trim() !== '';
-        });
-        var $select = $(this).closest('.filter-block').find('.value-select'); // Get the correct select
-        var currentValues = $select.val() || [];
-        var newValues = currentValues.concat(values);
-        newValues = Array.from(new Set(newValues));
-        $select.val(newValues).trigger('change');
-      });
-
-      // Khi chọn dự án => cập nhật block 1, cascade block 2
-      $('#filter-project').on('change', function(){
-        updateFilterValuesForBlock(1);
-        updateCascade(2);
-      });
-      // Ban đầu, cập nhật block 1
-      updateFilterValuesForBlock(1);
-
-      // Sự kiện thay đổi tiêu chí và giá trị cho các block
-      for (let i = 1; i <= 3; i++) {
-          $(`#filter-column-${i}`).on('change', function() {
-              const selectedColumn = $(this).val();
-              const valueSelect = $(`#filter-value-${i}`);
-              const dateRangeContainer = $(`#date-range-container-${i}`);
-              const labelValue = $(`#label-filter-value-${i}`);
-
-              if (DATE_COLUMNS.includes(selectedColumn)) {
-                  valueSelect.next('.select2-container').hide(); // Hide Select2
-                  valueSelect.val(null).trigger('change'); // Clear Select2 value
-                  dateRangeContainer.show(); // Show date inputs
-                  $(`#filter-${i}-date-from`).val(''); // Clear datepicker values
-                  $(`#filter-${i}-date-to`).val('');
-                  if (labelValue) labelValue.style.display = 'none'; // Hide generic label
-              } else {
-                  valueSelect.next('.select2-container').show(); // Show Select2
-                  dateRangeContainer.hide(); // Hide date inputs
-                  if (labelValue) {
-                      labelValue.innerText = i18next.t("choose_value");
-                      labelValue.style.display = 'block'; // Show generic label
-                  }
-              }
-              updateFilterValuesForBlock(i);
-              updateCascade(i + 1); // Cascade to next blocks
-          });
-          $(`#filter-value-${i}`).on('change', function() {
-              updateCascade(i + 1);
-          });
-      }
-
-
-      // Các nút chức năng: Lọc, Xóa, Tải thêm, Xuất Excel, Zoom
-      $('#apply-filters').on('click', function() {
-        const col1 = $('#filter-column-1').val();
-        const val1 = $('#filter-value-1').val();
-        if (col1 === 'Part Number' && val1 && val1.length > 0) {
-          val1.forEach(p => saveSearchHistory(p));
-        }
-        applyFilters(true);
-      });
-      $('#clear-filters').on('click', function() {
-        $('.value-select').val(null).trigger('change');
-        for (let i = 1; i <= 3; i++) {
-            $(`#filter-${i}-date-from`).val(''); // Clear datepicker values
-            $(`#filter-${i}-date-to`).val('');
-        }
-        applyFilters(true);
-      });
-      $('#load-more').on('click', function() {
-        if (currentOffset < totalData) {
-          let queryString = $.param(currentFilters);
-          $.getJSON(`/search?${queryString}&offset=${currentOffset}`, function(response) {
-            currentOffset += pageSize;
-            updateTable(response.data, false);
-          });
-        } else {
-          alert("Đã tải hết dữ liệu!");
-        }
-      });
-      $('#load-all').on('click', function() {
-        let queryParams = {};
-        const sheetValues = $('#filter-project').val();
-        if (sheetValues && sheetValues.length > 0) {
-          queryParams["Customer"] = sheetValues.join(',');
-        }
-        for (let i = 1; i <= 3; i++) {
-          const col = $(`#filter-column-${i}`).val();
-          if (DATE_COLUMNS.includes(col)) {
-              const fromDate = $(`#filter-${i}-date-from`).val();
-              const toDate = $(`#filter-${i}-date-to`).val();
-              if (fromDate) queryParams[`${col}_from`] = fromDate;
-              if (toDate) queryParams[`${col}_to`] = toDate;
-          } else {
-              const values = $(`#filter-value-${i}`).val();
-              if (values && values.length > 0) {
-                  queryParams[col] = values.join(',');
-              }
-          }
-        }
-
-        queryParams.limit = 1000000;
-        queryParams.offset = 0;
-        const queryString = $.param(queryParams);
-        $.getJSON(`/search?${queryString}`, function(response) {
-          currentOffset = response.total;
-          updateTable(response.data, true);
-        });
-      });
-      $('#download-excel').on('click', function() { downloadExcel(); });
-      $('#export-all').on('click', function() {
-        let queryParams = {};
-        const sheetValues = $('#filter-project').val();
-        if (sheetValues && sheetValues.length > 0) {
-          queryParams["Customer"] = sheetValues.join(',');
-        }
-        for (let i = 1; i <= 3; i++) {
-          const col = $(`#filter-column-${i}`).val();
-          if (DATE_COLUMNS.includes(col)) {
-              const fromDate = $(`#filter-${i}-date-from`).val();
-              const toDate = $(`#filter-${i}-date-to`).val();
-              if (fromDate) queryParams[`${col}_from`] = fromDate;
-              if (toDate) queryParams[`${col}_to`] = toDate;
-          } else {
-              const values = $(`#filter-value-${i}`).val();
-              if (values && values.length > 0) {
-                  queryParams[col] = values.join(',');
-              }
-          }
-        }
-
-        const queryString = $.param(queryParams);
-        window.location.href = `/export?${queryString}`;
-      });
-      $('#zoom-in').on('click', function() {
-        currentZoom += 0.1;
-        $('#results-table').css('zoom', currentZoom);
-      });
-      $('#zoom-out').on('click', function() {
-        if (currentZoom > 0.5) {
-          currentZoom -= 0.1;
-          $('#results-table').css('zoom', currentZoom);
-        }
-      });
-      // Check if colResizable is available before using it
-      try {
-        if (typeof $.fn.colResizable === 'function') {
-          $('#results-table').colResizable({ liveDrag: true });
-        }
-      } catch(e) {
-        console.log("colResizable not available:", e);
-      }
-
-      applyFilters(true);
-    });
-
-    // Hàm cập nhật dropdown cho blockIndex dựa trên dữ liệu đã lọc
-    function updateFilterValuesForBlock(blockIndex) {
-      if (!allData) {
-        setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
-        return;
-      }
-      let filteredData = allData.slice();
-
-      // Lọc theo dự án (Customer)
-      const sheetValues = $('#filter-project').val();
-      if (sheetValues && sheetValues.length > 0) {
-        filteredData = filteredData.filter(function(row) {
-          return sheetValues.some(function(s) {
-            return row['Customer'] && row['Customer'].toString().toLowerCase().includes(s.toLowerCase());
-          });
-        });
-      }
-      // Lọc theo các block trước (block 1 đến blockIndex - 1)
-      for (let i = 1; i < blockIndex; i++) {
-        let col = $(`#filter-column-${i}`).val();
-        if (DATE_COLUMNS.includes(col)) {
-            const fromDateStr = $(`#filter-${i}-date-from`).val();
-            const toDateStr = $(`#filter-${i}-date-to`).val();
-            const fromDate = fromDateStr ? parseDate(fromDateStr) : null;
-            const toDate = toDateStr ? parseDate(toDateStr) : null;
-
-            if (fromDate || toDate) {
-                filteredData = filteredData.filter(row => {
-                    const rowDate = parseDate(row[col]);
-                    return rowDate &&
-                           (!fromDate || rowDate >= fromDate) &&
-                           (!toDate || rowDate <= toDate);
-                });
-            }
-        } else {
-            let values = $(`#filter-value-${i}`).val();
-            if (col && values && values.length > 0) {
-              filteredData = filteredData.filter(function(row) {
-                return values.some(function(v) {
-                  return row[col] && row[col].toString().toLowerCase().includes(v.toLowerCase());
-                });
-              });
-            }
-        }
-      }
-      // Lấy giá trị distinct cho cột của block hiện tại
-      let dependentColumn = $(`#filter-column-${blockIndex}`).val();
-      const selectElem = $(`#filter-value-${blockIndex}`);
-
-      if (DATE_COLUMNS.includes(dependentColumn)) {
-          // If it's a date column, don't populate the select2
-          selectElem.empty().trigger('change');
-      } else {
-          let values = filteredData.map(function(row) {
-            let cellVal = row[dependentColumn];
-            if (cellVal == null) return "";
-            if (typeof cellVal === 'string') {
-              return cellVal.trim().toUpperCase();
-            }
-            return cellVal.toString();
-          }).filter(function(v) { return v !== ""; });
-          let distinctValues = Array.from(new Set(values));
-          distinctValues.sort((a, b) => a.localeCompare(b));
-
-          selectElem.empty();
-          distinctValues.forEach(function(val) {
-              const option = new Option(val, val, false, false);
-              selectElem.append(option);
-          });
-          selectElem.trigger('change');
-      }
-      updateStaticContent(); // Cập nhật lại nhãn sau khi thay đổi
-    }
-
-    // Hàm cascade: cập nhật các block từ startBlock đến 3
-    function updateCascade(startBlock) {
-      for (let i = startBlock; i <= 3; i++) {
-        updateFilterValuesForBlock(i);
-      }
-    }
-
-    // Hàm áp dụng lọc (chỉ duyệt qua 3 tiêu chí)
-    function applyFilters(reset = true) {
-      if (reset) {
-        currentOffset = 0;
-        $('#results-table tbody').empty();
-      }
-      let queryParams = { limit: pageSize, offset: currentOffset };
-      const sheetValues = $('#filter-project').val();
-      if (sheetValues && sheetValues.length > 0) {
-        queryParams["Customer"] = sheetValues.join(',');
-      }
-      for (let i = 1; i <= 3; i++) {
-        const col = $(`#filter-column-${i}`).val();
-        if (DATE_COLUMNS.includes(col)) {
-            const fromDate = $(`#filter-${i}-date-from`).val();
-            const toDate = $(`#filter-${i}-date-to`).val();
-            if (fromDate) queryParams[`${col}_from`] = fromDate;
-            if (toDate) queryParams[`${col}_to`] = toDate;
-        } else {
-            const values = $(`#filter-value-${i}`).val();
-            if (values && values.length > 0) {
-                queryParams[col] = values.join(',');
-            }
-        }
-      }
-      currentFilters = queryParams;
-      const queryString = $.param(queryParams);
-      showSpinner(); // Show spinner before AJAX call
-      $.getJSON(`/search?${queryString}`, function(response) {
-        totalData = response.total;
-        currentOffset += pageSize;
-        updateTable(response.data, true);
-      }).always(function() { // Hide spinner after AJAX call completes (success or failure)
-        hideSpinner();
-      });
-    }
-
-    // Hàm cập nhật bảng dữ liệu
-function updateTable(data, reset) {
-  const tbody = $('#results-table tbody');
-  if (reset) tbody.empty();
-  
-  data.forEach(function(row) {
-    const serial = tbody.children().length + 1;
-    const tr = $('<tr>');
-
-    // Các cột cố định và các cột theo thứ tự đã định
-    tr.append(`<td class="sticky-col-1">${serial}</td>`);
-    tr.append(`<td class="sticky-col-2">${row['Part Number'] || ''}</td>`);
-    tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
-    tr.append(`<td>${row['Approval Status'] || ''}</td>`);
-    tr.append(`<td>${row['Customer'] || ''}</td>`);
-    tr.append(`<td>${row['Commodity'] || ''}</td>`);
-    tr.append(`<td>${row['Production Status'] || ''}</td>`);
-    tr.append(`<td>${row['Part Pictures'] || ''}</td>`);
-    tr.append(`<td>${row['Packaging Pictures'] || ''}</td>`);
-    tr.append(`<td>${row['Critical'] || ''}</td>`);
-    tr.append(`<td>${row['CE'] || ''}</td>`);
-    tr.append(`<td>${row['PO Number'] || ''}</td>`);
-    tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); /* Changed from Type to ERP-CODE */
-    tr.append(`<td>${row['Description'] || ''}</td>`);
-    tr.append(`<td>${row['Note Number'] || ''}</td>`);
-    tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
-    tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
-    tr.append(`<td>${row['Requirements'] || ''}</td>`);
-    tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
-    tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
-    tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
-    tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
-    tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
-    tr.append(`<td>${row['COC'] || ''}</td>`);
-    tr.append(`<td>${row['BOM'] || ''}</td>`);
-    tr.append(`<td>${row['Mill'] || ''}</td>`);
-    tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
-    tr.append(`<td>${row['Remark 1'] || ''}</td>`);
-    tr.append(`<td>${row['Remark 2'] || ''}</td>`);
-    tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
-    tr.append(`<td>${row['Reject comments'] || ''}</td>`);
-
-    tbody.append(tr);
-  });
-
-  var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
-  $('#results-count').text(totalText);
-
-  // Sử dụng colResizable nếu có
-  try {
-    if (typeof $.fn.colResizable === 'function') {
-      $('#results-table').colResizable({ liveDrag: true });
-    }
-  } catch (e) {
-    console.log("colResizable not available in updateTable:", e);
-  }
-}
-
-    // Hàm xuất Excel
-function downloadExcel() {
-  const table = document.getElementById('results-table');
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr'));
-
-  const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
-
-  const data = rows.map(tr => {
-    const cells = Array.from(tr.querySelectorAll('td'));
-    const rowObj = {};
-    cells.forEach((td, index) => {
-      let val = td.textContent.trim();
-      const header = headers[index];
-      if (dateColumns.includes(header)) {
-        val = formatExcelDate(val); // xử lý chuẩn ngày
-      }
-      rowObj[header] = val;
-    });
-    return rowObj;
-  });
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(data);
-  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  XLSX.writeFile(wb, 'ketqua.xlsx');
-}
-
-
-    // Hàm sắp xếp bảng khi click tiêu đề cột
-    function getColumnIndex(columnName) {
-      let index = -1;
-      $('#results-table th').each(function(i) {
-        if ($(this).data('column') === columnName) {
-          index = i;
-          return false;
-        }
-      });
-      return index;
-    }
-    function sortTable(column, order) {
-      let rows = $('#results-table tbody tr').get();
-      let colIndex = getColumnIndex(column);
-      if (colIndex === -1) return;
-      rows.sort(function(a, b) {
-        let A = $(a).children('td').eq(colIndex).text().toUpperCase();
-        let B = $(b).children('td').eq(colIndex).text().toUpperCase();
-        return order === 'asc' ? A.localeCompare(B) : B.localeCompare(A);
-      });
-      $.each(rows, function(index, row) {
-        $('#results-table tbody').append(row);
-      });
-    }
-    $(document).on('click', '#results-table th', function () {
-  const col = $(this).data('column');
-  if (!col) return;
-
-  const currentOrder = $(this).data('order') || 'asc';
-  const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-
-  $('#results-table th').each(function () {
-    $(this).data('order', null);
-    const text = $(this).text().replace(/[▲▼]/g, '').trim();
-    $(this).text(text);
-  });
-
-  const arrow = newOrder === 'asc' ? ' ▲' : ' ▼';
-  $(this).text($(this).text().replace(/[▲▼]/g, '').trim() + arrow);
-  $(this).data('order', newOrder);
-
-  sortTable(col, newOrder);
-});
-  </script>
-<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; justify-content:center; align-items:center; z-index:9999; overflow-y:auto; transition: all 0.3s ease;">
-<div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center; margin-bottom: 10vh;">
-<h3>📷 Quét Part Number</h3>
-<div style="position: relative; width: 100%; max-height:240px;"><video autoplay="" id="camera" playsinline="" style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video><div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div></div>
-<div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
-  🔍 Zoom:
-  <input id="zoomSlider" max="3" min="1" step="0.1" style="width:80%;" type="range" value="1"/>
-</div>
-<canvas height="240" id="canvas" style="display:none;" width="320"></canvas>
-<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
-<button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">📸 Chụp &amp; Quét</button>
-<button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
-<button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">❌ Đóng</button>
-</div>
-<input id="ocrInput" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;" type="text"/>
-<p id="ocrStatus" style="font-size:14px; margin-top:10px; margin-bottom: 20px; display: block;">Đang chờ thao tác...</p>
-</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const btnScan = document.getElementById('btnScanCamera');
-  const modal = document.getElementById('cameraModal');
-  const video = document.getElementById('camera');
-  const canvas = document.getElementById('canvas');
-  const statusP = document.getElementById('ocrStatus');
-  let inputOCR = document.getElementById('ocrInput');
-  const btnCapture = document.getElementById('btnCapture');
-  const btnClose = document.getElementById('btnCloseCamera');
-  const btnApply = document.getElementById('btnApplyOcrFilter');
-  const zoomSlider = document.getElementById("zoomSlider");
-  const zoomContainer = document.getElementById("zoomContainer");
-  let stream, intervalId;
-
-  function stopStream() {
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-      video.srcObject = null;
-    }
-    clearInterval(intervalId);
-  }
-
-  function cropCenterAndOCR(callback) {
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-const cropWidth = canvas.width * 0.8;
-const cropHeight = canvas.height * 0.2;
-
-    const offsetX = canvas.width * 0.1;
-    const offsetY = canvas.height * 0.35;
-    const imageData = ctx.getImageData(offsetX, offsetY, cropWidth, cropHeight);
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = cropWidth;
-    tempCanvas.height = cropHeight;
-    tempCanvas.getContext("2d").putImageData(imageData, 0, 0);
-
-    Tesseract.recognize(tempCanvas.toDataURL(), 'eng')
-      .then(({ data: { text } }) => callback(text))
-      .catch(() => statusP.textContent = '❌ Lỗi khi nhận diện.');
-  }
-
-  btnScan.addEventListener('click', async () => {
-    modal.style.display = 'flex';
-    statusP.textContent = '🔄 Đang khởi động camera...';
-    inputOCR.value = '';
-    document.getElementById("ocrInput").style.display = 'block';
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      video.srcObject = stream;
-      video.play();
-
-      const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      if (capabilities.zoom) {
-        zoomContainer.style.display = 'block';
-        zoomSlider.min = capabilities.zoom.min;
-        zoomSlider.max = capabilities.zoom.max;
-        zoomSlider.step = capabilities.zoom.step || 0.1;
-        zoomSlider.value = capabilities.zoom.min;
-        zoomSlider.addEventListener("input", () => {
-          track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
-        });
-      }
-      statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét" hoặc giữ chế độ tự động';
-    } catch (err) {
-      statusP.textContent = '❌ Không thể truy cập camera.';
-    }
-  });
-
-  btnCapture.addEventListener('click', () => {
-    statusP.textContent = '🔍 Đang quét...';
-    cropCenterAndOCR((text) => {
-      const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
-      if (lines.length === 0) return alert('Không nhận được dòng nào.'); // Changed from statusP to alert
-      // Removed statusP.textContent for single line, alert for no lines
-
-      if (lines.length === 1) {
-        inputOCR.value = lines[0];
-        statusP.textContent = '✅ Đã nhận 1 dòng.';
-      } else {
-        const selectHTML = `
-          <select id="ocrLineSelector" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
-            ${lines.map(l => `<option>${l}</option>`).join('')}
-          </select>
-        `;
-        inputOCR.insertAdjacentHTML('beforebegin', selectHTML);
-        const selector = document.getElementById('ocrLineSelector');
-        selector.addEventListener('change', () => {
-          inputOCR.value = selector.value;
-        });
-        inputOCR.value = lines[0];
-        statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Đã chọn dòng đầu tiên, có thể chỉnh sửa.`;
-      }
-    });
-  });
-
-  btnApply.addEventListener('click', () => {
-    const part = inputOCR.value.trim();
-    if (!part) return alert('Bạn chưa nhập Part Number!');
-    $('#filter-column-1').val('Part Number').trigger('change');
-    $('#filter-value-1').append(new Option(part, part, true, true)).trigger('change');
-    if (typeof applyFilters === 'function') applyFilters(true);
-    statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
-    saveSearchHistory(part);
-    setTimeout(() => btnClose.click(), 1500);
-  });
-
-  btnClose.addEventListener('click', () => {
-    modal.style.display = 'none';
-    zoomContainer.style.display = 'none';
-    stopStream();
-    document.getElementById("ocrLineSelector")?.remove();
-    inputOCR.value = '';
-  });
-});
-</script>
-<script>
-window.addEventListener('resize', () => {
-  const activeEl = document.activeElement;
-  if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-    setTimeout(() => {
-      activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
-  }
-});
-</script><script>
-// Scroll riêng cho input OCR khi focus (bàn phím mở lên)
-document.addEventListener('DOMContentLoaded', function () {
-  const ocrInput = document.getElementById('ocrInput');
-  if (ocrInput) {
-    ocrInput.addEventListener('focus', () => {
-      setTimeout(() => {
-        ocrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    });
-  }
-});
-</script><script>
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('ocrInput');
-  if (input) {
-    input.addEventListener('focus', () => {
-      setTimeout(() => {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    });
-  }
-});
-</script><script>
-document.addEventListener('DOMContentLoaded', function () {
-  const inputs = document.querySelectorAll('.filter-bar input, .filter-bar select');
-  inputs.forEach((input) => {
-    input.addEventListener('focus', () => {
-      setTimeout(() => {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    });
-  });
-});
-</script>
-<script>
-// Spinner control
-function showSpinner() {
-  $('#loading-spinner').show();
-}
-function hideSpinner() {
-  $('#loading-spinner').hide();
-}
-
-// Tìm kiếm nhanh theo Part Number
-$('#quick-search').on('input', function () {
-  const keyword = $(this).val().toLowerCase();
-  $('#results-table tbody tr').each(function () {
-    const partNumber = $(this).find('td:nth-child(2)').text().toLowerCase();
-    $(this).toggle(partNumber.includes(keyword));
-  });
-});
-
-// Chuyển số Excel sang ngày JS (đã được thay bằng parseExcelDate phía trên)
-// function excelDateToJSDate(serial) {
-//   const excelEpoch = new Date(1899, 11, 30);
-//   return new Date(excelEpoch.getTime() + serial * 86400000);
-// }
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const topContainer = document.querySelector('.top-container');
-  const tableContainer = document.querySelector('.table-container');
-  const quickSearch = document.getElementById('quick-search');
-  const applyBtn = document.getElementById('apply-filters');
-  const clearBtn = document.getElementById('clear-filters');
-
-  let wasEditingTop = false;
-
-  // Gõ trong vùng 1 → mở rộng, chưa hiện bảng
-  document.addEventListener('focusin', (e) => {
-      // Bỏ qua nếu là màn hình lớn (máy tính)
-      if (window.innerWidth >= 768) return;
-    const target = e.target;
-    if (topContainer.contains(target) && ['INPUT', 'SELECT'].includes(target.tagName)) {
-      wasEditingTop = true;
-      topContainer.classList.add('full-top-container');
-      topContainer.classList.remove('hide-top-container');
-      tableContainer.classList.remove('show-table-only');
-      quickSearch.style.display = 'none';
-    } else if (target === quickSearch) {
-      topContainer.classList.add('hide-top-container');
-      tableContainer.classList.add('show-table-only');
-    }
-  });
-
-  // Khi mất focus nhưng vừa nhập ở vùng 1 thì không hiện bảng vội
-  document.addEventListener('focusout', () => {
-        if (window.innerWidth >= 768) return;
-    setTimeout(() => {
-      const active = document.activeElement;
-      if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName) && !active.closest('.ui-datepicker-header')) { // Ignore datepicker clicks
-        if (wasEditingTop) {
-          // Vẫn giữ vùng top mở, chưa hiện bảng
-          tableContainer.classList.remove('show-table-only');
-          quickSearch.style.display = 'none';
-        } else {
-          // Quay về trạng thái mặc định
-          topContainer.classList.remove('full-top-container', 'hide-top-container');
-          tableContainer.classList.remove('show-table-only');
-          quickSearch.style.display = 'block';
-        }
-      }
-    }, 300);
-  });
-
-  // Khi người dùng thực hiện lọc, mới cho phép hiện bảng
-  function revealTableAndSearch() {
-    wasEditingTop = false;
-    topContainer.classList.remove('full-top-container', 'hide-top-container');
-    quickSearch.style.display = 'block';
-    tableContainer.classList.remove('show-table-only');
-  }
-
-  applyBtn?.addEventListener('click', revealTableAndSearch);
-  clearBtn?.addEventListener('click', revealTableAndSearch);
-});
-</script>
-<a href="/voice_search" style="position: fixed;
-          bottom: 20px;
-          left: 20px;
-          background: #007bff;
-          color: white;
-          padding: 8px 10px;
-          border-radius: 50%;
-          font-size: 18px;
-          text-decoration: none;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-          z-index: 9999;">🎤</a>
-<script>
-  function saveSearchHistory(partNumber) {
-    if (!partNumber) return;
-    const history = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
-    const now = new Date().toLocaleString("vi-VN");
-    history.unshift({ partNumber, time: now });
-    if (history.length > 30) history.pop();
-    localStorage.setItem("partSearchHistory", JSON.stringify(history));
-    renderSearchHistory();
-  }
-
-  function renderSearchHistory() {
-    const history = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
-    const list = document.getElementById("searchHistory");
-    if (!list) return;
-    list.innerHTML = "";
-    history.forEach(item => {
-      const li = document.createElement("li");
-      li.style.marginBottom = "6px";
-      li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber}'); navigator.clipboard.writeText('${item.partNumber}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;">${item.partNumber}</button> <small style="color:#ccc;">(${item.time})</small>`;
-      list.appendChild(li);
-    });
-  }
-
-  
-  function quickSearchFromHistory(partNumber) {
-    // Gán vào bộ lọc tiêu chí số 1
-    const col1 = document.getElementById("filter-column-1");
-    const val1 = document.getElementById("filter-value-1");
-    if (col1 && val1) {
-      col1.value = "Part Number";
-      col1.dispatchEvent(new Event("change")); // cập nhật select2 nếu có
-      setTimeout(() => {
-        if ($(val1).data('select2')) {
-          $(val1).val([partNumber]).trigger("change");
-        } else {
-          val1.value = partNumber;
-        }
-        // Gọi lọc
-        applyFilters(true);
-      }, 100);
-    }
-  }
-
-  function clearSearchHistory() {
-    localStorage.removeItem("partSearchHistory");
-    renderSearchHistory();
-  }
-
-  window.addEventListener("DOMContentLoaded", renderSearchHistory);
-</script>
-<button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999;" title="Lịch sử tìm kiếm">🕘</button>
-<div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
-<div style="display: flex; justify-content: space-between; align-items: center;">
-<h4 style="margin: 0;">📜 Lịch sử tìm kiếm</h4>
-<button onclick="toggleHistoryPopup()" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer;">×</button>
-</div>
-<ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
-<button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">🗑️ Xóa lịch sử</button>
+<div id="overlay"></div>
+<div id="floating-history-popup">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold" data-i18n="searchHistoryTitle">Lịch sử Tìm kiếm</h2>
+        <button class="text-gray-400 hover:text-white" id="close-history-popup">✖</button>
+    </div>
+    <div id="history-list" class="space-y-2">
+        </div>
+    <div class="mt-4 text-right">
+        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" data-i18n="clearHistoryButton" id="clear-history-btn">
+            Xóa lịch sử
+        </button>
+    </div>
 </div>
 
-<a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
-  🎤
+<a href="voice_search.html" style="position: fixed; bottom: 20px; right: 20px; background-color: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
+    🎤
 </a>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const historyList = document.getElementById("history-list");
-    // This historyList element seems to be a duplicate or leftover from an old structure.
-    // The main history is now managed by #searchHistory and functions saveSearchHistory/renderSearchHistory.
-    // If you intend to use #history-list, you'll need to populate it separately.
-    // For now, I'm commenting out its usage to avoid confusion with the new history popup.
-    /*
-    const storedHistory = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
-    if (storedHistory.length > 0) {
-        storedHistory.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "text-white px-3";
-            div.textContent = "🔍 " + item;
-            historyList.appendChild(div);
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script> <script>
+    // i18next configuration
+    i18next
+        .use(i18nextBrowserLanguageDetector)
+        .init({
+            fallbackLng: 'vi',
+            debug: true,
+            resources: {
+                en: {
+                    translation: {
+                        title: "Part Number Lookup",
+                        partNumberLabel: "Enter Value:",
+                        filterLabel: "Filter by:",
+                        partNumberOption: "Part Number",
+                        descriptionOption: "Description",
+                        customerOption: "Customer",
+                        commodityOption: "Commodity",
+                        poNumberOption: "PO Number",
+                        poReceivedDateOption: "PO Received Date",
+                        customerNeedDateOption: "Customer Need Date",
+                        approvalStatusOption: "Approval Status",
+                        productionStatusOption: "Production Status",
+                        erpCodeOption: "ERP-CODE",
+                        searchButton: "Search",
+                        viewAllButton: "View All",
+                        historyButton: "History",
+                        showEntriesLabel: "Show entries:",
+                        searchHistoryTitle: "Search History",
+                        clearHistoryButton: "Clear History",
+                        dateRangeLabel: "Select Date Range:",
+                        // Add other translations as needed
+                    }
+                },
+                vi: {
+                    translation: {
+                        title: "Tra cứu Part Number",
+                        partNumberLabel: "Nhập giá trị:",
+                        filterLabel: "Lọc theo:",
+                        partNumberOption: "Part Number",
+                        descriptionOption: "Description",
+                        customerOption: "Customer",
+                        commodityOption: "Commodity",
+                        poNumberOption: "PO Number",
+                        poReceivedDateOption: "Ngày nhận PO",
+                        customerNeedDateOption: "Ngày khách cần",
+                        approvalStatusOption: "Trạng thái phê duyệt",
+                        productionStatusOption: "Trạng thái sản xuất",
+                        erpCodeOption: "ERP-CODE",
+                        searchButton: "Tìm kiếm",
+                        viewAllButton: "Xem tất cả",
+                        historyButton: "Lịch sử",
+                        showEntriesLabel: "Hiển thị:",
+                        searchHistoryTitle: "Lịch sử Tìm kiếm",
+                        clearHistoryButton: "Xóa lịch sử",
+                        dateRangeLabel: "Chọn khoảng ngày:",
+                        // Add other translations as needed
+                    }
+                }
+            }
+        }, function (err, t) {
+            updateContent();
         });
-    } else {
-        const emptyMsg = document.createElement("div");
-        emptyMsg.className = "text-gray-400 px-3";
-        emptyMsg.textContent = "Không có lịch sử tìm kiếm.";
-        historyList.appendChild(emptyMsg);
+
+    function updateContent() {
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            element.textContent = i18next.t(element.dataset.i18n);
+        });
+        document.getElementById('date-start').placeholder = i18next.t('Từ ngày');
+        document.getElementById('date-end').placeholder = i18next.t('Đến ngày');
     }
+
+    document.getElementById('lang-vi').addEventListener('click', () => {
+        i18next.changeLanguage('vi').then(updateContent);
+    });
+
+    document.getElementById('lang-en').addEventListener('click', () => {
+        i18next.changeLanguage('en').then(updateContent);
+    });
+
+    // Global variables
+    let allData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    let entriesPerPage = parseInt(document.getElementById('entries-per-page').value);
+    let myFlatpickrStart, myFlatpickrEnd; // Biến lưu instance của flatpickr
+
+    // Date fields that should trigger date range picker
+    const dateFields = ["PO received date", "Customer need date"];
+
+    // Function to initialize Flatpickr
+    function initializeFlatpickr() {
+        myFlatpickrStart = flatpickr("#date-start", {
+            dateFormat: "Y-m-d",
+            locale: i18next.language, // Use current i18next language
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0 && myFlatpickrEnd) {
+                    myFlatpickrEnd.set("minDate", selectedDates[0]);
+                }
+            }
+        });
+        myFlatpickrEnd = flatpickr("#date-end", {
+            dateFormat: "Y-m-d",
+            locale: i18next.language, // Use current i18next language
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0 && myFlatpickrStart) {
+                    myFlatpickrStart.set("maxDate", selectedDates[0]);
+                }
+            }
+        });
+    }
+
+
+    // Function to toggle input field based on filter selection
+    function toggleInputField() {
+        const filterSelect = document.getElementById('filter-select');
+        const searchInputGroup = document.getElementById('text-search-group');
+        const dateInputGroup = document.getElementById('date-search-group');
+        const searchInput = document.getElementById('search-input');
+        const dateStartInput = document.getElementById('date-start');
+        const dateEndInput = document.getElementById('date-end');
+
+        if (dateFields.includes(filterSelect.value)) {
+            searchInputGroup.classList.remove('active');
+            dateInputGroup.classList.add('active');
+            searchInput.value = ''; // Clear text input
+            // Clear date inputs
+            if (myFlatpickrStart) myFlatpickrStart.clear();
+            if (myFlatpickrEnd) myFlatpickrEnd.clear();
+        } else {
+            searchInputGroup.classList.add('active');
+            dateInputGroup.classList.remove('active');
+            dateStartInput.value = ''; // Clear date inputs
+            dateEndInput.value = '';
+        }
+    }
+
+    // Event listener for filter select change
+    document.getElementById('filter-select').addEventListener('change', toggleInputField);
+
+    // Fetch data from server
+    async function fetchData() {
+        try {
+            const response = await fetch('/api/data'); // Sử dụng API endpoint từ server.js
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            allData = data; // Store all data
+            filteredData = allData; // Initially, all data is filtered
+            renderTable();
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('results-table').innerHTML = '<p class="text-red-400">Không thể tải dữ liệu. Vui lòng thử lại sau.</p>';
+        }
+    }
+
+    // Render table headers
+    function renderTableHeaders(headers) {
+        const thead = document.querySelector('table thead tr');
+        thead.innerHTML = ''; // Clear existing headers
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.className = 'px-5 py-3 border-b-2 border-gray-600 bg-gray-600 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider';
+            th.textContent = header;
+            thead.appendChild(th);
+        });
+    }
+
+    // Render table data for current page
+    function renderTable() {
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = ''; // Clear existing data
+
+        const startIndex = (currentPage - 1) * entriesPerPage;
+        const endIndex = startIndex + entriesPerPage;
+        const dataToDisplay = filteredData.slice(startIndex, endIndex);
+
+        if (filteredData.length > 0) {
+            const headers = Object.keys(filteredData[0]); // Get headers from the first item
+            renderTableHeaders(headers);
+
+            dataToDisplay.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-600'; // Add hover effect
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.className = 'px-5 py-5 border-b border-gray-600 text-sm';
+                    let cellValue = item[header];
+
+                    // Handle date fields: Convert Excel serial date to YYYY-MM-DD
+                    if (dateFields.includes(header) && typeof cellValue === 'number' && cellValue > 0) {
+                        cellValue = excelSerialDateToJSDate(cellValue).toISOString().slice(0, 10);
+                    }
+
+                    td.textContent = cellValue;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        } else {
+            renderTableHeaders([]); // Clear headers if no data
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 99; // Span across all potential columns
+            td.className = 'px-5 py-5 text-center text-gray-400';
+            td.textContent = 'Không tìm thấy dữ liệu.';
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+        }
+
+        updatePaginationInfo();
+        updatePaginationButtons();
+    }
+
+    // Convert Excel serial date to JavaScript Date object
+    function excelSerialDateToJSDate(serial) {
+        const utc_days = Math.floor(serial - 25569);
+        const utc_value = utc_days * 86400; // 86400 seconds in a day
+        const date_info = new Date(utc_value * 1000);
+        return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
+    }
+
+    // Update pagination info (e.g., "Showing 1 to 10 of 100 entries")
+    function updatePaginationInfo() {
+        const totalEntries = filteredData.length;
+        const startIndex = (currentPage - 1) * entriesPerPage + 1;
+        const endIndex = Math.min(startIndex + entriesPerPage - 1, totalEntries);
+        const paginationInfo = document.getElementById('pagination-info');
+        paginationInfo.textContent = `Hiển thị ${startIndex} đến ${endIndex} của ${totalEntries} mục`;
+    }
+
+    // Update pagination buttons (enable/disable)
+    function updatePaginationButtons() {
+        const prevBtn = document.getElementById('prev-page');
+        const nextBtn = document.getElementById('next-page');
+        const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    // Event listeners for pagination
+    document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    });
+
+    document.getElementById('next-page').addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    });
+
+    // Event listener for entries per page change
+    document.getElementById('entries-per-page').addEventListener('change', (event) => {
+        entriesPerPage = parseInt(event.target.value);
+        currentPage = 1; // Reset to first page
+        renderTable();
+    });
+
+    // Handle search form submission
+    document.getElementById('search-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        const filterSelect = document.getElementById('filter-select');
+        const searchTerm = searchInput.value.trim();
+        const filterBy = filterSelect.value;
+        const dateStart = document.getElementById('date-start').value;
+        const dateEnd = document.getElementById('date-end').value;
+
+        // Save search to history (only for actual search)
+        if (searchTerm || (dateStart && dateEnd && dateFields.includes(filterBy))) {
+            let historyItem = `${filterBy}: `;
+            if (dateFields.includes(filterBy)) {
+                historyItem += `${dateStart} - ${dateEnd}`;
+            } else {
+                historyItem += searchTerm;
+            }
+            saveSearchHistory(historyItem);
+        }
+
+        try {
+            let url = `/api/search?filterBy=${encodeURIComponent(filterBy)}`;
+            if (dateFields.includes(filterBy)) {
+                if (dateStart) url += `&startDate=${encodeURIComponent(dateStart)}`;
+                if (dateEnd) url += `&endDate=${encodeURIComponent(dateEnd)}`;
+            } else {
+                if (searchTerm) url += `&searchTerm=${encodeURIComponent(searchTerm)}`;
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            filteredData = data.data; // Server now sends data in a 'data' property
+            currentPage = 1; // Reset page
+            renderTable();
+        } catch (error) {
+            console.error('Error during search:', error);
+            alert('Đã có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại.');
+        }
+    });
+
+
+    // "View All" button functionality
+    document.getElementById('view-all-btn').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/data'); // Lấy tất cả dữ liệu
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            allData = data;
+            filteredData = allData;
+            currentPage = 1;
+            renderTable();
+        } catch (error) {
+            console.error('Error viewing all data:', error);
+            alert('Không thể tải tất cả dữ liệu. Vui lòng thử lại.');
+        }
+    });
+
+    // History Popup functions
+    function toggleHistoryPopup() {
+        const popup = document.getElementById("floating-history-popup");
+        const overlay = document.getElementById("overlay");
+        const isOpen = popup.classList.contains("show");
+
+        if (isOpen) {
+            popup.classList.remove("show");
+            overlay.style.display = "none";
+        } else {
+            renderHistory(); // Cập nhật lịch sử trước khi hiển thị
+            popup.classList.add("show");
+            overlay.style.display = "block";
+        }
+    }
+
+    document.getElementById("toggle-history-btn").addEventListener("click", toggleHistoryPopup);
+    document.getElementById("close-history-popup").addEventListener("click", toggleHistoryPopup);
+    document.getElementById("overlay").addEventListener("click", toggleHistoryPopup); // Đóng popup khi click ra ngoài
+
+    function saveSearchHistory(searchQuery) {
+        let storedHistory = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
+
+        // Remove if already exists to move to top
+        storedHistory = storedHistory.filter(item => item !== searchQuery);
+
+        // Add new query to the beginning
+        storedHistory.unshift(searchQuery);
+
+        // Keep only the latest 10 items
+        if (storedHistory.length > 10) {
+            storedHistory = storedHistory.slice(0, 10);
+        }
+
+        localStorage.setItem("partSearchHistory", JSON.stringify(storedHistory));
+        renderHistory(); // Re-render history list
+    }
+
+    function renderHistory() {
+        const historyList = document.getElementById("history-list");
+        historyList.innerHTML = ''; // Clear existing history
+        const storedHistory = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
+
+        if (storedHistory.length > 0) {
+            storedHistory.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "text-white px-3 py-1 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 truncate";
+                div.textContent = "🔍 " + item;
+                div.onclick = () => {
+                    // Populate search fields and perform search
+                    const [filterBy, value] = item.split(': ').map(s => s.trim());
+                    document.getElementById('filter-select').value = filterBy;
+                    toggleInputField(); // Adjust input type
+
+                    if (dateFields.includes(filterBy)) {
+                        const [startDate, endDate] = value.split(' - ');
+                        if (myFlatpickrStart) myFlatpickrStart.setDate(startDate);
+                        if (myFlatpickrEnd) myFlatpickrEnd.setDate(endDate);
+                    } else {
+                        document.getElementById('search-input').value = value;
+                    }
+
+                    document.getElementById('search-form').dispatchEvent(new Event('submit'));
+                    toggleHistoryPopup(); // Close popup after search
+                };
+                historyList.appendChild(div);
+            });
+        } else {
+            const emptyMsg = document.createElement("div");
+            emptyMsg.className = "text-gray-400 px-3";
+            emptyMsg.textContent = i18next.t('Không có lịch sử tìm kiếm.');
+            historyList.appendChild(emptyMsg);
+        }
+    }
+
     document.getElementById("clear-history-btn").addEventListener("click", function () {
         localStorage.removeItem("partSearchHistory");
-        location.reload();
+        renderHistory(); // Re-render history list to show empty message
     });
-    */
-});
-</script>
-</body></html>
 
+
+    // Initialize Select2
+    $(document).ready(function() {
+        $('#filter-select').select2({
+            minimumResultsForSearch: Infinity // Hide search box for simplicity if not many options
+        });
+        // Initial setup for input fields
+        toggleInputField();
+        initializeFlatpickr(); // Initialize Flatpickr after DOM is ready
+        fetchData(); // Load initial data
+        updateContent(); // Apply initial translations
+    });
+
+</script>
+</body>
+</html>
