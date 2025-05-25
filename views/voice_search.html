@@ -121,6 +121,68 @@
             50% { opacity: 0.5; transform: scale(1.1); }
             100% { opacity: 1; transform: scale(1); }
         }
+
+        /* Styles cho Modal phóng to ảnh */
+        .image-modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            border: 2px solid white;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .image-modal-close:hover,
+        .image-modal-close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Nút Xem ảnh trong bảng */
+        .view-image-btn {
+            background: none;
+            border: 1px solid #007bff;
+            color: #007bff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+        .view-image-btn:hover {
+            background: #007bff;
+            color: white;
+        }
+        .no-photo-text {
+            color: gray;
+            font-style: italic;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 <body>
@@ -155,6 +217,11 @@
         🗑️ Xóa lịch sử
     </button>
 
+    <div id="imageModal" class="image-modal">
+        <span class="image-modal-close">&times;</span>
+        <img class="image-modal-content" id="img01">
+    </div>
+
     <script>
         // --- Biến và tham chiếu DOM ---
         let analysisMode = 'image'; // 'image' hoặc 'status'
@@ -173,13 +240,17 @@
         const relatedResultsDiv = document.getElementById("relatedResults");
         const historyList = document.getElementById("historyList");
 
-        let recognition = null; // Khởi tạo null, sẽ gán khi startRecognition
+        // Modal elements
+        const imageModal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("img01");
+        const modalCloseBtn = document.getElementsByClassName("image-modal-close")[0];
+
+        let recognition = null; 
         let isListening = false;
-        let finalTranscriptReceived = false; // Biến cờ để kiểm soát onend
+        let finalTranscriptReceived = false; 
 
         // --- Hàm tiện ích ---
         function updateModeButtons() {
-            // Cập nhật nút inputMode
             if (inputMode === 'text') {
                 btnText.classList.add('mode-active');
                 btnText.classList.remove('mode-inactive');
@@ -187,25 +258,23 @@
                 btnVoice.classList.add('mode-inactive');
                 searchTextArea.style.display = 'block';
                 recordBtn.style.display = 'none';
-                statusDiv.style.display = 'none'; // Ẩn trạng thái khi ở chế độ nhập tay
-                stopRecognition(); // Dừng ghi âm nếu đang ở chế độ giọng nói
-            } else { // voice mode
+                statusDiv.style.display = 'none'; 
+                stopRecognition(); 
+            } else { 
                 btnVoice.classList.add('mode-active');
                 btnVoice.classList.remove('mode-inactive');
                 btnText.classList.remove('mode-active');
                 btnText.classList.add('mode-inactive');
                 searchTextArea.style.display = 'none';
                 recordBtn.style.display = 'inline-block';
-                // statusDiv sẽ được hiển thị khi startRecognition
             }
 
-            // Cập nhật nút analysisMode
             if (analysisMode === 'image') {
                 btnImage.classList.add('mode-active');
                 btnImage.classList.remove('mode-inactive');
                 btnStatus.classList.remove('mode-active');
                 btnStatus.classList.add('mode-inactive');
-            } else { // status mode
+            } else { 
                 btnStatus.classList.add('mode-active');
                 btnStatus.classList.remove('mode-inactive');
                 btnImage.classList.remove('mode-active');
@@ -222,9 +291,9 @@
                 return await res.json();
             } catch (error) {
                 console.error("Error fetching data:", error);
-                statusDiv.style.display = 'block'; // Hiển thị trạng thái lỗi
+                statusDiv.style.display = 'block'; 
                 statusDiv.innerText = "❌ Lỗi khi tải dữ liệu. Vui lòng thử lại sau.";
-                return []; // Trả về mảng rỗng để tránh lỗi khi filter
+                return []; 
             }
         }
 
@@ -252,7 +321,7 @@
                     if (packPic !== "OK") return "Cần chụp ảnh đóng gói.";
                     if (partPic === "OK" && packPic === "OK") return "Không cần chụp ảnh.";
                 }
-            } else { // status mode
+            } else { 
                 const map = {
                     "APPROVED": "Đã phê duyệt",
                     "CLOSED": "Đã đóng",
@@ -282,7 +351,7 @@
 
                 th.addEventListener('click', () => {
                     const rows = Array.from(table.querySelectorAll('tbody > tr'));
-                    const isAsc = th.dataset.order !== 'asc';
+                    const isAsc = th.dataset.order !== 'asc'; 
                     rows.sort((a, b) => {
                         const aText = a.children[colIndex].textContent.trim();
                         const bText = b.children[colIndex].textContent.trim();
@@ -301,27 +370,35 @@
             });
         }
 
-        function showImageInCell(erpCode, cellElement) {
+        // Hàm hiển thị ảnh phóng to trong modal
+        function showFullImage(erpCode) {
+            modalImg.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
+            imageModal.style.display = "flex"; // Use flex to center content
+            modalImg.onerror = function() {
+                modalImg.src = ''; // Clear broken image
+                modalImg.alt = "Không tìm thấy ảnh";
+                alert("Không tìm thấy ảnh cho Part Number này.");
+                imageModal.style.display = "none";
+            };
+        }
+
+        // Hàm xử lý hiển thị nội dung ô 'Ảnh'
+        function renderImageCell(erpCode, cellElement) {
             cellElement.innerHTML = ''; 
 
             if (!erpCode) {
-                cellElement.innerHTML = '<div style="padding:4px;font-style:italic;color:gray">No photo</div>';
+                cellElement.innerHTML = '<div class="no-photo-text">No photo</div>';
                 return;
             }
-
-            const img = document.createElement('img');
-            img.className = 'table-thumbnail-image'; 
-            img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_80,h_60,c_fit/ERP-CODE/${erpCode}.jpg`;
-            img.alt = `Ảnh Part ${erpCode}`;
-            img.style.maxWidth = '80px';
-            img.style.maxHeight = '60px';
-            img.style.border = '1px solid gray';
-            img.style.cursor = 'pointer'; 
-
-            img.onerror = function() {
-                cellElement.innerHTML = '<div style="padding:4px;font-style:italic;color:gray">No photo</div>';
+            
+            const button = document.createElement('button');
+            button.className = 'view-image-btn';
+            button.textContent = 'Xem ảnh';
+            button.onclick = (e) => {
+                e.stopPropagation(); // Ngăn chặn sự kiện click lan ra hàng (tr)
+                showFullImage(erpCode);
             };
-            cellElement.appendChild(img);
+            cellElement.appendChild(button);
         }
 
         async function processTranscript(transcript, fromHistory = false) {
@@ -364,7 +441,8 @@
                     <th>CE</th><th>Ảnh</th></tr></thead><tbody>`;
 
                 results.slice(0, 10).forEach((item, index) => {
-                    html += `<tr onclick="speak('${analyzePart(item).replace(/'/g, "\\'")}')">
+                    const partNumberForId = item["Part Number"].replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''); // Chuẩn hóa an toàn hơn
+                    html += `<tr data-part-number="${item["Part Number"]}">
                         <td>${index + 1}</td>
                         <td>${item["Part Number"] || ""}</td>
                         <td>${item["REV"] || ""}</td>
@@ -375,7 +453,7 @@
                         <td>${item["Packaging Pictures"] || ""}</td>
                         <td>${item["Critical"] || ""}</td>
                         <td>${item["CE"] || ""}</td>
-                        <td id="imageCell-${item["Part Number"].replace(/\s+/g, '-')}-${index}"></td>
+                        <td id="imageCell-${partNumberForId}-${index}"></td>
                     </tr>`;
                 });
 
@@ -385,10 +463,10 @@
 
                 results.slice(0, 10).forEach((item, index) => {
                     const erpCode = item["ERP-CODE"]?.toUpperCase() || "";
-                    // Sử dụng ID chuẩn hóa để tránh lỗi nếu Part Number có khoảng trắng hoặc ký tự đặc biệt
-                    const imageCell = document.getElementById(`imageCell-${item["Part Number"].replace(/\s+/g, '-')}-${index}`);
+                    const partNumberForId = item["Part Number"].replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+                    const imageCell = document.getElementById(`imageCell-${partNumberForId}-${index}`);
                     if (imageCell) {
-                        showImageInCell(erpCode, imageCell);
+                        renderImageCell(erpCode, imageCell);
                     }
                 });
             }
@@ -440,13 +518,13 @@
             }
 
             if (recognition) {
-                recognition.stop(); // Đảm bảo dừng phiên trước nếu có
+                recognition.stop(); 
             }
 
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = "vi-VN";
             recognition.interimResults = true;
-            finalTranscriptReceived = false; // Reset cờ
+            finalTranscriptReceived = false; 
 
             recognition.onstart = () => {
                 isListening = true;
@@ -463,14 +541,14 @@
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         finalTranscript += event.results[i][0].transcript;
-                        finalTranscriptReceived = true; // Đặt cờ khi có kết quả cuối cùng
+                        finalTranscriptReceived = true; 
                     } else {
                         interimTranscript += event.results[i][0].transcript;
                     }
                 }
                 resultDiv.innerHTML = `🗣 Bạn nói: <b>${finalTranscript || interimTranscript}</b>`;
                 if (finalTranscript) {
-                    processTranscript(finalTranscript); // Xử lý ngay khi có final transcript
+                    processTranscript(finalTranscript); 
                 }
             };
 
@@ -486,14 +564,11 @@
                 isListening = false;
                 recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
                 if (!finalTranscriptReceived) {
-                    // Nếu không có kết quả cuối cùng được nhận (ví dụ: người dùng không nói gì)
                     statusDiv.style.display = 'block';
                     statusDiv.innerText = "Không nhận diện được giọng nói. Vui lòng thử lại.";
-                    resultDiv.innerHTML = ""; // Xóa nội dung "Bạn nói: "
+                    resultDiv.innerHTML = ""; 
                 } else {
-                    // Nếu đã có kết quả cuối cùng, trạng thái sẽ được cập nhật bởi processTranscript
-                    // Hoặc bạn có thể xóa trạng thái nghe nếu processTranscript đã xong
-                    if (statusDiv.innerText.includes("Đang nghe...")) { // Chỉ xóa nếu không có lỗi hoặc kết quả từ processTranscript
+                    if (statusDiv.innerText.includes("Đang nghe...")) { 
                        statusDiv.innerText = "";
                        statusDiv.style.display = 'none';
                     }
@@ -507,7 +582,6 @@
             if (recognition && isListening) {
                 recognition.stop();
                 isListening = false;
-                // statusDiv sẽ được cập nhật trong onend
             }
         }
 
@@ -527,7 +601,7 @@
             } else {
                 resultDiv.innerHTML = "Vui lòng nhập từ khóa để tìm kiếm.";
                 relatedResultsDiv.innerHTML = "";
-                statusDiv.style.display = 'none'; // Ẩn trạng thái khi không tìm kiếm
+                statusDiv.style.display = 'none'; 
             }
         };
 
@@ -552,19 +626,37 @@
         };
 
         // Highlight hàng khi click vào
+        // Đồng thời xử lý sự kiện click hàng để đọc kết quả
         document.addEventListener('click', function(e) {
             const rows = document.querySelectorAll('table tbody tr');
             rows.forEach(r => r.classList.remove('active-row'));
             const targetRow = e.target.closest('tr');
             if (targetRow && targetRow.parentNode.tagName === 'TBODY') {
                 targetRow.classList.add('active-row');
+                // Nếu bạn muốn đọc kết quả khi click vào hàng, uncomment dòng dưới
+                // const partNumber = targetRow.dataset.partNumber;
+                // if (partNumber) {
+                //    // Cần tìm lại item trong data để lấy analyzePart(item)
+                //    // Hoặc lưu kết quả analyzePart vào data-attribute của hàng
+                //    // Hiện tại: để đơn giản, chức năng "speak" chỉ chạy khi tìm kiếm
+                // }
             }
         });
 
+        // Đóng modal khi click vào nút X hoặc bên ngoài ảnh
+        modalCloseBtn.onclick = function() { 
+            imageModal.style.display = "none";
+        }
+        imageModal.onclick = function(e) {
+            if (e.target === imageModal) {
+                imageModal.style.display = "none";
+            }
+        }
+
         // --- Khởi tạo khi tải trang ---
         window.onload = () => {
-            updateModeButtons(); // Thiết lập trạng thái ban đầu của các nút và hiển thị/ẩn input/recordBtn
-            renderHistory(); // Tải lịch sử tìm kiếm
+            updateModeButtons(); 
+            renderHistory(); 
         };
     </script>
 </body>
