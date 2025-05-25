@@ -1,715 +1,1968 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tra cứu Part Number bằng giọng nói</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
+    <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
     <style>
+        /* Đoạn CSS responsive máy tính */
+        @media (min-width: 768px) {
+          html, body {
+            height: 100%;
+            overflow: hidden;
+          }
+
+          body {
+            overflow-y: auto;
+          }
+
+          input, select, textarea {
+            touch-action: manipulation;
+            -webkit-user-select: text;
+            user-select: text;
+            caret-color: auto;
+          }
+
+          input:focus,
+          select:focus,
+          textarea:focus {
+            outline: none;
+            box-shadow: none;
+          }
+        }
+        /* Cài đặt CSS cơ bản */
+        html, body { height: 100%; margin: 0; padding: 0; }
         body {
-            font-family: sans-serif;
-            background: #1e1e2f;
-            color: white;
-            margin: 0;
-            padding: 1rem;
-            text-align: center;
+          font-family: Arial, sans-serif;
+          background: url('background.jpg') no-repeat center center/cover;
+          color: #333;
+          display: flex;
+          flex-direction: column;
         }
-        .mode-select {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
+        .page-container {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
-        .mode-select button {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            cursor: pointer;
+        .top-container {
+          flex: 0 0 auto;
+          background: rgba(0, 0, 0, 0.85);
+          padding: 15px;
+          max-height: 40vh;
+          overflow-y: auto;
+          position: relative;
         }
-        .mode-active {
-            background: #00cc99;
-            color: white;
+        .header {
+          text-align: center;
+          padding: 10px;
+          position: relative;
         }
-        .mode-inactive {
-            background: #444;
-            color: #ccc;
+        .tasks-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            background: #007bff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
         }
-        #recordBtn {
-            margin-top: 1rem;
-            font-size: 1.2rem;
-            padding: 1rem 2rem;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: none; /* Mặc định ẩn, chỉ hiện khi chọn mode giọng nói */
+        .tasks-link:hover {
+            background: #0056b3;
         }
-        .table-scroll {
-            overflow-x: auto;
-            margin-top: 1rem;
+        .header h1 { margin: 0; font-size: 28px; color: white; }
+        .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
+        /* Language switcher ở góc trên bên phải */
+        .language-switcher {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+        }
+        .language-switcher button {
+          padding: 4px 8px;
+          margin-left: 5px;
+          font-size: 12px;
+          cursor: pointer;
+          border: none;
+          border-radius: 3px;
+          background: #ff8c00;
+          color: white;
+          transition: background 0.3s;
+        }
+        .language-switcher button:hover {
+          background: #ff6500;
+        }
+        /* Khối chứa các tiêu chí lọc */
+        .filter-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 5px;
+        }
+        .filter-block {
+          background: #444;
+          border-radius: 5px;
+          padding: 5px;
+          margin: 5px;
+          width: 220px; /* Tăng chiều rộng để chứa 2 date input */
+          font-size: 12px;
+          color: white;
+          box-sizing: border-box;
+        }
+        .filter-block label {
+          display: block;
+          margin-bottom: 3px;
+          font-weight: bold;
+        }
+        .filter-block select, .filter-block input[type="date"] {
+          width: 100%;
+          padding: 3px;
+          margin-bottom: 3px;
+          font-size: 12px;
+          box-sizing: border-box;
+          border-radius: 3px;
+          border: 1px solid #666;
+        }
+        .filter-block input[type="date"] {
+            background-color: #fff;
+            color: #333;
+        }
+        .date-range-inputs {
+            display: none; /* Ẩn ban đầu */
+        }
+        .date-range-inputs label {
+            font-size: 10px;
+            margin-top: 5px;
+            margin-bottom: 1px;
+        }
+
+
+        /* Khối chứa các nút chức năng */
+        .action-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 5px;
+        }
+        .action-bar > div {
+          background: #444;
+          border-radius: 5px;
+          padding: 5px;
+          margin: 5px;
+          font-size: 12px;
+          color: white;
+          text-align: center;
+        }
+        .action-bar button {
+          padding: 6px 12px;
+          font-size: 12px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: 0.3s;
+          margin: 3px;
+        }
+        .filter-actions button {
+          background: linear-gradient(45deg, #ff8c00, #ff4500);
+          color: white;
+        }
+        .filter-actions button:hover {
+          background: linear-gradient(45deg, #ff6500, #ff0000);
+        }
+        .download-container button {
+          background: linear-gradient(45deg, #007bff, #0056b3);
+          color: white;
+        }
+        .download-container button:hover {
+          background: linear-gradient(45deg, #3399ff, #007bff);
+        }
+        .zoom-controls button {
+          background: linear-gradient(45deg, #28a745, #218838);
+          color: white;
+        }
+        .zoom-controls button:hover {
+          background: linear-gradient(45deg, #34d058, #28a745);
+        }
+        /* Phần hiển thị tổng số dòng */
+        .results-count {
+          text-align: center;
+          margin: 5px;
+          font-size: 14px;
+          color: white;
+        }
+        /* Bảng dữ liệu */
+        .table-container {
+          flex: 1 1 auto;
+          margin: 5px auto;
+          width: 98%;
+          max-height: calc(100vh - 260px); /* Điều chỉnh nếu top-container thay đổi chiều cao */
+          overflow-y: auto;
+          overflow-x: auto;
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 5px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
         table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1000px;
-            font-size: 0.9rem;
-        }
-        thead th {
-            position: sticky;
-            top: 0;
-            background: #333;
-            color: #fff;
-            z-index: 3;
+          width: auto; /* Cho phép bảng co giãn theo nội dung */
+          min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng container */
+          border-collapse: collapse;
+          table-layout: fixed; /* Giúp cột cố định hoạt động tốt hơn */
         }
         th, td {
-            border: 1px solid #ccc;
-            padding: 6px;
-            white-space: nowrap;
-            text-align: center; /* Căn giữa nội dung ô */
-            vertical-align: middle; /* Căn giữa theo chiều dọc */
+          padding: 6px 8px;
+          border: 1px solid #ccc;
+          font-size: 12px;
+          text-align: center;
+          white-space: nowrap;
         }
-        /* *** Thêm cursor pointer cho hàng *** */
-        tbody tr {
-            cursor: pointer;
+        th {
+          background: #4a76a8;
+          color: white;
+          position: sticky;
+          top: 0;
+          z-index: 2;
         }
-        tbody tr:hover {
-            background-color: #252540;
+        .sticky-col-1 {
+          position: sticky;
+          left: 0;
+          width: 40px; /* Cố định chiều rộng cho cột No */
+          min-width: 40px;
+          background: #4a76a8; /* Màu nền giống th */
+          z-index: 3; /* Cao hơn th thường và td thường */
         }
-        tr.active-row {
-            background-color: #2a2a4d;
-            font-weight: bold;
+        .sticky-col-2 {
+          position: sticky;
+          left: 40px; /* No (40px) */
+          width: 100px; /* Cố định chiều rộng cho Part Number */
+          min-width: 100px;
+          background: #4a76a8;
+          z-index: 3;
+        }
+        .sticky-col-3 {
+          position: sticky;
+          left: 140px; /* No (40px) + Part Number (100px) */
+          width: 50px; /* Cố định chiều rộng cho REV */
+          min-width: 50px;
+          background: #4a76a8;
+          z-index: 3;
+        }
+        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+          background: #e6e6e6; /* Màu nền khác cho td cố định để phân biệt */
+          color: #333;
+          z-index: 1; /* Cao hơn td thường nhưng thấp hơn th cố định */
+        }
+        tr.selected { background-color: #ffeb99 !important; }
+        .footer {
+          flex: 0 0 auto;
+          text-align: center;
+          padding: 5px;
+          font-size: 14px;
+          background: #333;
+          color: white;
         }
 
-        @media (min-width: 600px) {
-            th:first-child, td:first-child {
-                position: sticky;
-                left: 0;
-                min-width: 80px;
-                background: #1e1e2f;
-                z-index: 4;
-            }
-            th:nth-child(2), td:nth-child(2) {
-                position: sticky;
-                left: 80px;
-                min-width: 180px;
-                background: #1e1e2f;
-                z-index: 4;
-            }
-            th:nth-child(3), td:nth-child(3) {
-                position: sticky;
-                left: 260px;
-                min-width: 100px;
-                background: #1e1e2f;
-                z-index: 4;
-            }
-             /* Đảm bảo nền cho hàng được chọn không bị đè */
-            tr.active-row td:first-child,
-            tr.active-row td:nth-child(2),
-            tr.active-row td:nth-child(3) {
-                background: #2a2a4d;
-            }
-        }
-
-        #backHome {
+        /* CSS cho popup ảnh */
+        #image-popup {
+            display: none;
             position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 20px;
-            text-decoration: none;
             border: 1px solid #ccc;
+            background: white;
+            padding: 5px;
+            z-index: 10000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            max-width: 250px; /* Giới hạn kích thước popup ban đầu */
+            max-height: 250px;
+            cursor: default;
+            transition: all 0.3s ease-in-out;
+            overflow: auto; /* Cho phép cuộn khi ảnh lớn hơn popup đã zoom */
         }
-            
-        #statusListening {
-            margin-top: 1rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #00ffcc;
-            animation: pulse 1s infinite;
-            display: none; /* Mặc định ẩn, chỉ hiện khi có trạng thái */
+        #image-popup img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block; /* Loại bỏ khoảng trắng thừa dưới ảnh */
+            cursor: zoom-in; /* Con trỏ ban đầu */
+            object-fit: contain; /* Đảm bảo ảnh luôn vừa vặn */
+            width: 100%; 
+            height: 100%;
         }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.1); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        /* Styles cho Modal phóng to ảnh */
-        .image-modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
-            justify-content: center;
-            align-items: center;
+        
+        #image-popup .no-image-text {
+            padding: 10px;
+            text-align: center;
+            color: #555;
         }
 
-        .image-modal-content {
-            margin: auto;
-            display: block;
-            max-width: 90%;
-            max-height: 90%;
-            border: 2px solid white;
+        /* Class cho trạng thái phóng to */
+        #image-popup.zoomed {
+            max-width: 90vw; /* Chiếm 90% chiều rộng viewport */
+            max-height: 90vh; /* Chiếm 90% chiều cao viewport */
+            width: auto;  /* Tự động điều chỉnh chiều rộng theo nội dung ảnh */
+            height: auto; /* Tự động điều chỉnh chiều cao theo nội dung ảnh */
+            padding: 15px; /* Tăng padding khi zoom */
         }
 
-        .image-modal-close {
+        #image-popup.zoomed img {
+            cursor: zoom-out; /* Đổi cursor khi ảnh đã được phóng to */
+        }
+
+        /* Nút đóng (X) */
+        .image-popup-close {
             position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
+            top: 0px; 
+            right: 8px;
+            font-size: 24px; 
             font-weight: bold;
-            transition: 0.3s;
             cursor: pointer;
+            color: #333;
+            z-index: 10001; 
+            padding: 2px 5px;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            line-height: 1;
+        }
+        .image-popup-close:hover {
+            color: #000;
+            background-color: rgba(255,255,255,0.9);
         }
 
-        .image-modal-close:hover,
-        .image-modal-close:focus {
-            color: #bbb;
-            text-decoration: none;
-            cursor: pointer;
+        /* CSS cho spinner tải ảnh trong popup */
+        .image-popup-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none; /* Ẩn ban đầu */
+            z-index: 10002; /* Trên ảnh */
         }
 
-        /* Style cho ảnh thumbnail trong bảng */
-        .thumbnail-image {
-            width: 80px; /* Kích thước thumbnail */
-            height: 60px;
-            cursor: pointer; /* Biểu tượng con trỏ */
-            object-fit: cover; /* Hiển thị ảnh vừa vặn */
-            border: 1px solid #555;
-            border-radius: 4px;
-            transition: transform 0.2s ease; /* Hiệu ứng khi hover */
+        @media (max-width: 768px) {
+          .language-switcher {
+            position: static;
+            margin-top: 10px;
+            text-align: center;
+          }
+          .language-switcher button {
+            padding: 3px 6px;
+            margin: 0 3px;
+            font-size: 10px;
+          }
+          .filter-bar, .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .filter-block, .action-bar > div {
+            width: 90%; /* Tăng chiều rộng cho dễ thao tác */
+            margin: 5px auto;
+          }
+          .header h1 { font-size: 24px; }
+          .header p { font-size: 14px; }
+          table, th, td { font-size: 10px; }
+          .table-container {
+            max-height: calc(100vh - 320px); /* Điều chỉnh nếu cần */
+          }
+           .top-container {
+                max-height: 45vh !important; /* Tăng chiều cao tối đa cho vùng filter */
+                padding: 8px !important;
+                overflow-y: auto;
+            }
+            .action-bar button,
+            .language-switcher button {
+                font-size: 16px; /* Tăng kích thước chữ cho nút */
+                padding: 10px 16px; /* Tăng padding cho nút */
+            }
+             #quick-search {
+                font-size: 13px !important; /* Đảm bảo quick search dễ thấy */
+            }
         }
-        .thumbnail-image:hover {
-           transform: scale(1.1); /* Phóng to nhẹ khi hover */
+        @media (max-width: 480px) {
+          .tasks-link {
+            position: relative;
+            top: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 16px;
+          }
+          .header h1 { font-size: 20px; }
+          .header p { font-size: 12px; }
+          table, th, td { font-size: 9px; }
         }
 
-        .no-photo-text {
-            color: gray;
-            font-style: italic;
-            font-size: 0.8em;
+        @media (max-width: 768px) {
+          body {
+            padding-bottom: 300px; /* chừa chỗ cho bàn phím */
+          }
         }
+
+        @media screen and (orientation: landscape), (orientation: portrait) {
+          .table-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            overflow-x: auto;
+            touch-action: pan-y; /* Cho phép cuộn dọc bằng cảm ứng */
+          }
+          table {
+            width: auto;
+            min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng */
+          }
+          td, th {
+            word-break: break-word; /* Cho phép ngắt từ nếu cần */
+          }
+        }
+
+        /* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
+        .table-container {
+          width: 100vw; /* Chiếm toàn bộ chiều rộng viewport */
+          max-height: 50vh; /* Chiều cao tối đa */
+          overflow-x: auto;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
+          scroll-behavior: smooth;
+          touch-action: auto; /* Cho phép cả cuộn ngang và dọc */
+        }
+
+        @media screen and (orientation: landscape) {
+          .table-container {
+            max-height: 60vh;
+          }
+        }
+
+        @media screen and (orientation: portrait) {
+          .table-container {
+            max-height: 50vh;
+          }
+        }
+
+        table {
+          min-width: 800px; /* Chiều rộng tối thiểu của bảng, điều chỉnh nếu cần */
+        }
+
+        th, td {
+          word-break: break-word;
+          white-space: nowrap;
+        }
+
+        .table-container {
+            width: 100%; /* Đảm bảo container chiếm toàn bộ chiều rộng cha */
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 60vh; /* Hoặc giá trị phù hợp */
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 1000px; /* Hoặc giá trị phù hợp với số cột */
+        }
+        th, td {
+            white-space: nowrap; /* Giữ nội dung trên một dòng */
+            padding: 6px; /* Điều chỉnh padding nếu cần */
+            font-size: 12px;
+        }
+        .sticky-col-1 {
+            position: sticky; left: 0; background: #4a76a8; z-index: 3;
+        }
+        .sticky-col-2 {
+            position: sticky; left: 40px; background: #4a76a8; z-index: 3;
+        }
+        .sticky-col-3 {
+            position: sticky; left: 140px; background: #4a76a8; z-index: 3;
+        }
+        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+            background: #f3f3f3; /* Màu nền sáng hơn cho td cố định */
+        }
+
+        /* --- Cải tiến cho input khi focus --- */
+        input:focus, select:focus {
+          outline: 2px solid #ff8c00; /* Viền cam nổi bật khi focus */
+          background-color: #fffce6; /* Nền vàng nhạt khi focus */
+        }
+
+        /* Tăng font input trên điện thoại để dễ nhập */
+        @media (max-width: 768px) {
+          input, select {
+            font-size: 16px; /* Kích thước chữ lớn hơn cho input trên mobile */
+          }
+        }
+
+        /* Cải thiện bảng khi xoay ngang */
+        @media screen and (orientation: landscape) {
+            .top-container {
+                max-height: 30vh; /* Giảm chiều cao vùng filter khi xoay ngang */
+                overflow-y: auto;
+            }
+            .table-container {
+                height: auto; /* Cho phép bảng tự điều chỉnh chiều cao */
+                max-height: 90vh; /* Tăng chiều cao tối đa cho bảng */
+                min-height: 70vh; /* Chiều cao tối thiểu cho bảng */
+                overflow-x: auto;
+                overflow-y: auto;
+            }
+            table {
+                min-width: 1200px; /* Tăng chiều rộng tối thiểu của bảng khi xoay ngang */
+            }
+        }
+
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        #results-table td, #results-table th {
+          user-select: text; /* Cho phép chọn văn bản trong bảng */
+        }
+
+
+        @media (max-width: 768px) {
+            .top-container {
+                max-height: 40vh !important; /* Quan trọng: Đảm bảo ghi đè các style khác */
+                padding: 8px !important;
+                overflow-y: auto;
+            }
+
+            .header h1 { font-size: 20px; }
+            .header p { font-size: 12px; }
+
+            .filter-block,
+            .action-bar > div {
+                padding: 4px;
+                margin: 3px;
+                font-size: 11px;
+            }
+
+            .action-bar button,
+            .language-switcher button {
+                font-size: 16px; /* Tăng kích thước chữ cho nút */
+                padding: 10px 16px; /* Tăng padding cho nút */
+            }
+
+            .filter-block select {
+                font-size: 12px;
+            }
+
+            .results-count {
+                font-size: 12px;
+            }
+
+            #quick-search {
+                font-size: 13px !important; /* Đảm bảo quick search dễ thấy */
+            }
+        }
+
+
+        /* Hiệu ứng mượt cho vùng động */
+        .top-container,
+        .table-container,
+        #quick-search {
+          transition: all 0.3s ease-in-out;
+        }
+        .full-top-container {
+          height: 100vh !important;
+          max-height: 100vh !important;
+          overflow-y: auto;
+        }
+        .hide-top-container {
+          height: 0 !important;
+          max-height: 0 !important;
+          overflow: hidden;
+          padding: 0 !important;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .show-table-only {
+          height: calc(100vh - 60px); /* 60px là chiều cao của quick search và footer */
+        }
+
     </style>
 </head>
 <body>
-    <h2>🎤 Tra cứu Part Number bằng giọng nói</h2>
-
-    <div class="mode-select">
-        <button id="modeText" class="mode-active">⌨️ Nhập tay</button>
-        <button id="modeVoice" class="mode-inactive">🎙️ Giọng nói</button>
+    <div id="loading-spinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+        <div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
     </div>
 
-    <div class="search-text-area" style="margin: 1rem 0; display: block;">
-        <input type="text" id="searchInput" placeholder="Nhập từ khóa Part Number..." style="padding: 0.5rem; width: 60%; font-size: 1rem; border-radius: 6px; border: none;"/>
-        <button id="searchBtn" style="padding: 0.5rem 1rem; margin-left: 0.5rem; border-radius: 6px; background: #007bff; color: white; border: none;">🔍 Tìm</button>
+    <div class="page-container">
+        <div class="top-container">
+            <div class="header">
+                <a class="tasks-link" href="/tasks">Tasks</a>
+                <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
+                <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
+                <div class="language-switcher">
+                    <button onclick="changeLanguage('vi')">Vi</button>
+                    <button onclick="changeLanguage('en')">En</button>
+                    <button onclick="changeLanguage('ko')">Ko</button>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-block" id="filter-block-project">
+                    <label for="filter-project" id="label-filter-project">Chọn dự án (Customer)</label>
+                    <select class="value-select" id="filter-project" multiple="multiple"></select>
+                </div>
+                <div class="filter-block" id="filter-block-1">
+                    <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
+                    <select id="filter-column-1">
+                        <option value="Part Number" selected>Part Number</option>
+                        <option value="Approval Status">Approval Status</option>
+                        <option value="Production Status">Production Status</option>
+                        <option value="Part Pictures">Part Pictures</option>
+                        <option value="Packaging Pictures">Packaging Pictures</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Commodity">Commodity</option>
+                        <option value="Critical">Critical</option>
+                        <option value="CE">CE</option>
+                        <option value="PO Number">PO Number</option>
+                        <option value="ERP-CODE">ERP-CODE</option>
+                        <option value="REV">REV</option>
+                        <option value="Description">Description</option>
+                        <option value="Note Number">Note Number</option>
+                        <option value="PO received date" data-type="date">PO received date</option>
+                        <option value="Customer need date" data-type="date">Customer need date</option>
+                        <option value="Requirements">Requirements</option>
+                        <option value="FAIR Cover sheet">FAIR Cover sheet</option>
+                        <option value="Bubble Drawings">Bubble Drawings</option>
+                        <option value="Datasheet form">Datasheet form</option>
+                        <option value="LAIR data">LAIR data</option>
+                        <option value="FAIR Data">FAIR Data</option>
+                        <option value="COC">COC</option>
+                        <option value="BOM">BOM</option>
+                        <option value="Mill">Mill</option>
+                        <option value="Test reports / evidences">Test reports / evidences</option>
+                        <option value="Remark 1">Remark 1</option>
+                        <option value="Remark 2">Remark 2</option>
+                        <option value="Submit date" data-type="date">Submit date</option>
+                        <option value="Reject comments">Reject comments</option>
+                    </select>
+                    <label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
+                    <select class="value-select" id="filter-value-1" multiple="multiple"></select>
+                    <div class="date-range-inputs" id="date-range-1">
+                        <label for="filter-date-start-1">Từ ngày:</label>
+                        <input type="date" class="date-select-start" id="filter-date-start-1">
+                        <label for="filter-date-end-1">Đến ngày:</label>
+                        <input type="date" class="date-select-end" id="filter-date-end-1">
+                    </div>
+                </div>
+                <div class="filter-block" id="filter-block-2">
+                    <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
+                    <select id="filter-column-2">
+                        <option value="Part Number" selected>Part Number</option>
+                        <option value="Approval Status">Approval Status</option>
+                        <option value="Production Status">Production Status</option>
+                        <option value="Part Pictures">Part Pictures</option>
+                        <option value="Packaging Pictures">Packaging Pictures</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Commodity">Commodity</option>
+                        <option value="Critical">Critical</option>
+                        <option value="CE">CE</option>
+                        <option value="PO Number">PO Number</option>
+                        <option value="ERP-CODE">ERP-CODE</option>
+                        <option value="REV">REV</option>
+                        <option value="Description">Description</option>
+                        <option value="Note Number">Note Number</option>
+                        <option value="PO received date" data-type="date">PO received date</option>
+                        <option value="Customer need date" data-type="date">Customer need date</option>
+                        <option value="Requirements">Requirements</option>
+                        <option value="FAIR Cover sheet">FAIR Cover sheet</option>
+                        <option value="Bubble Drawings">Bubble Drawings</option>
+                        <option value="Datasheet form">Datasheet form</option>
+                        <option value="LAIR data">LAIR data</option>
+                        <option value="FAIR Data">FAIR Data</option>
+                        <option value="COC">COC</option>
+                        <option value="BOM">BOM</option>
+                        <option value="Mill">Mill</option>
+                        <option value="Test reports / evidences">Test reports / evidences</option>
+                        <option value="Remark 1">Remark 1</option>
+                        <option value="Remark 2">Remark 2</option>
+                        <option value="Submit date" data-type="date">Submit date</option>
+                        <option value="Reject comments">Reject comments</option>
+                    </select>
+                    <label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
+                    <select id="filter-value-2" multiple="multiple"></select>
+                     <div class="date-range-inputs" id="date-range-2">
+                        <label for="filter-date-start-2">Từ ngày:</label>
+                        <input type="date" class="date-select-start" id="filter-date-start-2">
+                        <label for="filter-date-end-2">Đến ngày:</label>
+                        <input type="date" class="date-select-end" id="filter-date-end-2">
+                    </div>
+                </div>
+                <div class="filter-block" id="filter-block-3">
+                    <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
+                    <select id="filter-column-3">
+                        <option value="Part Number" selected>Part Number</option>
+                        <option value="Approval Status">Approval Status</option>
+                        <option value="Production Status">Production Status</option>
+                        <option value="Part Pictures">Part Pictures</option>
+                        <option value="Packaging Pictures">Packaging Pictures</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Commodity">Commodity</option>
+                        <option value="Critical">Critical</option>
+                        <option value="CE">CE</option>
+                        <option value="PO Number">PO Number</option>
+                        <option value="ERP-CODE">ERP-CODE</option>
+                        <option value="REV">REV</option>
+                        <option value="Description">Description</option>
+                        <option value="Note Number">Note Number</option>
+                        <option value="PO received date" data-type="date">PO received date</option>
+                        <option value="Customer need date" data-type="date">Customer need date</option>
+                        <option value="Requirements">Requirements</option>
+                        <option value="FAIR Cover sheet">FAIR Cover sheet</option>
+                        <option value="Bubble Drawings">Bubble Drawings</option>
+                        <option value="Datasheet form">Datasheet form</option>
+                        <option value="LAIR data">LAIR data</option>
+                        <option value="FAIR Data">FAIR Data</option>
+                        <option value="COC">COC</option>
+                        <option value="BOM">BOM</option>
+                        <option value="Mill">Mill</option>
+                        <option value="Test reports / evidences">Test reports / evidences</option>
+                        <option value="Remark 1">Remark 1</option>
+                        <option value="Remark 2">Remark 2</option>
+                        <option value="Submit date" data-type="date">Submit date</option>
+                        <option value="Reject comments">Reject comments</option>
+                    </select>
+                    <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
+                    <select class="value-select" id="filter-value-3" multiple="multiple"></select>
+                    <div class="date-range-inputs" id="date-range-3">
+                        <label for="filter-date-start-3">Từ ngày:</label>
+                        <input type="date" class="date-select-start" id="filter-date-start-3">
+                        <label for="filter-date-end-3">Đến ngày:</label>
+                        <input type="date" class="date-select-end" id="filter-date-end-3">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <div class="filter-actions">
+                    <button id="apply-filters">Áp Dụng Lọc</button>
+                    <button id="clear-filters">Xóa Lọc</button>
+                </div>
+                <div class="download-container">
+                    <button id="download-excel">Xuất Excel (Đang xem)</button>
+                    <button id="export-all">Xuất Excel (Tất cả)</button>
+                </div>
+                <div class="zoom-controls">
+                    <button id="zoom-in">Phóng to</button>
+                    <button id="zoom-out">Thu nhỏ</button>
+                </div>
+            </div>
+            <div class="scan-camera" style="text-align:center; margin-top:10px;">
+                <button id="btnScanCamera">📷 Quét Camera</button>
+            </div>
+            <div class="results-count" id="results-count">Total rows: 0</div>
+        </div>
+
+        <div style="text-align:center; margin: 10px;">
+            <input id="quick-search" placeholder="🔍 Tìm Part Number..." style="padding:5px; width: 60%; font-size:14px;" type="text"/>
+        </div>
+
+        <div class="table-container">
+            <table id="results-table">
+                <thead><tr>
+                    <th class="sticky-col-1" data-column="No">No</th>
+                    <th class="sticky-col-2" data-column="Part Number">Part Number</th>
+                    <th class="sticky-col-3" data-column="REV">REV</th>
+                    <th data-column="Approval Status">Approval Status</th>
+                    <th data-column="Customer">Customer</th>
+                    <th data-column="Commodity">Commodity</th>
+                    <th data-column="Production Status">Production Status</th>
+                    <th data-column="Part Pictures">Part Pictures</th>
+                    <th data-column="Packaging Pictures">Packaging Pictures</th>
+                    <th data-column="Critical">Critical</th>
+                    <th data-column="CE">CE</th>
+                    <th data-column="PO Number">PO Number</th>
+                    <th data-column="Description">Description</th>
+                    <th data-column="ERP-CODE">ERP-CODE</th>
+                    <th data-column="Note Number">Note Number</th>
+                    <th data-column="PO received date">PO received date</th>
+                    <th data-column="Customer need date">Customer need date</th>
+                    <th data-column="Requirements">Requirements</th>
+                    <th data-column="FAIR Cover sheet">FAIR Cover sheet</th>
+                    <th data-column="Bubble Drawings">Bubble Drawings</th>
+                    <th data-column="Datasheet form">Datasheet form</th>
+                    <th data-column="LAIR Data">LAIR Data</th>
+                    <th data-column="FAIR Data">FAIR Data</th>
+                    <th data-column="COC">COC</th>
+                    <th data-column="BOM">BOM</th>
+                    <th data-column="Mill">Mill</th>
+                    <th data-column="Test reports / evidences">Test reports / evidences</th>
+                    <th data-column="Remark 1">Remark 1</th>
+                    <th data-column="Remark 2">Remark 2</th>
+                    <th data-column="Submit date">Submit date</th>
+                    <th data-column="Reject comments">Reject comments</th>
+                </tr></thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+        <div id="load-more-container" style="text-align:center; margin:10px;">
+            <button id="load-more">Load More</button>
+            <button id="load-all">Load All</button>
+        </div>
+        <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
-    <div class="mode-select">
-        <button id="modeImage" class="mode-active">🖼️ Kiểm tra ảnh</button>
-        <button id="modeStatus" class="mode-inactive">📄 Kiểm tra trạng thái</button>
+    <div id="image-popup"> <span class="image-popup-close">&times;</span> <div class="image-popup-spinner"></div> <img src="" alt="Part Image" style="display:none;"> <span class="no-image-text" style="display:none;"></span>
     </div>
-
-    <button id="recordBtn">🎙️ Nhấn để bắt đầu</button>
-    <div id="statusListening" style="margin-top:1rem;"></div>
-    <div id="result" style="margin-top:1rem;"></div>
-    <div class="table-scroll" id="relatedResults"></div>
-
-    <a href="/home" id="backHome">← Trang chủ</a>
-
-    <hr style="margin-top:2rem; border:none; border-top:1px solid #666;">
-    <h3>📜 Lịch sử tìm kiếm gần đây</h3>
-    <ul id="historyList" style="list-style:none; padding:0; text-align:left;"></ul>
-    <button onclick="clearHistory()" style="margin-top:0.5rem; background:#cc4444; color:white; padding:8px 16px; border:none; border-radius:6px; cursor:pointer;">
-        🗑️ Xóa lịch sử
-    </button>
-
-    <div id="imageModal" class="image-modal">
-        <span class="image-modal-close">&times;</span>
-        <img class="image-modal-content" id="img01">
-    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
 
     <script>
-        // --- Biến và tham chiếu DOM ---
-        let analysisMode = 'image'; // 'image' hoặc 'status'
-        let inputMode = 'text'; // 'text' hoặc 'voice'
-
-        const btnImage = document.getElementById('modeImage');
-        const btnStatus = document.getElementById('modeStatus');
-        const btnText = document.getElementById('modeText');
-        const btnVoice = document.getElementById('modeVoice');
-        const recordBtn = document.getElementById("recordBtn");
-        const searchInput = document.getElementById("searchInput");
-        const searchBtn = document.getElementById("searchBtn");
-        const searchTextArea = document.querySelector(".search-text-area");
-        const resultDiv = document.getElementById("result");
-        const statusDiv = document.getElementById("statusListening");
-        const relatedResultsDiv = document.getElementById("relatedResults");
-        const historyList = document.getElementById("historyList");
-
-        // Modal elements
-        const imageModal = document.getElementById("imageModal");
-        const modalImg = document.getElementById("img01");
-        const modalCloseBtn = document.getElementsByClassName("image-modal-close")[0];
-
-        let recognition = null; 
-        let isListening = false;
-        let finalTranscriptReceived = false; 
-
-        // --- Hàm tiện ích ---
-        function updateModeButtons() {
-            if (inputMode === 'text') {
-                btnText.classList.add('mode-active');
-                btnText.classList.remove('mode-inactive');
-                btnVoice.classList.remove('mode-active');
-                btnVoice.classList.add('mode-inactive');
-                searchTextArea.style.display = 'block';
-                recordBtn.style.display = 'none';
-                statusDiv.style.display = 'none'; 
-                stopRecognition(); 
-            } else { 
-                btnVoice.classList.add('mode-active');
-                btnVoice.classList.remove('mode-inactive');
-                btnText.classList.remove('mode-active');
-                btnText.classList.add('mode-inactive');
-                searchTextArea.style.display = 'none';
-                recordBtn.style.display = 'inline-block';
+        // Khởi tạo i18next
+        i18next.use(i18nextBrowserLanguageDetector).init({
+          fallbackLng: 'vi',
+          debug: false,
+          resources: {
+            en: {
+              translation: {
+                "header_title": "FAIR TEAM - Search Status",
+                "header_subtitle": "Search FAIR status",
+                "choose_project": "Choose Project",
+                "choose_value": "Choose Value",
+                "choose_criteria_1": "Select Criteria 1:",
+                "choose_criteria_2": "Select Criteria 2 (paste excel):",
+                "choose_criteria_3": "Select Criteria 3:",
+                "apply_filter": "Apply Filter",
+                "clear_filter": "Clear Filter",
+                "download_excel": "Export Excel (Current)",
+                "export_all": "Export Excel (All)",
+                "zoom_in": "Zoom In",
+                "zoom_out": "Zoom Out",
+                "load_more": "Load More",
+                "load_all": "Load All",
+                "total_rows": "Total rows: {{count}} / {{total}}",
+                "developer": "Developer: Nguyễn Văn Đạo",
+                "date_from": "From Date:",
+                "date_to": "To Date:"
+              }
+            },
+            ko: {
+              translation: {
+                "header_title": "FAIR TEAM - 검색 상태",
+                "header_subtitle": "FAIR 상태 검색",
+                "choose_project": "프로젝트 선택",
+                "choose_value": "값 선택",
+                "choose_criteria_1": "기준 1 선택:",
+                "choose_criteria_2": "기준 2 선택 (엑셀 붙여넣기):",
+                "choose_criteria_3": "기준 3 선택:",
+                "apply_filter": "필터 적용",
+                "clear_filter": "필터 지우기",
+                "download_excel": "엑셀 내보내기 (현재 보기)",
+                "export_all": "엑셀 내보내기 (전체)",
+                "zoom_in": "확대",
+                "zoom_out": "축소",
+                "load_more": "더 불러오기",
+                "load_all": "전체 불러오기",
+                "total_rows": "총 행: {{count}} / {{total}}",
+                "developer": "개발자: Nguyễn Văn Đạo",
+                "date_from": "시작 날짜:",
+                "date_to": "종료 날짜:"
+              }
+            },
+            vi: {
+              translation: {
+                "header_title": "FAIR TEAM - Tra cứu tình trạng FAIR",
+                "header_subtitle": "Tra cứu tình trạng FAIR",
+                "choose_project": "Chọn dự án",
+                "choose_value": "Chọn giá trị",
+                "choose_criteria_1": "Chọn tiêu chí số 1:",
+                "choose_criteria_2": "Chọn tiêu chí số 2 (paste ex):",
+                "choose_criteria_3": "Chọn tiêu chí số 3:",
+                "apply_filter": "Áp dụng lọc",
+                "clear_filter": "Xóa lọc",
+                "download_excel": "Xuất Excel (Đang xem)",
+                "export_all": "Xuất Excel (Tất cả)",
+                "zoom_in": "Phóng to",
+                "zoom_out": "Thu nhỏ",
+                "load_more": "Tải thêm",
+                "load_all": "Tải toàn bộ",
+                "total_rows": "Tổng số dòng: {{count}} / {{total}}",
+                "developer": "Người phát triển: Nguyễn Văn Đạo",
+                "date_from": "Từ ngày:",
+                "date_to": "Đến ngày:"
+              }
             }
+          }
+        }, function(err, t) {
+          updateStaticContent();
+        });
 
-            if (analysisMode === 'image') {
-                btnImage.classList.add('mode-active');
-                btnImage.classList.remove('mode-inactive');
-                btnStatus.classList.remove('mode-active');
-                btnStatus.classList.add('mode-inactive');
-            } else { 
-                btnStatus.classList.add('mode-active');
-                btnStatus.classList.remove('mode-inactive');
-                btnImage.classList.remove('mode-active');
-                btnImage.classList.add('mode-inactive');
+        function reinitializeSelect2(selector, placeholder, extraOptions) {
+          var $el = $(selector);
+          var currentValue = $el.val();
+          if ($el.data('select2')) { 
+            $el.select2("destroy");
+          }
+          $el.select2($.extend({
+            placeholder: placeholder,
+            allowClear: true,
+            width: '100%'
+          }, extraOptions));
+          if(currentValue) { 
+            $el.val(currentValue).trigger('change.select2'); 
+          }
+        }
+
+        function updateStaticContent() {
+          document.getElementById("header-title").innerText = i18next.t("header_title");
+          document.getElementById("header-subtitle").innerText = i18next.t("header_subtitle");
+          var labelSheet = document.querySelector('label[for="filter-project"]');
+          if (labelSheet) { labelSheet.innerText = i18next.t("choose_project"); }
+          
+          for (let i = 1; i <= 3; i++) {
+            var labelCriteria = document.getElementById(`label-criteria-${i}`);
+            if (labelCriteria) { labelCriteria.innerText = i18next.t(`choose_criteria_${i}`); }
+            
+            var labelValue = document.getElementById(`label-filter-value-${i}`);
+            if (labelValue) { labelValue.innerText = i18next.t("choose_value"); }
+
+            var labelDateFrom = $(`#date-range-${i} label[for="filter-date-start-${i}"]`);
+            if (labelDateFrom.length) { labelDateFrom.text(i18next.t("date_from")); }
+            var labelDateTo = $(`#date-range-${i} label[for="filter-date-end-${i}"]`);
+            if (labelDateTo.length) { labelDateTo.text(i18next.t("date_to")); }
+          }
+          
+          var tbodyCount = $('#results-table tbody').children().length;
+          $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: totalData }));
+
+          reinitializeSelect2('#filter-project', i18next.t("choose_project"), { closeOnSelect: false });
+          reinitializeSelect2('#filter-value-1', i18next.t("choose_value"), { closeOnSelect: false });
+          reinitializeSelect2('#filter-value-2', i18next.t("choose_value"), {});
+          reinitializeSelect2('#filter-value-3', i18next.t("choose_value"), { closeOnSelect: false });
+
+          document.getElementById("apply-filters").innerText = i18next.t("apply_filter");
+          document.getElementById("clear-filters").innerText = i18next.t("clear_filter");
+          document.getElementById("download-excel").innerText = i18next.t("download_excel");
+          document.getElementById("export-all").innerText = i18next.t("export_all");
+          document.getElementById("zoom-in").innerText = i18next.t("zoom_in");
+          document.getElementById("zoom-out").innerText = i18next.t("zoom_out");
+          document.getElementById("load-more").innerText = i18next.t("load_more");
+          document.getElementById("load-all").innerText = i18next.t("load_all");
+          document.getElementById("footer-text").innerText = i18next.t("developer");
+        }
+
+        function changeLanguage(lng) {
+          i18next.changeLanguage(lng, function() {
+            updateStaticContent();
+            $('.value-select').each(function() {
+                const placeholderText = $(this).attr('id') === 'filter-project' ? i18next.t("choose_project") : i18next.t("choose_value");
+                $(this).data('select2').$container.find('.select2-selection__placeholder').text(placeholderText);
+            });
+          });
+        }
+    </script>
+    <script>
+        function formatExcelDate(val) {
+            if (!val) return '';
+            if (typeof val === 'number') {
+                let date = new Date(Date.UTC(1899, 11, 30 + val)); 
+                if (!isNaN(date)) {
+                    const yyyy = date.getUTCFullYear();
+                    const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+                    const dd = String(date.getUTCDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                }
+            } else if (typeof val === 'string') {
+                const parsed = new Date(val);
+                if (!isNaN(parsed)) {
+                    const yyyy = parsed.getFullYear(); 
+                    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+                    const dd = String(parsed.getDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                }
+            }
+            return val; 
+        }
+
+        let currentFilters = {};
+        let currentOffset = 0;
+        const pageSize = 50;
+        let totalData = 0;
+        let currentZoom = 1;
+        let allData = null;
+
+        // --- CÁC BIẾN THAM CHIẾU POPUP ẢNH (KHAI BÁO MỘT LẦN) ---
+        const imagePopup = $('#image-popup');
+        const popupImg = imagePopup.find('img');
+        const popupText = imagePopup.find('span.no-image-text');
+        const popupCloseButton = imagePopup.find('.image-popup-close');
+        const popupSpinner = imagePopup.find('.image-popup-spinner'); // Spinner mới
+
+
+        function loadAllData() {
+          $.getJSON('/search?limit=1000000', function(response) { 
+            allData = response.data;
+            totalData = response.total;
+            updateFilterValuesForBlock(1);
+            updateCascade(2); 
+          });
+        }
+
+        function loadDistinctValuesForProject() {
+          const selectElem = $('#filter-project');
+          selectElem.empty();
+          $.getJSON('/filters', function(data) {
+            if (data['Customer']) {
+              data['Customer'].forEach(function(val) {
+                const option = new Option(val, val, false, false);
+                selectElem.append(option);
+              });
+            }
+            selectElem.trigger('change');
+          });
+        }
+
+        function handleFilterTypeChange(blockIndex) {
+            const columnSelect = $('#filter-column-' + blockIndex);
+            const valueSelectContainer = $('#filter-value-' + blockIndex).next('.select2-container');
+            const valueSelect = $('#filter-value-' + blockIndex);
+            const dateRangeInputs = $(`#date-range-${blockIndex}`);
+            const labelValue = $(`label[for="filter-value-${blockIndex}"]`);
+
+            const selectedOptionDataType = columnSelect.find('option:selected').data('type');
+
+            if (selectedOptionDataType === 'date') {
+                valueSelectContainer.hide();
+                valueSelect.hide();
+                dateRangeInputs.show();
+                labelValue.hide(); 
+            } else {
+                dateRangeInputs.hide();
+                valueSelectContainer.show();
+                valueSelect.show();
+                labelValue.show().text(i18next.t("choose_value"));
             }
         }
 
-        async function fetchData() {
+
+        $(document).ready(function() {
+            loadAllData();
+            loadDistinctValuesForProject();
+
+            $('.value-select').not('#filter-value-2').select2({
+                placeholder: i18next.t("choose_value"),
+                allowClear: true,
+                width: '100%',
+                closeOnSelect: false
+            });
+            $('#filter-project').select2({
+                placeholder: i18next.t("choose_project"),
+                allowClear: true,
+                width: '100%',
+                closeOnSelect: false
+            });
+            $('#filter-value-2').select2({
+                placeholder: i18next.t("choose_value"),
+                allowClear: true,
+                width: '100%'
+            });
+
+            handleFilterTypeChange(1);
+            handleFilterTypeChange(2);
+            handleFilterTypeChange(3);
+
+
+            $(document).on('paste', '#filter-value-2 ~ .select2 .select2-search__field', function(e) {
+                e.preventDefault();
+                var clipboardData = e.originalEvent.clipboardData.getData('text/plain');
+                var values = clipboardData.split(/\r?\n/).reduce(function(acc, line) {
+                  return acc.concat(line.split('\t'));
+                }, []).filter(function(val) {
+                  return val.trim() !== '';
+                });
+                var $select = $('#filter-value-2');
+                var currentValues = $select.val() || [];
+                var newValues = currentValues.concat(values);
+                newValues = Array.from(new Set(newValues));
+                $select.val(newValues).trigger('change');
+            });
+
+            $('#filter-project').on('change', function(){
+                updateFilterValuesForBlock(1);
+                updateCascade(2);
+            });
+
+            $('#filter-column-1').on('change', function() {
+                handleFilterTypeChange(1);
+                updateFilterValuesForBlock(1);
+                updateCascade(2);
+            });
+            $('#filter-value-1, #filter-date-start-1, #filter-date-end-1').on('change', function() {
+                updateCascade(2);
+            });
+            $('#filter-column-2').on('change', function() {
+                handleFilterTypeChange(2);
+                updateFilterValuesForBlock(2);
+                updateCascade(3);
+            });
+            $('#filter-value-2, #filter-date-start-2, #filter-date-end-2').on('change', function() {
+                updateCascade(3);
+            });
+            $('#filter-column-3').on('change', function() {
+                handleFilterTypeChange(3);
+                updateFilterValuesForBlock(3);
+            });
+
+            $('#apply-filters').on('click', function() {
+                const col1 = $('#filter-column-1').val();
+                const val1 = $('#filter-value-1').val();
+                if (col1 === 'Part Number' && val1 && val1.length > 0) {
+                  val1.forEach(p => saveSearchHistory(p));
+                }
+                applyFilters(true);
+            });
+            $('#clear-filters').on('click', function() {
+                $('.value-select').val(null).trigger('change');
+                $('#filter-value-2').val(null).trigger('change');
+                $('.date-select-start').val(''); 
+                $('.date-select-end').val(''); 
+                handleFilterTypeChange(1);
+                handleFilterTypeChange(2);
+                handleFilterTypeChange(3);
+                applyFilters(true);
+            });
+            $('#load-more').on('click', function() {
+                let loadMoreFilters = { ...currentFilters, offset: currentOffset, limit: pageSize };
+                delete loadMoreFilters.limit; 
+                
+                if (currentOffset < totalData) {
+                    showSpinner();
+                    $.getJSON(`/search?${$.param(loadMoreFilters)}`, function(response) {
+                        currentOffset += response.data.length; 
+                        updateTable(response.data, false); 
+                    }).always(function() {
+                        hideSpinner();
+                    });
+                } else {
+                    alert("Đã tải hết dữ liệu!");
+                }
+            });
+            $('#load-all').on('click', function() {
+                let queryParams = {};
+                const sheetValues = $('#filter-project').val();
+                if (sheetValues && sheetValues.length > 0) {
+                  queryParams["Customer"] = sheetValues.join(',');
+                }
+                for (let i = 1; i <= 3; i++) {
+                  const colSelect = $(`#filter-column-${i}`);
+                  const col = colSelect.val();
+                  const selectedOptionDataType = colSelect.find('option:selected').data('type');
+                  
+                  if (selectedOptionDataType === 'date') {
+                    const dateStart = $(`#filter-date-start-${i}`).val();
+                    const dateEnd = $(`#filter-date-end-${i}`).val();
+                    if (dateStart) queryParams[`${col}_start`] = dateStart;
+                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;
+                  } else {
+                    const values = $(`#filter-value-${i}`).val();
+                    if (values && values.length > 0) {
+                      queryParams[col] = values.join(',');
+                    }
+                  }
+                }
+                queryParams.limit = 1000000; 
+                queryParams.offset = 0;
+                showSpinner();
+                $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
+                  currentOffset = response.total; 
+                  updateTable(response.data, true); 
+                }).always(function() {
+                    hideSpinner();
+                });
+            });
+            $('#download-excel').on('click', function() { downloadExcel(); });
+            $('#export-all').on('click', function() {
+                let queryParams = {};
+                const sheetValues = $('#filter-project').val();
+                if (sheetValues && sheetValues.length > 0) {
+                  queryParams["Customer"] = sheetValues.join(',');
+                }
+                for (let i = 1; i <= 3; i++) {
+                  const colSelect = $(`#filter-column-${i}`);
+                  const col = colSelect.val();
+                  const selectedOptionDataType = colSelect.find('option:selected').data('type');
+                  
+                  if (selectedOptionDataType === 'date') {
+                    const dateStart = $(`#filter-date-start-${i}`).val();
+                    const dateEnd = $(`#filter-date-end-${i}`).val();
+                    if (dateStart) queryParams[`${col}_start`] = dateStart;
+                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;
+                  } else {
+                    const values = $(`#filter-value-${i}`).val();
+                    if (values && values.length > 0) {
+                      queryParams[col] = values.join(',');
+                    }
+                  }
+                }
+                const queryString = $.param(queryParams);
+                window.location.href = `/export?${queryString}`;
+            });
+            $('#zoom-in').on('click', function() {
+                currentZoom += 0.1;
+                $('#results-table').css('zoom', currentZoom);
+            });
+            $('#zoom-out').on('click', function() {
+                if (currentZoom > 0.5) {
+                  currentZoom -= 0.1;
+                  $('#results-table').css('zoom', currentZoom);
+                }
+            });
             try {
-                const res = await fetch("/api/data");
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
+                if (typeof $.fn.colResizable === 'function') {
+                  $('#results-table').colResizable({ liveDrag: true });
                 }
-                return await res.json();
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                statusDiv.style.display = 'block'; 
-                statusDiv.innerText = "❌ Lỗi khi tải dữ liệu. Vui lòng thử lại sau.";
-                return []; 
-            }
-        }
-
-        function speak(text) {
-             // Dừng việc đọc trước đó (nếu có) để tránh đọc chồng chéo
-            if ('speechSynthesis' in window && speechSynthesis.speaking) {
-                speechSynthesis.cancel();
+            } catch(e) {
+                console.log("colResizable not available:", e);
             }
 
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = "vi-VN";
-                // Thêm một chút delay để đảm bảo việc cancel đã hoàn tất (nếu cần)
-                setTimeout(() => speechSynthesis.speak(utterance), 50);
-            } else {
-                console.warn("Speech Synthesis API không được hỗ trợ trên trình duyệt này.");
-            }
-        }
-
-        function analyzePart(part) {
-            // Đảm bảo part là object và có các thuộc tính cần thiết
-            if (!part) return "Không có dữ liệu để phân tích.";
-
-            const status = part["Approval Status"]?.toUpperCase() || "";
-            const partPic = part["Part Pictures"]?.toUpperCase() || "";
-            const packPic = part["Packaging Pictures"]?.toUpperCase() || "";
-
-            if (analysisMode === 'image') {
-                if (["REJECTED", "EXPIRED"].includes(status)) return "Part này cần hỏi lại quản lý.";
-                if (["APPROVED", "CLOSED", "SUBMITTED"].includes(status)) return "Part này không cần chụp ảnh.";
-                if (status === "ON GOING") {
-                    if (partPic !== "OK" && packPic !== "OK") return "Cần chụp ảnh sản phẩm và ảnh đóng gói.";
-                    if (partPic !== "OK") return "Cần chụp ảnh sản phẩm.";
-                    if (packPic !== "OK") return "Cần chụp ảnh đóng gói.";
-                    if (partPic === "OK" && packPic === "OK") return "Không cần chụp ảnh.";
-                }
-            } else { 
-                const map = {
-                    "APPROVED": "Đã phê duyệt",
-                    "CLOSED": "Đã đóng",
-                    "EXPIRED": "Hết hạn",
-                    "ON GOING": "Đang thực hiện",
-                    "REJECTED": "Bị từ chối",
-                    "SUBMITTED": "Đã gửi"
-                };
-                return map[status] || `Trạng thái: ${status || 'Không rõ'}`;
-            }
-            return `Trạng thái: ${status || 'Không rõ'}`; // Trả về mặc định nếu không khớp
-        }
-
-        function makeTableSortable(tableId) {
-            const table = document.getElementById(tableId);
-            if (!table) return;
-            const headers = table.querySelectorAll('th');
-            headers.forEach((th, colIndex) => {
-                th.style.cursor = 'pointer';
-                const oldArrow = th.querySelector('span');
-                if (oldArrow) oldArrow.remove();
-
-                const arrow = document.createElement('span');
-                arrow.style.marginLeft = '6px';
-                arrow.style.fontSize = '0.8rem';
-                th.appendChild(arrow);
-
-                th.addEventListener('click', () => {
-                    const rows = Array.from(table.querySelectorAll('tbody > tr'));
-                    const isAsc = th.dataset.order !== 'asc'; 
-                    rows.sort((a, b) => {
-                        const aText = a.children[colIndex].textContent.trim();
-                        const bText = b.children[colIndex].textContent.trim();
-                        return isAsc ? aText.localeCompare(bText, 'vi', { numeric: true }) : bText.localeCompare(aText, 'vi', { numeric: true });
-                    });
-                    rows.forEach(row => table.querySelector('tbody').appendChild(row));
-
-                    headers.forEach(h => {
-                        h.dataset.order = '';
-                        h.querySelector('span').textContent = '';
-                    });
-
-                    th.dataset.order = isAsc ? 'asc' : 'desc';
-                    arrow.textContent = isAsc ? '▲' : '▼';
-                });
+            // --- CÁC SỰ KIỆN CHO POPUP ẢNH (GẮN MỘT LẦN) ---
+            popupCloseButton.off('click.closepopup').on('click.closepopup', function() {
+                closeImagePopup();
             });
-        }
 
-        function showFullImage(erpCode) {
-            modalImg.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
-            imageModal.style.display = "flex"; 
-            modalImg.onerror = function() {
-                modalImg.src = ''; 
-                modalImg.alt = "Không tìm thấy ảnh";
-                alert("Không tìm thấy ảnh cho Part Number này.");
-                imageModal.style.display = "none";
-            };
-        }
-
-        function renderImageCell(erpCode, cellElement) {
-            cellElement.innerHTML = ''; 
-
-            if (!erpCode) {
-                cellElement.innerHTML = '<div class="no-photo-text">No photo</div>';
-                return;
-            }
-            
-            const thumbnailImg = document.createElement('img');
-            thumbnailImg.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_80,h_60,c_fill/ERP-CODE/${erpCode}.jpg`; 
-            thumbnailImg.alt = 'Thumbnail';
-            thumbnailImg.className = 'thumbnail-image';
-
-            thumbnailImg.onclick = (e) => {
-                e.stopPropagation(); 
-                showFullImage(erpCode);
-            };
-
-            thumbnailImg.onerror = function() {
-                cellElement.innerHTML = '<div class="no-photo-text">No photo</div>';
-            };
-
-            cellElement.appendChild(thumbnailImg); 
-        }
-
-        async function processTranscript(transcript, fromHistory = false) {
-            const cleaned = transcript.replace(/\s+/g, '').toUpperCase();
-            if (!fromHistory) saveToHistory(cleaned);
-            
-            resultDiv.innerHTML = `🗣 Bạn nói: <b>${transcript}</b><br>→ Chuẩn hóa: <b>${cleaned}</b>`;
-            statusDiv.style.display = 'block';
-            statusDiv.innerText = "⏳ Đang tìm kiếm...";
-            relatedResultsDiv.innerHTML = ""; 
-
-            const data = await fetchData();
-            if (data.length === 0) {
-                statusDiv.innerText = "❌ Không tìm thấy dữ liệu để tra cứu.";
-                speak("Không tìm thấy dữ liệu để tra cứu.");
-                return;
-            }
-
-            const results = data.filter(row => typeof row["Part Number"] === "string" && row["Part Number"].toUpperCase().includes(cleaned));
-
-            if (results.length === 0) {
-                statusDiv.innerText = "";
-                speak("Không tìm thấy Part Number.");
-                resultDiv.innerHTML += `<br>❌ Không tìm thấy Part Number.`;
-            } else {
-                statusDiv.innerText = ""; 
-                const msg = analyzePart(results[0]); 
-
-                if (results.length === 1) {
-                    resultDiv.innerHTML += `<br/>✅ ${msg}`;
-                    speak(msg);
-                } else {
-                    speak(`Tìm thấy ${results.length} kết quả gần giống.`);
-                    resultDiv.innerHTML += `<br/>✅ Tìm thấy ${results.length} kết quả gần giống. (Hiển thị 10 kết quả đầu tiên)`;
+            $(document).off('mouseup.imagePopupOutside').on('mouseup.imagePopupOutside', function(e) {
+                if (imagePopup.is(':visible') && !imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
+                    closeImagePopup();
                 }
-                
-                let html = `<table id='resultsTable'><thead><tr>
-                    <th>No.</th><th>Part Number</th><th>REV</th><th>Approval Status</th><th>Customer</th>
-                    <th>Commodity</th><th>Part Pictures</th><th>Packaging Pictures</th><th>Critical</th>
-                    <th>CE</th><th>Ảnh</th></tr></thead><tbody>`;
-
-                results.slice(0, 10).forEach((item, index) => {
-                    const partNumberForId = (item["Part Number"] || `item-${index}`).replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''); 
-                    // *** THÊM CÁC THUỘC TÍNH data-* VÀO TR ***
-                    html += `<tr 
-                                data-part-number="${item["Part Number"] || ""}" 
-                                data-status="${item["Approval Status"] || ""}" 
-                                data-part-pic="${item["Part Pictures"] || ""}" 
-                                data-pack-pic="${item["Packaging Pictures"] || ""}">
-                        <td>${index + 1}</td>
-                        <td>${item["Part Number"] || ""}</td>
-                        <td>${item["REV"] || ""}</td>
-                        <td>${item["Approval Status"] || ""}</td>
-                        <td>${item["Customer"] || ""}</td>
-                        <td>${item["Commodity"] || ""}</td>
-                        <td>${item["Part Pictures"] || ""}</td>
-                        <td>${item["Packaging Pictures"] || ""}</td>
-                        <td>${item["Critical"] || ""}</td>
-                        <td>${item["CE"] || ""}</td>
-                        <td id="imageCell-${partNumberForId}-${index}"></td>
-                    </tr>`;
-                });
-
-                html += `</tbody></table>`;
-                relatedResultsDiv.innerHTML = html;
-                makeTableSortable('resultsTable');
-
-                results.slice(0, 10).forEach((item, index) => {
-                    const erpCode = item["ERP-CODE"]?.toUpperCase() || "";
-                    const partNumberForId = (item["Part Number"] || `item-${index}`).replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-                    const imageCell = document.getElementById(`imageCell-${partNumberForId}-${index}`);
-                    if (imageCell) {
-                        renderImageCell(erpCode, imageCell);
-                    }
-                });
-            }
-        }
-
-        // --- Quản lý lịch sử tìm kiếm ---
-        function saveToHistory(partNumber) {
-            const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-            const now = new Date().toLocaleString("vi-VN");
-            if (history.length > 0 && history[0].partNumber === partNumber) {
-                return;
-            }
-            history.unshift({ partNumber, time: now });
-            if (history.length > 20) history.pop();
-            localStorage.setItem("searchHistory", JSON.stringify(history));
-            renderHistory();
-        }
-
-        function renderHistory() {
-            const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-            historyList.innerHTML = "";
-            history.forEach(item => {
-                const li = document.createElement("li");
-                li.style.marginBottom = "6px";
-                li.innerHTML = `
-                <button onclick="processTranscript('${item.partNumber.replace(/'/g, "\\'")}', true); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" 
-                    title="Click để tra cứu và sao chép" 
-                    style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;">
-                    ${item.partNumber}</button> <small style="color:#ccc">(${item.time})</small>`;
-                historyList.appendChild(li);
             });
-        }
-
-        function clearHistory() {
-            if (confirm("Bạn có chắc muốn xóa toàn bộ lịch sử?")) {
-                localStorage.removeItem("searchHistory");
-                renderHistory();
-            }
-        }
-
-        // --- Xử lý sự kiện nhận diện giọng nói ---
-        function startRecognition() {
-            if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
-                statusDiv.style.display = 'block';
-                statusDiv.innerText = "❌ Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Google Chrome hoặc trình duyệt khác có hỗ trợ.";
-                speak("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
-                recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
-                return;
-            }
-
-            if (recognition) {
-                recognition.stop(); 
-            }
-
-            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = "vi-VN";
-            recognition.interimResults = true;
-            finalTranscriptReceived = false; 
-
-            recognition.onstart = () => {
-                isListening = true;
-                recordBtn.innerText = "🛑 Nhấn để dừng";
-                statusDiv.style.display = 'block';
-                statusDiv.innerText = "🎧 Đang nghe...";
-                resultDiv.innerHTML = "";
-                relatedResultsDiv.innerHTML = "";
-            };
-
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                        finalTranscriptReceived = true; 
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                resultDiv.innerHTML = `🗣 Bạn nói: <b>${finalTranscript || interimTranscript}</b>`;
-                if (finalTranscript) {
-                    processTranscript(finalTranscript); 
-                }
-            };
-
-            recognition.onerror = (e) => {
-                statusDiv.style.display = 'block';
-                statusDiv.innerText = `❌ Lỗi: ${e.error}. Vui lòng thử lại.`;
-                speak("Đã xảy ra lỗi nhận diện giọng nói.");
-                recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
-                isListening = false;
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-                recordBtn.innerText = "🎙️ Nhấn để bắt đầu";
-                if (!finalTranscriptReceived) {
-                    statusDiv.style.display = 'block';
-                    statusDiv.innerText = "Không nhận diện được giọng nói. Vui lòng thử lại.";
-                    resultDiv.innerHTML = ""; 
-                } else {
-                    if (statusDiv.innerText.includes("Đang nghe...")) { 
-                       statusDiv.innerText = "";
-                       statusDiv.style.display = 'none';
-                    }
-                }
-            };
-
-            recognition.start();
-        }
-
-        function stopRecognition() {
-            if (recognition && isListening) {
-                recognition.stop();
-                isListening = false;
-            }
-        }
-
-        // --- Xử lý sự kiện click DOM ---
-        recordBtn.onclick = () => {
-            if (!isListening) {
-                startRecognition();
-            } else {
-                stopRecognition();
-            }
-        };
-
-        searchBtn.onclick = () => {
-            const val = searchInput.value;
-            if (val.trim() !== '') {
-                processTranscript(val, false);
-            } else {
-                resultDiv.innerHTML = "Vui lòng nhập từ khóa để tìm kiếm.";
-                relatedResultsDiv.innerHTML = "";
-                statusDiv.style.display = 'none'; 
-            }
-        };
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); 
-                searchBtn.click(); 
-            }
-        });
-
-        btnImage.onclick = () => {
-            analysisMode = 'image';
-            updateModeButtons();
-        };
-
-        btnStatus.onclick = () => {
-            analysisMode = 'status';
-            updateModeButtons();
-        };
-
-        btnText.onclick = () => {
-            inputMode = 'text';
-            updateModeButtons();
-        };
-
-        btnVoice.onclick = () => {
-            inputMode = 'voice';
-            updateModeButtons();
-        };
-
-        // *** HÀM ĐÃ CẬP NHẬT ***
-        // Xử lý click vào hàng (Highlight + Đọc kết quả)
-        document.addEventListener('click', function(e) {
-            const targetRow = e.target.closest('tr'); // Tìm hàng gần nhất được click
-
-            // Chỉ xử lý nếu click bên trong tbody của bảng kết quả
-            if (targetRow && targetRow.closest('#resultsTable') && targetRow.parentNode.tagName === 'TBODY') {
-                
-                // Bỏ highlight tất cả các hàng
-                const rows = document.querySelectorAll('table tbody tr');
-                rows.forEach(r => r.classList.remove('active-row'));
-                
-                // Highlight hàng được click
-                targetRow.classList.add('active-row');
-
-                // Kiểm tra xem có phải click vào ảnh không
-                if (!e.target.classList.contains('thumbnail-image')) {
-                    // Nếu không phải click vào ảnh -> Đọc kết quả
-                    const itemData = {
-                        "Approval Status": targetRow.dataset.status,
-                        "Part Pictures": targetRow.dataset.partPic,
-                        "Packaging Pictures": targetRow.dataset.packPic
-                    };
+            
+            popupImg.off('click.zoom').on('click.zoom', function() {
+                const $thisImage = $(this);
+                if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
+                    imagePopup.toggleClass('zoomed');
                     
-                    const msg = analyzePart(itemData); // Tính toán lại kết quả
-                    speak(msg); // Đọc kết quả
+                    popupSpinner.show(); // Hiển thị spinner
+                    $thisImage.hide(); // Ẩn ảnh hiện tại trong khi tải ảnh mới
+                    popupText.hide(); // Ẩn text (nếu có)
+
+                    if (imagePopup.hasClass('zoomed')) {
+                        // Popup được phóng to: Tải ảnh chất lượng cao
+                        const highQualityUrl = imagePopup.data('high-quality-url');
+                        if (highQualityUrl) {
+                            $thisImage.attr('src', highQualityUrl);
+                        } else {
+                            console.warn("Không tìm thấy URL ảnh chất lượng cao.");
+                            popupText.text('Lỗi: Không có URL ảnh lớn.').show();
+                            popupSpinner.hide();
+                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
+                        }
+                    } else {
+                        // Popup bị thu nhỏ: Tải lại ảnh thumbnail
+                        const thumbnailUrl = imagePopup.data('thumbnail-url');
+                        if (thumbnailUrl) {
+                            $thisImage.attr('src', thumbnailUrl);
+                        } else {
+                            console.warn("Không tìm thấy URL ảnh thumbnail.");
+                            popupText.text('Lỗi: Không có URL ảnh thumbnail.').show();
+                            popupSpinner.hide();
+                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
+                        }
+                    }
                 }
-            }
+            });
+            // Kết thúc các sự kiện cho popup ảnh
+
+            applyFilters(true); 
         });
 
-        // Đóng modal khi click vào nút X hoặc bên ngoài ảnh
-        modalCloseBtn.onclick = function() { 
-            imageModal.style.display = "none";
-        }
-        imageModal.onclick = function(e) {
-            if (e.target === imageModal) {
-                imageModal.style.display = "none";
+        function updateFilterValuesForBlock(blockIndex) {
+            const columnSelect = $('#filter-column-' + blockIndex);
+            const selectedOptionDataType = columnSelect.find('option:selected').data('type');
+
+            if (selectedOptionDataType === 'date') {
+                return;
             }
+            
+            if (!allData) {
+                setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
+                return;
+            }
+            let filteredData = allData.slice();
+
+            const projectValues = $('#filter-project').val();
+            if (projectValues && projectValues.length > 0) {
+                filteredData = filteredData.filter(row => 
+                    projectValues.some(s => row['Customer'] && row['Customer'].toString().toLowerCase().includes(s.toLowerCase()))
+                );
+            }
+
+            for (let i = 1; i < blockIndex; i++) {
+                const colSelectPrev = $(`#filter-column-${i}`);
+                const colPrev = colSelectPrev.val();
+                const prevOptionType = colSelectPrev.find('option:selected').data('type');
+                
+                if (prevOptionType === 'date') {
+                    const dateStartPrev = $(`#filter-date-start-${i}`).val();
+                    const dateEndPrev = $(`#filter-date-end-${i}`).val();
+                    if (colPrev && (dateStartPrev || dateEndPrev)) {
+                        filteredData = filteredData.filter(row => {
+                            const itemDateStr = formatExcelDate(row[colPrev]);
+                            if (!itemDateStr) return false;
+                            const itemDate = new Date(itemDateStr);
+                            let match = true;
+                            if (dateStartPrev) {
+                                match = match && itemDate >= new Date(dateStartPrev);
+                            }
+                            if (dateEndPrev) {
+                                match = match && itemDate <= new Date(dateEndPrev);
+                            }
+                            return match;
+                        });
+                    }
+                } else {
+                    const valuesPrev = $('#filter-value-' + i).val();
+                    if (colPrev && valuesPrev && valuesPrev.length > 0) {
+                        filteredData = filteredData.filter(row =>
+                            valuesPrev.some(v => row[colPrev] && row[colPrev].toString().toLowerCase().includes(v.toLowerCase()))
+                        );
+                    }
+                }
+            }
+            
+            let dependentColumn = $('#filter-column-' + blockIndex).val();
+            let valuesInColumn = filteredData.map(function(row) {
+                let cellVal = row[dependentColumn];
+                if (columnSelect.find('option[value="' + dependentColumn + '"]').data('type') === 'date') {
+                    cellVal = formatExcelDate(cellVal);
+                }
+                if (cellVal == null || cellVal.toString().trim() === "") return null;
+                if (typeof cellVal === 'string') {
+                    return cellVal.trim().toUpperCase();
+                }
+                return cellVal.toString().toUpperCase();
+            }).filter(function(v) { return v !== null; });
+
+            let distinctValues = Array.from(new Set(valuesInColumn));
+            distinctValues.sort((a, b) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'}));
+
+            const selectElem = $('#filter-value-' + blockIndex);
+            const currentValue = selectElem.val();
+            selectElem.empty();
+            distinctValues.forEach(function(val) {
+                const option = new Option(val, val, false, false);
+                selectElem.append(option);
+            });
+            
+            if (currentValue) {
+                const validCurrentValues = currentValue.filter(v => distinctValues.includes(v));
+                selectElem.val(validCurrentValues);
+            }
+            selectElem.trigger('change.select2');
         }
 
-        // --- Khởi tạo khi tải trang ---
-        window.onload = () => {
-            updateModeButtons(); 
-            renderHistory(); 
-        };
+        function updateCascade(startBlock) {
+          for (let i = startBlock; i <= 3; i++) {
+            updateFilterValuesForBlock(i);
+          }
+        }
+
+        function applyFilters(reset = true) {
+            if (reset) {
+                currentOffset = 0;
+            }
+            let queryParams = { limit: pageSize, offset: currentOffset };
+            const projectFilterValues = $('#filter-project').val();
+            if (projectFilterValues && projectFilterValues.length > 0) {
+                queryParams["Customer"] = projectFilterValues.join(',');
+            }
+
+            for (let i = 1; i <= 3; i++) {
+                const colSelect = $(`#filter-column-${i}`);
+                const col = colSelect.val();
+                const selectedOptionDataType = colSelect.find('option:selected').data('type');
+                
+                if (selectedOptionDataType === 'date') {
+                    const dateStart = $(`#filter-date-start-${i}`).val();
+                    const dateEnd = $(`#filter-date-end-${i}`).val();
+                    if (dateStart) queryParams[`${col}_start`] = dateStart;
+                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;    
+                } else {
+                    const values = $(`#filter-value-${i}`).val();
+                    if (values && values.length > 0) {
+                        queryParams[col] = values.join(',');
+                    }
+                }
+            }
+            
+            currentFilters = {...queryParams}; 
+            
+            showSpinner();
+            $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
+                totalData = response.total;
+                currentOffset = reset ? response.data.length : currentOffset + response.data.length;
+                updateTable(response.data, reset);
+            }).always(function() {
+                hideSpinner();
+            });
+        }
+
+        // --- HÀM ĐÓNG VÀ RESET POPUP (ĐÃ CÓ TRONG FILE GỐC, ĐẢM BẢO NÓ ĐƯỢC SỬ DỤNG) ---
+        function closeImagePopup() {
+            imagePopup.hide().removeClass('zoomed');
+            popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in');
+            popupText.text('').hide();
+            popupSpinner.hide(); // Ẩn spinner khi đóng
+            imagePopup.removeData('current-erp');
+            imagePopup.removeData('current-part-number');
+            imagePopup.removeData('thumbnail-url');
+            imagePopup.removeData('high-quality-url');
+        }
+
+function updateTable(data, reset) {
+    const tbody = $('#results-table tbody');
+    if (reset) tbody.empty();
+
+    data.forEach(function(row) {
+        const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
+        const tr = $('<tr>');
+        const partNumberValue = row['Part Number'] || 'N/A'; 
+
+        tr.append(`<td class="sticky-col-1">${serial}</td>`);
+        
+        const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
+        partNumberCell.css('cursor', 'pointer');
+
+        // --- SỬA ĐỔI SỰ KIỆN CLICK CHO partNumberCell ---
+        partNumberCell.on('click', function(e) {
+            const currentErpCode = row['ERP-CODE']?.trim().toUpperCase();
+            const currentPartNumberValueFromRow = row['Part Number'] || 'N/A'; // Lấy trực tiếp từ row
+
+            // Reset trạng thái popup
+            imagePopup.removeClass('zoomed');
+            popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in');
+            popupText.text('').hide();
+            popupSpinner.hide(); // Đảm bảo spinner ẩn ban đầu
+
+            // Lưu thông tin cần thiết vào data của popup
+            imagePopup.data('current-erp', currentErpCode);
+            imagePopup.data('current-part-number', currentPartNumberValueFromRow);
+
+            if (currentErpCode) {
+                const thumbnailUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${currentErpCode}.jpg`;
+                const highQualityUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${currentErpCode}.jpg`;
+
+                imagePopup.data('thumbnail-url', thumbnailUrl);
+                imagePopup.data('high-quality-url', highQualityUrl);
+
+                popupSpinner.show(); // Hiển thị spinner trước khi tải
+                popupImg.attr('src', thumbnailUrl); // Bắt đầu tải ảnh thumbnail
+
+                // Gắn lại sự kiện load và error
+                popupImg.on('load', function() {
+                    const expectedErp = imagePopup.data('current-erp');
+                    if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
+                        popupSpinner.hide(); // Ẩn spinner khi ảnh tải xong
+                        $(this).show();
+                        popupText.hide().text('');
+                        if (imagePopup.is(':hidden')) {
+                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                        }
+                    }
+                });
+
+                popupImg.on('error', function() {
+                    const expectedErp = imagePopup.data('current-erp');
+                    const pn = imagePopup.data('current-part-number') || "N/A";
+                    if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
+                        popupSpinner.hide(); // Ẩn spinner khi có lỗi
+                        $(this).hide();
+                        popupText.text(`Ảnh cho Part Number "${pn}" (ERP: ${expectedErp}) không tồn tại.`).show();
+                        if (imagePopup.is(':hidden')) {
+                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                        }
+                    }
+                });
+                
+                if (imagePopup.is(':hidden')) {
+                     imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                }
+
+            } else { // Không có ERP-CODE
+                popupSpinner.hide();
+                popupImg.hide();
+                popupText.text(`Không có ảnh cho Part Number "${currentPartNumberValueFromRow}". (Thiếu ERP-CODE)`).show();
+                imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+            }
+        });
+        // --- KẾT THÚC SỬA ĐỔI SỰ KIỆN CLICK partNumberCell ---
+        
+        tr.append(partNumberCell);
+
+        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
+        tr.append(`<td>${row['Approval Status'] || ''}</td>`);
+        tr.append(`<td>${row['Customer'] || ''}</td>`);
+        tr.append(`<td>${row['Commodity'] || ''}</td>`);
+        tr.append(`<td>${row['Production Status'] || ''}</td>`);
+        
+        let partPicValue = row['Part Pictures'] || '';
+        let partPicContent = partPicValue; 
+        if (typeof partPicValue === 'string') {
+            if (partPicValue.toLowerCase().startsWith('http')) {
+                partPicContent = `<a href="${partPicValue}" target="_blank">Link</a>`;
+            } else if (partPicValue.trim().toUpperCase() === 'OK' || partPicValue.trim() === '') {
+                partPicContent = partNumberValue; 
+            }
+        }
+        tr.append(`<td>${partPicContent}</td>`);
+
+        let pkgPicValue = row['Packaging Pictures'] || '';
+        let pkgPicContent = pkgPicValue; 
+        if (typeof pkgPicValue === 'string') {
+            if (pkgPicValue.toLowerCase().startsWith('http')) {
+                pkgPicContent = `<a href="${pkgPicValue}" target="_blank">Link</a>`;
+            } else if (pkgPicValue.trim().toUpperCase() === 'OK' || pkgPicValue.trim() === '') {
+                pkgPicContent = partNumberValue; 
+            }
+        }
+        tr.append(`<td>${pkgPicContent}</td>`);
+
+        tr.append(`<td>${row['Critical'] || ''}</td>`);
+        tr.append(`<td>${row['CE'] || ''}</td>`);
+        tr.append(`<td>${row['PO Number'] || ''}</td>`);
+        tr.append(`<td>${row['Description'] || ''}</td>`);
+        tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); 
+        tr.append(`<td>${row['Note Number'] || ''}</td>`);
+        tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
+        tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
+        tr.append(`<td>${row['Requirements'] || ''}</td>`);
+        tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
+        tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
+        tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
+        tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
+        tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
+        tr.append(`<td>${row['COC'] || ''}</td>`);
+        tr.append(`<td>${row['BOM'] || ''}</td>`);
+        tr.append(`<td>${row['Mill'] || ''}</td>`);
+        tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
+        tr.append(`<td>${row['Remark 1'] || ''}</td>`);
+        tr.append(`<td>${row['Remark 2'] || ''}</td>`);
+        tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
+        tr.append(`<td>${row['Reject comments'] || ''}</td>`);
+
+        tbody.append(tr);
+    });
+
+    var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
+    $('#results-count').text(totalText);
+
+    try {
+        if ($.fn.colResizable) {
+          $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
+        }
+    } catch (e) {
+        console.log("colResizable not available in updateTable:", e);
+    }
+}
+
+
+        function downloadExcel() {
+            const table = document.getElementById('results-table');
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
+
+            const data = rows.map(tr => {
+                const cells = Array.from(tr.querySelectorAll('td'));
+                const rowObj = {};
+                cells.forEach((td, index) => {
+                    let val = td.textContent.trim();
+                    const header = headers[index];
+                    rowObj[header] = val;
+                });
+                return rowObj;
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            XLSX.writeFile(wb, 'ketqua.xlsx');
+        }
+
+        function getColumnIndex(columnName) {
+          let index = -1;
+          $('#results-table th').each(function(i) {
+            if ($(this).data('column') === columnName) {
+              index = i;
+              return false;
+            }
+          });
+          return index;
+        }
+        function sortTable(column, order) {
+          let rows = $('#results-table tbody tr').get();
+          let colIndex = getColumnIndex(column);
+          if (colIndex === -1) return;
+
+          const isDateColumn = ['PO received date', 'Customer need date', 'Submit date'].includes(column);
+
+          rows.sort(function(a, b) {
+            let valA = $(a).children('td').eq(colIndex).text().toUpperCase();
+            let valB = $(b).children('td').eq(colIndex).text().toUpperCase();
+
+            if (isDateColumn) {
+                const dateA = new Date(valA);
+                const dateB = new Date(valB);
+                if (!isNaN(dateA) && !isNaN(dateB)) {
+                    return order === 'asc' ? dateA - dateB : dateB - dateA;
+                }
+            }
+            return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          });
+          $.each(rows, function(index, row) {
+            $('#results-table tbody').append(row);
+          });
+        }
+        $(document).on('click', '#results-table th', function () {
+            const col = $(this).data('column');
+            if (!col) return;
+
+            const currentOrder = $(this).data('order') || 'asc';
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+
+            $('#results-table th').each(function () {
+                $(this).data('order', null);
+                const text = $(this).text().replace(/[▲▼]/g, '').trim();
+                $(this).text(text);
+            });
+
+            const arrow = newOrder === 'asc' ? ' ▲' : ' ▼';
+            $(this).text($(this).text().replace(/[▲▼]/g, '').trim() + arrow);
+            $(this).data('order', newOrder);
+
+            sortTable(col, newOrder);
+        });
+    </script>
+    <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999; overflow-y:auto; transition: all 0.3s ease;">
+        <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center; margin-bottom: 10vh;">
+            <h3>📷 Quét Part Number</h3>
+            <div style="position: relative; width: 100%; max-height:240px;">
+                <video id="camera" playsinline autoplay style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
+                <div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div>
+            </div>
+            <div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
+              🔍 Zoom:
+              <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" style="width:80%;"/>
+            </div>
+            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
+                <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">📸 Chụp &amp; Quét</button>
+                <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
+                <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">❌ Đóng</button>
+            </div>
+            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;"/>
+            <p id="ocrStatus" style="font-size:14px; margin-top:10px; margin-bottom: 20px; display: block;">Đang chờ thao tác...</p>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnScan = document.getElementById('btnScanCamera');
+      const modal = document.getElementById('cameraModal');
+      const video = document.getElementById('camera');
+      const canvas = document.getElementById('canvas');
+      const statusP = document.getElementById('ocrStatus');
+      let inputOCR = document.getElementById('ocrInput');
+      const btnCapture = document.getElementById('btnCapture');
+      const btnClose = document.getElementById('btnCloseCamera');
+      const btnApply = document.getElementById('btnApplyOcrFilter');
+      const zoomSlider = document.getElementById("zoomSlider");
+      const zoomContainer = document.getElementById("zoomContainer");
+      let stream, intervalId;
+
+      function stopStream() {
+        if (stream) {
+          stream.getTracks().forEach(t => t.stop());
+          video.srcObject = null;
+        }
+        clearInterval(intervalId);
+      }
+
+      function cropCenterAndOCR(callback) {
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const cropWidth = canvas.width * 0.8;
+        const cropHeight = canvas.height * 0.2;
+        const offsetX = canvas.width * 0.1;
+        const offsetY = canvas.height * 0.35;
+        const imageData = ctx.getImageData(offsetX, offsetY, cropWidth, cropHeight);
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = cropWidth;
+        tempCanvas.height = cropHeight;
+        tempCanvas.getContext("2d").putImageData(imageData, 0, 0);
+
+        Tesseract.recognize(tempCanvas.toDataURL(), 'eng')
+          .then(({ data: { text } }) => callback(text))
+          .catch(() => statusP.textContent = '❌ Lỗi khi nhận diện.');
+      }
+
+      btnScan.addEventListener('click', async () => {
+        modal.style.display = 'flex';
+        statusP.textContent = '🔄 Đang khởi động camera...';
+        inputOCR.value = '';
+        document.getElementById("ocrInput").style.display = 'block';
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          video.srcObject = stream;
+          video.play();
+
+          const track = stream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities();
+          if (capabilities.zoom) {
+            zoomContainer.style.display = 'block';
+            zoomSlider.min = capabilities.zoom.min;
+            zoomSlider.max = capabilities.zoom.max;
+            zoomSlider.step = capabilities.zoom.step || 0.1;
+            zoomSlider.value = capabilities.zoom.min;
+            zoomSlider.addEventListener("input", () => {
+              track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
+            });
+          }
+          statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét" hoặc giữ chế độ tự động';
+        } catch (err) {
+          statusP.textContent = '❌ Không thể truy cập camera.';
+        }
+      });
+
+      btnCapture.addEventListener('click', () => {
+        statusP.textContent = '🔍 Đang quét...';
+        cropCenterAndOCR((text) => {
+          const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+          if (lines.length === 0) return statusP.textContent = '❌ Không nhận được dòng nào.';
+
+          if (lines.length === 1) {
+            inputOCR.value = lines[0];
+            statusP.textContent = '✅ Đã nhận 1 dòng.';
+          } else {
+            const selectHTML = `
+              <select id="ocrLineSelector" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
+                ${lines.map(l => `<option>${l}</option>`).join('')}
+              </select>
+            `;
+            inputOCR.insertAdjacentHTML('beforebegin', selectHTML);
+            const selector = document.getElementById('ocrLineSelector');
+            selector.addEventListener('change', () => {
+              inputOCR.value = selector.value;
+            });
+            inputOCR.value = lines[0];
+            statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Đã chọn dòng đầu tiên, có thể chỉnh sửa.`;
+          }
+        });
+      });
+
+      btnApply.addEventListener('click', () => {
+        const part = inputOCR.value.trim();
+        if (!part) return alert('Bạn chưa nhập Part Number!');
+        $('#filter-column-1').val('Part Number').trigger('change'); 
+        setTimeout(() => { 
+            $('#filter-value-1').val([part]).trigger('change'); 
+            if (typeof applyFilters === 'function') applyFilters(true);
+            statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
+            saveSearchHistory(part);
+            setTimeout(() => btnClose.click(), 1500);
+        }, 50); 
+      });
+
+      btnClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+        zoomContainer.style.display = 'none';
+        stopStream();
+        document.getElementById("ocrLineSelector")?.remove();
+        inputOCR.value = '';
+      });
+    });
+    </script>
+    <script>
+    window.addEventListener('resize', () => {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        setTimeout(() => {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+    });
+    </script><script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ocrInput = document.getElementById('ocrInput');
+      if (ocrInput) {
+        ocrInput.addEventListener('focus', () => {
+          setTimeout(() => {
+            ocrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      }
+    });
+    </script><script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('ocrInput');
+      if (input) {
+        input.addEventListener('focus', () => {
+          setTimeout(() => {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      }
+    });
+    </script><script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const inputs = document.querySelectorAll('.filter-bar input, .filter-bar select');
+      inputs.forEach((input) => {
+        input.addEventListener('focus', () => {
+          setTimeout(() => {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      });
+    });
+    </script>
+    <script>
+    function showSpinner() {
+      $('#loading-spinner').show();
+    }
+    function hideSpinner() {
+      $('#loading-spinner').hide();
+    }
+
+    $('#quick-search').on('input', function () {
+      const keyword = $(this).val().toLowerCase();
+      $('#results-table tbody tr').each(function () {
+        const partNumber = $(this).find('td:nth-child(2)').text().toLowerCase(); 
+        $(this).toggle(partNumber.includes(keyword));
+      });
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const topContainer = document.querySelector('.top-container');
+      const tableContainer = document.querySelector('.table-container');
+      const quickSearch = document.getElementById('quick-search');
+      const applyBtn = document.getElementById('apply-filters');
+      const clearBtn = document.getElementById('clear-filters');
+
+      let wasEditingTop = false;
+
+      document.addEventListener('focusin', (e) => {
+          if (window.innerWidth >= 768) return;
+        const target = e.target;
+        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
+          wasEditingTop = true;
+          topContainer.classList.add('full-top-container');
+          topContainer.classList.remove('hide-top-container');
+          tableContainer.classList.remove('show-table-only');
+          quickSearch.style.display = 'none';
+        } else if (target === quickSearch) {
+          topContainer.classList.add('hide-top-container');
+          tableContainer.classList.add('show-table-only');
+        }
+      });
+
+      document.addEventListener('focusout', () => {
+            if (window.innerWidth >= 768) return;
+        setTimeout(() => {
+          const active = document.activeElement;
+          if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+            if (wasEditingTop) {
+              tableContainer.classList.remove('show-table-only');
+              quickSearch.style.display = 'none';
+            } else {
+              topContainer.classList.remove('full-top-container', 'hide-top-container');
+              tableContainer.classList.remove('show-table-only');
+              quickSearch.style.display = 'block';
+            }
+          }
+        }, 300);
+      });
+
+      function revealTableAndSearch() {
+        wasEditingTop = false;
+        topContainer.classList.remove('full-top-container', 'hide-top-container');
+        quickSearch.style.display = 'block';
+        tableContainer.classList.remove('show-table-only');
+      }
+
+      applyBtn?.addEventListener('click', revealTableAndSearch);
+      clearBtn?.addEventListener('click', revealTableAndSearch);
+    });
+    </script>
+    <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999;" title="Lịch sử tìm kiếm">🕘</button>
+    <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0;">📜 Lịch sử tìm kiếm</h4>
+            <button onclick="toggleHistoryPopup()" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer;">×</button>
+        </div>
+        <ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
+        <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">🗑️ Xóa lịch sử</button>
+    </div>
+
+    <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
+      🎤
+    </a>
+
+    <script>
+      function saveSearchHistory(partNumber) {
+        if (!partNumber) return;
+        const history = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
+        const now = new Date().toLocaleString("vi-VN");
+        const existingIndex = history.findIndex(item => item.partNumber === partNumber);
+        if (existingIndex > -1) {
+            history.splice(existingIndex, 1);
+        }
+        history.unshift({ partNumber, time: now });
+        if (history.length > 30) history.pop();
+        localStorage.setItem("partSearchHistory", JSON.stringify(history));
+        renderSearchHistory();
+      }
+
+      function renderSearchHistory() {
+        const history = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
+        const list = document.getElementById("searchHistory");
+        if (!list) return;
+        list.innerHTML = "";
+        history.forEach(item => {
+          const li = document.createElement("li");
+          li.style.marginBottom = "6px";
+          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
+          list.appendChild(li);
+        });
+      }
+
+      function quickSearchFromHistory(partNumber) {
+        $('#filter-column-1').val('Part Number').trigger('change'); 
+        setTimeout(() => {
+            $('#filter-value-1').val([partNumber]).trigger('change');
+            applyFilters(true);
+            toggleHistoryPopup(); 
+        }, 50);
+      }
+
+      function clearSearchHistory() {
+        localStorage.removeItem("partSearchHistory");
+        renderSearchHistory();
+      }
+      
+      function toggleHistoryPopup() {
+          const popup = document.getElementById("floating-history-popup");
+          if (popup) {
+            const isOpen = popup.style.display === "block";
+            popup.style.display = isOpen ? "none" : "block";
+            if (!isOpen) {
+              renderSearchHistory();
+            }
+          }
+      }
+      window.addEventListener("DOMContentLoaded", renderSearchHistory);
     </script>
 </body>
 </html>
