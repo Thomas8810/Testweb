@@ -259,7 +259,7 @@
           color: white;
         }
 
-        /* --- CSS Chuẩn Hóa cho Popup Ảnh và Zoom --- */
+        /* --- CSS Chuẩn Hóa cho Popup Ảnh Nhỏ và Modal Ảnh Lớn --- */
         #image-popup {
             display: none; 
             position: fixed; 
@@ -271,16 +271,11 @@
             padding: 10px; 
             z-index: 10000;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            
-            /* Kích thước ban đầu của popup */
-            width: 270px;
+            width: 270px; /* Kích thước cố định cho popup nhỏ */
             height: 270px;
-            max-width: 270px; 
-            max-height: 270px;
-            
             overflow: hidden; 
-            transition: width 0.3s ease-in-out, height 0.3s ease-in-out, max-width 0.3s ease-in-out, max-height 0.3s ease-in-out, padding 0.3s ease-in-out; 
             box-sizing: border-box;
+            transition: opacity 0.3s ease-in-out; /* Hiệu ứng khi hiện/ẩn */
         }
 
         #image-popup img {
@@ -288,7 +283,7 @@
             width: 100%;   
             height: 100%;
             object-fit: contain; 
-            cursor: zoom-in;
+            cursor: pointer; /* Đổi cursor để báo hiệu có thể click mở ảnh lớn */
         }
 
         #image-popup .no-image-text {
@@ -299,28 +294,13 @@
             text-align: center;
             color: #555;
             font-size: 14px;
-            /* Canh giữa text bằng flex */
             display: flex;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
         }
 
-        /* Trạng thái khi popup được phóng to */
-        #image-popup.zoomed {
-            width: 85vw !important;  /* Dùng !important để đảm bảo ghi đè nếu cần */
-            height: 85vh !important;
-            max-width: 85vw; 
-            max-height: 85vh;
-            padding: 15px;    
-            overflow: auto;   /* Cho phép cuộn nếu ảnh lớn hơn kích thước popup đã zoom */
-        }
-
-        #image-popup.zoomed img {
-            cursor: zoom-out; /* Đổi con trỏ khi đã zoom */
-        }
-
-        .image-popup-close {
+        .image-popup-close { /* Nút đóng cho popup nhỏ */
             position: absolute;
             top: 3px; 
             right: 8px;
@@ -338,7 +318,53 @@
             color: #000;
             background-color: rgba(230,230,230,0.5);
         }
-        /* --- Kết thúc CSS cho Popup Ảnh --- */
+
+        /* CSS cho Modal Hiển Thị Ảnh Lớn */
+        #full-image-modal {
+            display: none; /* Ẩn ban đầu */
+            position: fixed; /* Che phủ toàn màn hình */
+            z-index: 10005; /* Phải cao hơn #image-popup */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Cho phép cuộn nếu ảnh quá lớn */
+            background-color: rgba(0, 0, 0, 0.85); /* Nền mờ */
+            /* Sử dụng flex để canh giữa nội dung */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #full-image-modal img {
+            display: block;
+            max-width: 90%;   /* Ảnh lớn nhất là 90% chiều rộng viewport */
+            max-height: 90vh; /* Ảnh lớn nhất là 90% chiều cao viewport */
+            margin: auto;     /* Canh giữa ảnh trong modal */
+            border: 3px solid white;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5);
+        }
+
+        #full-image-modal .modal-close-button { /* Nút đóng cho modal ảnh lớn */
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 10006;
+        }
+
+        #full-image-modal .modal-close-button:hover,
+        #full-image-modal .modal-close-button:focus {
+            color: #bbb;
+            text-decoration: none;
+        }
+        /* --- Kết thúc CSS cho Popup Ảnh và Modal --- */
         
         @media (max-width: 768px) {
           .language-switcher {
@@ -790,9 +816,15 @@
         <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
-    <div id="image-popup"> <span class="image-popup-close" style="position: absolute; top: 3px; right: 8px; font-size: 28px; font-weight: bold; color: #888; cursor: pointer; z-index: 10001; padding: 0 5px; line-height: 1; background-color: rgba(255,255,255,0.1); border-radius: 50%;">&times;</span>
-        <img src="" alt="Part Image" style="display:none;">
-        <span class="no-image-text" style="display:none;"></span>
+    <div id="image-popup">
+        <span class="image-popup-close">&times;</span>
+        <img src="" alt="Part Image">
+        <span class="no-image-text"></span>
+    </div>
+
+    <div id="full-image-modal">
+        <span class="modal-close-button">&times;</span>
+        <img id="modal-image-content" src="#" alt="Ảnh Phóng To">
     </div>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -804,7 +836,7 @@
         // Khởi tạo i18next
         i18next.use(i18nextBrowserLanguageDetector).init({
           fallbackLng: 'vi',
-          debug: false,
+          debug: false, // Đặt là true nếu muốn xem log của i18next
           resources: {
             en: {
               translation: {
@@ -826,7 +858,10 @@
                 "total_rows": "Total rows: {{count}} / {{total}}",
                 "developer": "Developer: Nguyễn Văn Đạo",
                 "date_from": "From Date:",
-                "date_to": "To Date:"
+                "date_to": "To Date:",
+                "loading_image": "Loading image...",
+                "image_not_found_erp": "Image for Part Number \"{{partNumber}}\" (ERP: {{erpCode}}) not found.",
+                "image_not_found_no_erp": "No image for Part Number \"{{partNumber}}\". (ERP-CODE missing)"
               }
             },
             ko: {
@@ -849,7 +884,10 @@
                 "total_rows": "총 행: {{count}} / {{total}}",
                 "developer": "개발자: Nguyễn Văn Đạo",
                 "date_from": "시작 날짜:",
-                "date_to": "종료 날짜:"
+                "date_to": "종료 날짜:",
+                "loading_image": "이미지 로드 중...",
+                "image_not_found_erp": "부품 번호 \"{{partNumber}}\" (ERP: {{erpCode}})에 대한 이미지를 찾을 수 없습니다.",
+                "image_not_found_no_erp": "부품 번호 \"{{partNumber}}\"에 대한 이미지가 없습니다. (ERP-CODE 없음)"
               }
             },
             vi: {
@@ -872,11 +910,15 @@
                 "total_rows": "Tổng số dòng: {{count}} / {{total}}",
                 "developer": "Người phát triển: Nguyễn Văn Đạo",
                 "date_from": "Từ ngày:",
-                "date_to": "Đến ngày:"
+                "date_to": "Đến ngày:",
+                "loading_image": "Đang tải ảnh...",
+                "image_not_found_erp": "Ảnh cho Part Number \"{{partNumber}}\" (ERP: {{erpCode}}) không tồn tại.",
+                "image_not_found_no_erp": "Không có ảnh cho Part Number \"{{partNumber}}\". (Thiếu ERP-CODE)"
               }
             }
           }
         }, function(err, t) {
+          if (err) { return console.error('i18next initialization error:', err); }
           updateStaticContent();
         });
 
@@ -935,11 +977,14 @@
         }
 
         function changeLanguage(lng) {
-          i18next.changeLanguage(lng, function() {
+          i18next.changeLanguage(lng, function(err) {
+            if (err) { return console.error('i18next changeLanguage error:', err); }
             updateStaticContent();
             $('.value-select').each(function() {
                 const placeholderText = $(this).attr('id') === 'filter-project' ? i18next.t("choose_project") : i18next.t("choose_value");
-                $(this).data('select2').$container.find('.select2-selection__placeholder').text(placeholderText);
+                if ($(this).data('select2')) { // Kiểm tra xem select2 đã được khởi tạo chưa
+                    $(this).data('select2').$container.find('.select2-selection__placeholder').text(placeholderText);
+                }
             });
           });
         }
@@ -980,6 +1025,8 @@
             totalData = response.total;
             updateFilterValuesForBlock(1);
             updateCascade(2); 
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Error loading all data:", textStatus, errorThrown);
           });
         }
 
@@ -994,6 +1041,8 @@
               });
             }
             selectElem.trigger('change');
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Error loading distinct project values:", textStatus, errorThrown);
           });
         }
 
@@ -1018,7 +1067,6 @@
                 labelValue.show().text(i18next.t("choose_value"));
             }
         }
-
 
         $(document).ready(function() {
             loadAllData();
@@ -1045,7 +1093,6 @@
             handleFilterTypeChange(1);
             handleFilterTypeChange(2);
             handleFilterTypeChange(3);
-
 
             $(document).on('paste', '#filter-value-2 ~ .select2 .select2-search__field', function(e) {
                 e.preventDefault();
@@ -1115,6 +1162,9 @@
                     $.getJSON(`/search?${$.param(loadMoreFilters)}`, function(response) {
                         currentOffset += response.data.length; 
                         updateTable(response.data, false); 
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error("Error loading more data:", textStatus, errorThrown);
+                        alert("Lỗi tải thêm dữ liệu. Vui lòng thử lại.");
                     }).always(function() {
                         hideSpinner();
                     });
@@ -1151,6 +1201,9 @@
                 $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
                   currentOffset = response.total; 
                   updateTable(response.data, true); 
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error loading all data for table:", textStatus, errorThrown);
+                    alert("Lỗi tải toàn bộ dữ liệu. Vui lòng thử lại.");
                 }).always(function() {
                     hideSpinner();
                 });
@@ -1328,255 +1381,219 @@
                 totalData = response.total;
                 currentOffset = reset ? response.data.length : currentOffset + response.data.length;
                 updateTable(response.data, reset);
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error("Error applying filters:", textStatus, errorThrown);
+                alert("Lỗi khi áp dụng bộ lọc. Vui lòng thử lại.");
             }).always(function() {
                 hideSpinner();
             });
         }
 
-function updateTable(data, reset) {
-    const tbody = $('#results-table tbody');
-    if (reset) tbody.empty();
+        function updateTable(data, reset) {
+            const tbody = $('#results-table tbody');
+            if (reset) tbody.empty();
 
-    const imagePopup = $('#image-popup');
-    const popupImgElement = imagePopup.find('img')[0]; 
-    const $popupImg = $(popupImgElement); 
-    const popupText = imagePopup.find('span.no-image-text');
-    const popupCloseButton = imagePopup.find('.image-popup-close');
+            const imagePopup = $('#image-popup'); 
+            const popupImgElement = imagePopup.find('img')[0];
+            const $popupImg = $(popupImgElement);
+            const popupText = imagePopup.find('span.no-image-text');
+            const popupCloseButton = imagePopup.find('.image-popup-close');
 
-    let currentImageRequestToken = null; 
-    let originalSmallImageUrl = '';    
-    let currentErpForPopup = ''; 
+            const fullImageModal = $('#full-image-modal'); 
+            const modalImageContent = $('#modal-image-content');
+            const modalCloseBtn = fullImageModal.find('.modal-close-button');
 
-    function closeImagePopup() {
-        console.log("Closing popup. Removing .zoomed class.");
-        imagePopup.hide().removeClass('zoomed'); 
-        $popupImg.off('load.currentImage error.currentImage'); 
-        popupImgElement.src = ''; 
-        $popupImg.hide().css('cursor', 'zoom-in'); 
-        popupText.text('').hide(); 
-        currentImageRequestToken = null;
-        originalSmallImageUrl = '';
-        currentErpForPopup = ''; 
-    }
+            let currentImageRequestToken = null;
+            let currentErpForPopup = ''; 
 
-    if (!popupCloseButton.data('handlerAttachedClose')) {
-        popupCloseButton.on('click.closepopup', function() {
-            closeImagePopup();
-        });
-        popupCloseButton.data('handlerAttachedClose', true);
-    }
-
-    if (!$(document).data('imagePopupOutsideHandlerAttached')) {
-        $(document).on('mouseup.imagePopupOutside', function(e) {
-            if (imagePopup.is(':visible') && !imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
-                closeImagePopup();
-            }
-        });
-        $(document).data('imagePopupOutsideHandlerAttached', true);
-    }
-    
-    if (!$popupImg.data('zoomHandlerAttached')) {
-        $popupImg.on('click.zoomImage', function() { 
-            console.log("Image clicked for zoom. Popup visible:", imagePopup.is(':visible'), "Image visible:", $(this).is(':visible'), "Image src:", this.src);
-            if (!imagePopup.is(':visible') || !$(this).is(':visible') || !this.src || this.src.startsWith('data:')) {
-                console.log("Zoom conditions not met.");
-                return; 
-            }
-            
-            const isCurrentlyZoomed = imagePopup.hasClass('zoomed');
-            const erpCodeForImageInPopup = currentErpForPopup; 
-
-            if (!erpCodeForImageInPopup) {
-                console.log("No ERP code for zoom.");
-                return;
-            }
-
-            imagePopup.toggleClass('zoomed');
-            console.log("Toggled .zoomed class. Popup is now zoomed:", imagePopup.hasClass('zoomed'));
-
-            if (imagePopup.hasClass('zoomed')) { 
-                $(this).css('cursor', 'zoom-out');
-                if (!originalSmallImageUrl) { 
-                    originalSmallImageUrl = this.src;
-                    console.log("Saved originalSmallImageUrl:", originalSmallImageUrl);
-                }
-                
-                const largeImageUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${erpCodeForImageInPopup}.jpg`;
-                console.log("Zooming IN. Large image URL:", largeImageUrl);
-                
-                if (this.src !== largeImageUrl) { 
-                    popupText.text('Đang tải ảnh lớn...').show();
-                    $popupImg.hide(); 
-
-                    const zoomLoader = new Image();
-                    $(zoomLoader).off('load error');
-
-                    zoomLoader.onload = () => {
-                        console.log("Large image loaded for zoom. ERP:", erpCodeForImageInPopup, "Current ERP in popup:", currentErpForPopup);
-                        if (imagePopup.hasClass('zoomed') && currentErpForPopup === erpCodeForImageInPopup) {
-                            this.src = zoomLoader.src;
-                            $popupImg.show();
-                            popupText.hide().text('');
-                            console.log("Displayed large image.");
-                        } else {
-                            console.log("Conditions for displaying large image not met (popup not zoomed or ERP mismatch).");
-                        }
-                    };
-                    zoomLoader.onerror = () => {
-                        console.error("Error loading large image for zoom. ERP:", erpCodeForImageInPopup);
-                        if (imagePopup.hasClass('zoomed') && currentErpForPopup === erpCodeForImageInPopup) {
-                            popupText.text('Lỗi tải ảnh lớn. Hiển thị ảnh nhỏ.').show();
-                            this.src = originalSmallImageUrl; 
-                            $popupImg.show();
-                        }
-                    };
-                    zoomLoader.src = largeImageUrl;
-                } else {
-                    console.log("Already displaying large image or no change needed.");
-                }
-            } else { 
-                console.log("Zooming OUT.");
-                $(this).css('cursor', 'zoom-in');
-                if (originalSmallImageUrl && this.src !== originalSmallImageUrl) {
-                    this.src = originalSmallImageUrl; 
-                    console.log("Restored small image:", originalSmallImageUrl);
-                }
-            }
-        });
-        $popupImg.data('zoomHandlerAttached', true);
-    }
-
-    data.forEach(function(row) {
-        const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
-        const tr = $('<tr>');
-        const partNumberValue = row['Part Number'] || 'N/A'; 
-
-        tr.append(`<td class="sticky-col-1">${serial}</td>`);
-        
-        const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
-        partNumberCell.css('cursor', 'pointer');
-
-        partNumberCell.on('click', function(e) {
-            const erpCodeForThisClick = row['ERP-CODE']?.trim().toUpperCase();
-            const partNumberForThisClick = partNumberValue;
-            
-            console.log("Part number cell clicked. ERP:", erpCodeForThisClick, "PN:", partNumberForThisClick);
-
-            const requestToken = Symbol(); 
-            currentImageRequestToken = requestToken; 
-            
-            closeImagePopup(); 
-            currentErpForPopup = erpCodeForThisClick; 
-            
-            imagePopup.css({
-                top: '50%', left: '50%', transform: 'translate(-50%, -50%)'
-            }).show();
-
-            if (erpCodeForThisClick) {
-                popupText.text('Đang tải ảnh...').show();
+            function closeSmallImagePopup() {
+                console.log("Closing small popup.");
+                imagePopup.hide();
+                $popupImg.off('load.currentImage error.currentImage click.openLargeImage');
+                popupImgElement.src = ''; 
                 $popupImg.hide();
+                popupText.text('').hide(); 
+                currentImageRequestToken = null;
+                currentErpForPopup = '';
+            }
+            
+            function openLargeImageModal(erpCode) {
+                if (!erpCode) return;
+                console.log("Opening large image modal for ERP:", erpCode);
+                const largeImageUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${erpCode}.jpg`;
+                modalImageContent.attr('src', largeImageUrl);
+                fullImageModal.css('display', 'flex'); 
+            }
 
-                const tempImgLoader = new Image();
-                $(tempImgLoader).off('load error');
-                
-                tempImgLoader.onload = function() {
-                    console.log("Initial small image loaded. Token match:", currentImageRequestToken === requestToken);
-                    if (currentImageRequestToken === requestToken) { 
-                        popupImgElement.src = this.src;
-                        originalSmallImageUrl = this.src; 
-                        $popupImg.show();
-                        popupText.hide().text('');
+            function closeLargeImageModal() {
+                console.log("Closing large image modal.");
+                fullImageModal.hide();
+                modalImageContent.attr('src', '#'); 
+            }
+
+            if (!popupCloseButton.data('handlerAttachedCloseSmall')) {
+                popupCloseButton.on('click.closeSmallPopup', function() {
+                    closeSmallImagePopup();
+                });
+                popupCloseButton.data('handlerAttachedCloseSmall', true);
+            }
+
+            if (!modalCloseBtn.data('handlerAttachedCloseLarge')) {
+                modalCloseBtn.on('click.closeLargeModal', function() {
+                    closeLargeImageModal();
+                });
+                modalCloseBtn.data('handlerAttachedCloseLarge', true);
+            }
+            
+            if (!fullImageModal.data('handlerAttachedOutsideClickLarge')) {
+                fullImageModal.on('click.outsideLargeModal', function(e) {
+                    if (e.target === this) { 
+                        closeLargeImageModal();
                     }
-                };
+                });
+                fullImageModal.data('handlerAttachedOutsideClickLarge', true);
+            }
+            
+            if (!$popupImg.data('openLargeHandlerAttached')) {
+                $popupImg.on('click.openLargeImage', function() {
+                    console.log("Small image clicked. Current ERP for popup:", currentErpForPopup, "Src:", this.src);
+                    if (currentErpForPopup && this.src && !this.src.startsWith('data:')) { 
+                        openLargeImageModal(currentErpForPopup);
+                    } else {
+                        console.log("Conditions not met to open large image.");
+                    }
+                });
+                $popupImg.data('openLargeHandlerAttached', true);
+            }
+
+
+            data.forEach(function(row) {
+                const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
+                const tr = $('<tr>');
+                const partNumberValue = row['Part Number'] || 'N/A'; 
+
+                tr.append(`<td class="sticky-col-1">${serial}</td>`);
                 
-                tempImgLoader.onerror = function() {
-                    console.error("Error loading initial small image. Token match:", currentImageRequestToken === requestToken);
-                    if (currentImageRequestToken === requestToken) {
+                const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
+                partNumberCell.css('cursor', 'pointer');
+
+                partNumberCell.on('click', function(e) {
+                    const erpCodeForThisClick = row['ERP-CODE']?.trim().toUpperCase();
+                    const partNumberForThisClick = partNumberValue;
+                    
+                    console.log("Part number cell clicked. ERP:", erpCodeForThisClick, "PN:", partNumberForThisClick);
+                    const requestToken = Symbol(); 
+                    currentImageRequestToken = requestToken;
+                    
+                    closeSmallImagePopup(); 
+                    currentErpForPopup = erpCodeForThisClick; 
+                    
+                    imagePopup.css({
+                        top: '50%', left: '50%', transform: 'translate(-50%, -50%)'
+                    }).show(); 
+
+                    if (erpCodeForThisClick) {
+                        popupText.text(i18next.t("loading_image")).show();
                         $popupImg.hide();
-                        popupText.text(`Ảnh cho Part Number "${partNumberForThisClick}" (ERP: ${erpCodeForThisClick}) không tồn tại.`).show();
-                        originalSmallImageUrl = '';
+
+                        const tempImgLoader = new Image();
+                        $(tempImgLoader).off('load error'); 
+                        
+                        tempImgLoader.onload = function() {
+                            console.log("Small image loaded. Token match:", currentImageRequestToken === requestToken);
+                            if (currentImageRequestToken === requestToken) { 
+                                popupImgElement.src = this.src;
+                                $popupImg.show().css('cursor', 'pointer'); 
+                                popupText.hide().text('');
+                            }
+                        };
+                        
+                        tempImgLoader.onerror = function() {
+                            console.error("Error loading small image. Token match:", currentImageRequestToken === requestToken);
+                            if (currentImageRequestToken === requestToken) {
+                                $popupImg.hide().css('cursor', 'default'); 
+                                popupText.text(i18next.t("image_not_found_erp", {partNumber: partNumberForThisClick, erpCode: erpCodeForThisClick})).show();
+                            }
+                        };
+                        
+                        const smallImageUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${erpCodeForThisClick}.jpg`;
+                        console.log("Requesting small image:", smallImageUrl);
+                        tempImgLoader.src = smallImageUrl;
+
+                    } else {
+                        console.log("No ERP code for this part number.");
+                        $popupImg.hide().css('cursor', 'default');
+                        popupText.text(i18next.t("image_not_found_no_erp", {partNumber: partNumberForThisClick})).show();
                     }
-                };
+                });
                 
-                const smallImageUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${erpCodeForThisClick}.jpg`;
-                console.log("Requesting small image:", smallImageUrl);
-                tempImgLoader.src = smallImageUrl;
+                tr.append(partNumberCell);
 
-            } else {
-                console.log("No ERP code for this part number.");
-                $popupImg.hide();
-                popupText.text(`Không có ảnh cho Part Number "${partNumberForThisClick}". (Thiếu ERP-CODE)`).show();
-                originalSmallImageUrl = '';
-            }
-        });
-        
-        tr.append(partNumberCell);
+                tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
+                tr.append(`<td>${row['Approval Status'] || ''}</td>`);
+                tr.append(`<td>${row['Customer'] || ''}</td>`);
+                tr.append(`<td>${row['Commodity'] || ''}</td>`);
+                tr.append(`<td>${row['Production Status'] || ''}</td>`);
+                
+                let partPicValue = row['Part Pictures'] || '';
+                let partPicContent = partPicValue; 
+                if (typeof partPicValue === 'string') {
+                    if (partPicValue.toLowerCase().startsWith('http')) {
+                        partPicContent = `<a href="${partPicValue}" target="_blank">Link</a>`;
+                    } else if (partPicValue.trim().toUpperCase() === 'OK' || partPicValue.trim() === '') {
+                        partPicContent = partNumberValue; 
+                    }
+                }
+                tr.append(`<td>${partPicContent}</td>`);
 
-        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
-        tr.append(`<td>${row['Approval Status'] || ''}</td>`);
-        tr.append(`<td>${row['Customer'] || ''}</td>`);
-        tr.append(`<td>${row['Commodity'] || ''}</td>`);
-        tr.append(`<td>${row['Production Status'] || ''}</td>`);
-        
-        let partPicValue = row['Part Pictures'] || '';
-        let partPicContent = partPicValue; 
-        if (typeof partPicValue === 'string') {
-            if (partPicValue.toLowerCase().startsWith('http')) {
-                partPicContent = `<a href="${partPicValue}" target="_blank">Link</a>`;
-            } else if (partPicValue.trim().toUpperCase() === 'OK' || partPicValue.trim() === '') {
-                partPicContent = partNumberValue; 
+                let pkgPicValue = row['Packaging Pictures'] || '';
+                let pkgPicContent = pkgPicValue; 
+                if (typeof pkgPicValue === 'string') {
+                    if (pkgPicValue.toLowerCase().startsWith('http')) {
+                        pkgPicContent = `<a href="${pkgPicValue}" target="_blank">Link</a>`;
+                    } else if (pkgPicValue.trim().toUpperCase() === 'OK' || pkgPicValue.trim() === '') {
+                        pkgPicContent = partNumberValue; 
+                    }
+                }
+                tr.append(`<td>${pkgPicContent}</td>`);
+
+                tr.append(`<td>${row['Critical'] || ''}</td>`);
+                tr.append(`<td>${row['CE'] || ''}</td>`);
+                tr.append(`<td>${row['PO Number'] || ''}</td>`);
+                tr.append(`<td>${row['Description'] || ''}</td>`);
+                tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); 
+                tr.append(`<td>${row['Note Number'] || ''}</td>`);
+                tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
+                tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
+                tr.append(`<td>${row['Requirements'] || ''}</td>`);
+                tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
+                tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
+                tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
+                tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
+                tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
+                tr.append(`<td>${row['COC'] || ''}</td>`);
+                tr.append(`<td>${row['BOM'] || ''}</td>`);
+                tr.append(`<td>${row['Mill'] || ''}</td>`);
+                tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
+                tr.append(`<td>${row['Remark 1'] || ''}</td>`);
+                tr.append(`<td>${row['Remark 2'] || ''}</td>`);
+                tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
+                tr.append(`<td>${row['Reject comments'] || ''}</td>`);
+
+                tbody.append(tr);
+            });
+
+            var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
+            $('#results-count').text(totalText);
+
+            try {
+                if ($.fn.colResizable) {
+                  $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
+                }
+            } catch (e) {
+                console.log("colResizable not available in updateTable:", e);
             }
         }
-        tr.append(`<td>${partPicContent}</td>`);
-
-        let pkgPicValue = row['Packaging Pictures'] || '';
-        let pkgPicContent = pkgPicValue; 
-        if (typeof pkgPicValue === 'string') {
-            if (pkgPicValue.toLowerCase().startsWith('http')) {
-                pkgPicContent = `<a href="${pkgPicValue}" target="_blank">Link</a>`;
-            } else if (pkgPicValue.trim().toUpperCase() === 'OK' || pkgPicValue.trim() === '') {
-                pkgPicContent = partNumberValue; 
-            }
-        }
-        tr.append(`<td>${pkgPicContent}</td>`);
-
-        tr.append(`<td>${row['Critical'] || ''}</td>`);
-        tr.append(`<td>${row['CE'] || ''}</td>`);
-        tr.append(`<td>${row['PO Number'] || ''}</td>`);
-        tr.append(`<td>${row['Description'] || ''}</td>`);
-        tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); 
-        tr.append(`<td>${row['Note Number'] || ''}</td>`);
-        tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
-        tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
-        tr.append(`<td>${row['Requirements'] || ''}</td>`);
-        tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
-        tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
-        tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
-        tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
-        tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
-        tr.append(`<td>${row['COC'] || ''}</td>`);
-        tr.append(`<td>${row['BOM'] || ''}</td>`);
-        tr.append(`<td>${row['Mill'] || ''}</td>`);
-        tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
-        tr.append(`<td>${row['Remark 1'] || ''}</td>`);
-        tr.append(`<td>${row['Remark 2'] || ''}</td>`);
-        tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
-        tr.append(`<td>${row['Reject comments'] || ''}</td>`);
-
-        tbody.append(tr);
-    });
-
-    var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
-    $('#results-count').text(totalText);
-
-    try {
-        if ($.fn.colResizable) {
-          $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
-        }
-    } catch (e) {
-        console.log("colResizable not available in updateTable:", e);
-    }
-}
 
 
         function downloadExcel() {
