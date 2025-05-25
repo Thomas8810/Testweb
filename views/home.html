@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
-<!-- CSS Select2 -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
-<!-- Thêm i18next và i18next-browser-languagedetector -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
 <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
 <style>
@@ -121,11 +119,12 @@
       margin-bottom: 3px;
       font-weight: bold;
     }
-    .filter-block select {
+    .filter-block select, .filter-block input[type="text"] { /* Apply styles to text inputs as well */
       width: 100%;
       padding: 3px;
       margin-bottom: 3px;
       font-size: 12px;
+      box-sizing: border-box; /* Ensure padding doesn't increase width */
     }
     /* Khối chứa các nút chức năng */
     .action-bar {
@@ -496,6 +495,27 @@ input:focus, select:focus {
 .show-table-only {
   height: calc(100vh - 60px);
 }
+/* Style cho datepicker inputs */
+.filter-block .datepicker {
+    width: calc(100% - 6px); /* Adjust for padding */
+    box-sizing: border-box;
+    padding: 3px;
+    margin-bottom: 3px;
+    font-size: 12px;
+}
+.filter-block .input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px; /* Spacing between date inputs */
+}
+.filter-block .input-group-prepend .input-group-text {
+    background-color: #555;
+    color: white;
+    padding: 3px 6px;
+    border-radius: 3px 0 0 3px;
+    font-size: 12px;
+    white-space: nowrap;
+}
 </style>
 </head>
 <body>
@@ -508,21 +528,17 @@ input:focus, select:focus {
 <a class="tasks-link" href="/tasks">Tasks</a>
 <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
 <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
-<!-- Nút chuyển đổi ngôn ngữ ở góc trên bên phải -->
 <div class="language-switcher">
 <button onclick="changeLanguage('vi')">Vi</button>
 <button onclick="changeLanguage('en')">En</button>
 <button onclick="changeLanguage('ko')">Ko</button>
 </div>
 </div>
-<!-- Phần tiêu chí lọc -->
 <div class="filter-bar">
-<!-- Filter Block Sheet -->
 <div class="filter-block" id="filter-block-project">
 <label for="filter-project" id="label-filter-project">Chọn dự án (Customer)</label>
 <select class="value-select" id="filter-project" multiple="multiple"></select>
 </div>
-<!-- Filter Block 1 -->
 <div class="filter-block" id="filter-block-1">
 <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
 <select id="filter-column-1">
@@ -560,45 +576,57 @@ input:focus, select:focus {
 <label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
 <select class="value-select" id="filter-value-1" multiple="multiple"></select>
 </div>
-<!-- Filter Block 2 -->
 <div class="filter-block" id="filter-block-2">
-<label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
-<select id="filter-column-2">
-<option selected="" value="Part Number">Part Number</option>
-<option value="Approval Status">Approval Status</option>
-<option value="Production Status">Production Status</option>
-<option value="Part Pictures">Part Pictures</option>
-<option value="Packaging Pictures">Packaging Pictures</option>
-<option value="Customer">Customer</option>
-<option value="Commodity">Commodity</option>
-<option value="Critical">Critical</option>
-<option value="CE">CE</option>
-<option value="PO Number">PO Number</option>
-<option value="Type">Type</option>
-<option value="REV">REV</option>
-<option value="Description">Description</option>
-<option value="Note Number">Note Number</option>
-<option value="PO received date">PO received date</option>
-<option value="Customer need date">Customer need date</option>
-<option value="Requirements">Requirements</option>
-<option value="FAIR Cover sheet">FAIR Cover sheet</option>
-<option value="Bubble Drawings">Bubble Drawings</option>
-<option value="Datasheet form">Datasheet form</option>
-<option value="LAIR data">LAIR data</option>
-<option value="FAIR Data">FAIR Data</option>
-<option value="COC">COC</option>
-<option value="BOM">BOM</option>
-<option value="Mill">Mill</option>
-<option value="Test reports / evidences">Test reports / evidences</option>
-<option value="Remark 1">Remark 1</option>
-<option value="Remark 2">Remark 2</option>
-<option value="Submit date">Submit date</option>
-<option value="Reject comments">Reject comments</option>
-</select>
-<label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
-<select id="filter-value-2" multiple="multiple"></select>
+    <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
+    <select id="filter-column-2">
+        <option selected="" value="Part Number">Part Number</option>
+        <option value="Approval Status">Approval Status</option>
+        <option value="Production Status">Production Status</option>
+        <option value="Part Pictures">Part Pictures</option>
+        <option value="Packaging Pictures">Packaging Pictures</option>
+        <option value="Customer">Customer</option>
+        <option value="Commodity">Commodity</option>
+        <option value="Critical">Critical</option>
+        <option value="CE">CE</option>
+        <option value="PO Number">PO Number</option>
+        <option value="Type">Type</option>
+        <option value="REV">REV</option>
+        <option value="Description">Description</option>
+        <option value="Note Number">Note Number</option>
+        <option value="PO received date">PO received date</option>
+        <option value="Customer need date">Customer need date</option>
+        <option value="Requirements">Requirements</option>
+        <option value="FAIR Cover sheet">FAIR Cover sheet</option>
+        <option value="Bubble Drawings">Bubble Drawings</option>
+        <option value="Datasheet form">Datasheet form</option>
+        <option value="LAIR data">LAIR data</option>
+        <option value="FAIR Data">FAIR Data</option>
+        <option value="COC">COC</option>
+        <option value="BOM">BOM</option>
+        <option value="Mill">Mill</option>
+        <option value="Test reports / evidences">Test reports / evidences</option>
+        <option value="Remark 1">Remark 1</option>
+        <option value="Remark 2">Remark 2</option>
+        <option value="Submit date">Submit date</option>
+        <option value="Reject comments">Reject comments</option>
+    </select>
+    <label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
+    <div id="submit-date-range-container" style="display: none;">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="label-from-date">Từ ngày</span>
+            </div>
+            <input class="datepicker" id="submit-date-from" type="text" placeholder="YYYY-MM-DD">
+        </div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="label-to-date">Đến ngày</span>
+            </div>
+            <input class="datepicker" id="submit-date-to" type="text" placeholder="YYYY-MM-DD">
+        </div>
+    </div>
+    <select id="filter-value-2" multiple="multiple"></select>
 </div>
-<!-- Filter Block 3 -->
 <div class="filter-block" id="filter-block-3">
 <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
 <select id="filter-column-3">
@@ -637,7 +665,6 @@ input:focus, select:focus {
 <select class="value-select" id="filter-value-3" multiple="multiple"></select>
 </div>
 </div>
-<!-- Khối chứa các nút chức năng -->
 <div class="action-bar">
 <div class="filter-actions">
 <button id="apply-filters">Áp Dụng Lọc</button>
@@ -652,7 +679,6 @@ input:focus, select:focus {
 <button id="zoom-out">Thu nhỏ</button>
 </div>
 </div>
-<!-- Phần hiển thị tổng số dòng -->
 <div class="scan-camera" style="text-align:center; margin-top:10px;">
 <button id="btnScanCamera">📷 Quét Camera</button>
 </div>
@@ -661,7 +687,6 @@ input:focus, select:focus {
 <div style="text-align:center; margin: 10px;">
 <input id="quick-search" placeholder="🔍 Tìm Part Number..." style="padding:5px; width: 60%; font-size:14px;" type="text"/>
 </div>
-<!-- Khu vực hiển thị bảng dữ liệu -->
 <div class="table-container">
 <table id="results-table">
 <thead><tr>
@@ -698,24 +723,21 @@ input:focus, select:focus {
 <th data-column="Reject comments">Reject comments</th>
 </tr></thead>
 <tbody>
-<!-- Dữ liệu sẽ được load tại đây -->
 </tbody>
 </table>
 </div>
-<!-- Nút tải thêm -->
 <div id="load-more-container" style="text-align:center; margin:10px;">
 <button id="load-more">Load More</button>
 <button id="load-all">Load All</button>
 </div>
-<!-- Footer -->
 <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
 </div>
-<!-- JS Thư viện -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
-<!-- i18next Integration -->
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
 <script>
     // Khởi tạo i18next với resource cho tiếng Anh và tiếng Việt
     i18next.use(i18nextBrowserLanguageDetector).init({
@@ -740,31 +762,34 @@ input:focus, select:focus {
             "load_more": "Load More",
             "load_all": "Load All",
             "total_rows": "Total rows: {{count}} / {{total}}",
-            "developer": "Developer: Nguyễn Văn Đạo"
+            "developer": "Developer: Nguyễn Văn Đạo",
+            "label.fromDate": "From Date",
+            "label.toDate": "To Date"
           }
         },
         ko: {
-  translation: {
-    "header_title": "FAIR TEAM - 검색 상태",
-    "header_subtitle": "FAIR 상태 검색",
-    "choose_project": "프로젝트 선택",
-    "choose_value": "값 선택",
-    "choose_criteria_1": "기준 1 선택:",
-    "choose_criteria_2": "기준 2 선택 (엑셀 붙여넣기):",
-    "choose_criteria_3": "기준 3 선택:",
-    "apply_filter": "필터 적용",
-    "clear_filter": "필터 지우기",
-    "download_excel": "엑셀 내보내기 (현재 보기)",
-    "export_all": "엑셀 내보내기 (전체)",
-    "zoom_in": "확대",
-    "zoom_out": "축소",
-    "load_more": "더 불러오기",
-    "load_all": "전체 불러오기",
-    "total_rows": "총 행: {{count}} / {{total}}",
-    "developer": "개발자: Nguyễn Văn Đạo"
-  }
-},
-
+          translation: {
+            "header_title": "FAIR TEAM - 검색 상태",
+            "header_subtitle": "FAIR 상태 검색",
+            "choose_project": "프로젝트 선택",
+            "choose_value": "값 선택",
+            "choose_criteria_1": "기준 1 선택:",
+            "choose_criteria_2": "기준 2 선택 (엑셀 붙여넣기):",
+            "choose_criteria_3": "기준 3 선택:",
+            "apply_filter": "필터 적용",
+            "clear_filter": "필터 지우기",
+            "download_excel": "엑셀 내보내기 (현재 보기)",
+            "export_all": "엑셀 내보내기 (전체)",
+            "zoom_in": "확대",
+            "zoom_out": "축소",
+            "load_more": "더 불러오기",
+            "load_all": "전체 불러오기",
+            "total_rows": "총 행: {{count}} / {{total}}",
+            "developer": "개발자: Nguyễn Văn Đạo",
+            "label.fromDate": "시작일",
+            "label.toDate": "종료일"
+          }
+        },
         vi: {
           translation: {
             "header_title": "FAIR TEAM - Tra cứu tình trạng FAIR",
@@ -783,7 +808,9 @@ input:focus, select:focus {
             "load_more": "Tải thêm",
             "load_all": "Tải toàn bộ",
             "total_rows": "Tổng số dòng: {{count}} / {{total}}",
-            "developer": "Người phát triển: Nguyễn Văn Đạo"
+            "developer": "Người phát triển: Nguyễn Văn Đạo",
+            "label.fromDate": "Từ ngày",
+            "label.toDate": "Đến ngày"
           }
         }
       }
@@ -828,6 +855,10 @@ input:focus, select:focus {
       var tbodyCount = $('#results-table tbody').children().length;
       $('#results-count').text(i18next.t("total_rows", { count: tbodyCount, total: totalData }));
 
+      // Update datepicker labels
+      document.getElementById("label-from-date").innerText = i18next.t("label.fromDate");
+      document.getElementById("label-to-date").innerText = i18next.t("label.toDate");
+
 
       // Cập nhật lại các widget Select2 (để thay đổi placeholder mà vẫn giữ lựa chọn)
       reinitializeSelect2('#filter-project', i18next.t("choose_project"), { closeOnSelect: false });
@@ -858,32 +889,50 @@ input:focus, select:focus {
       });
     }
   </script>
-<!-- Các mã JS hiện tại -->
 <script>
     // Hàm format Excel date
     function formatExcelDate(val) {
-  if (!val) return '';
-  if (typeof val === 'number') {
-    // Nếu là số serial ngày từ Excel
-    let date = new Date((val - 25569) * 86400 * 1000);
-    if (!isNaN(date)) {
-      const yyyy = date.getFullYear();
-      const mm = String(date.getMonth() + 1).padStart(2, '0');
-      const dd = String(date.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
+        if (!val) return '';
+        if (typeof val === 'number') {
+            // Nếu là số serial ngày từ Excel
+            let date = new Date((val - 25569) * 86400 * 1000);
+            if (!isNaN(date)) {
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+        } else if (typeof val === 'string') {
+            // Nếu là chuỗi ngày dạng ISO hoặc có giờ
+            const parsed = new Date(val);
+            if (!isNaN(parsed.getTime())) { // Check if it's a valid date
+                const yyyy = parsed.getFullYear();
+                const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+                const dd = String(parsed.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+        }
+        return val;
     }
-  } else if (typeof val === 'string') {
-    // Nếu là chuỗi ngày dạng ISO hoặc có giờ
-    const parsed = new Date(val);
-    if (!isNaN(parsed)) {
-      const yyyy = parsed.getFullYear();
-      const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-      const dd = String(parsed.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
+
+    // Hàm parse ngày từ nhiều định dạng (số Excel, chuỗi) về đối tượng Date (chuẩn hóa về 00:00:00)
+    function parseDate(dateValue) {
+        if (typeof dateValue === 'number') {
+            // Assume Excel serial number
+            const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Excel's epoch is Dec 30, 1899
+            const millisecondsPerDay = 24 * 60 * 60 * 1000;
+            const date = new Date(excelEpoch.getTime() + dateValue * millisecondsPerDay);
+            return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Reset time to midnight for comparison
+        } else if (typeof dateValue === 'string') {
+            // Attempt to parse as a string (e.g., "YYYY-MM-DD" or "MM/DD/YYYY")
+            const date = new Date(dateValue);
+            if (!isNaN(date.getTime())) { // Check if it's a valid date
+                return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Reset time to midnight for comparison
+            }
+        }
+        return null; // Return null for invalid or unparseable dates
     }
-  }
-  return val;
-}
+
 
     let currentFilters = {};
     let currentOffset = 0;
@@ -906,12 +955,12 @@ input:focus, select:focus {
       const selectElem = $('#filter-project');
       selectElem.empty();
       $.getJSON('/filters', function(data) {
-if (data['Customer']) {
-  data['Customer'].forEach(function(val) {
-    const option = new Option(val, val, false, false);
-    selectElem.append(option);
-  });
-}
+        if (data['Customer']) {
+            data['Customer'].forEach(function(val) {
+                const option = new Option(val, val, false, false);
+                selectElem.append(option);
+            });
+        }
         selectElem.trigger('change');
       });
     }
@@ -935,11 +984,34 @@ if (data['Customer']) {
         width: '100%',
         closeOnSelect: false
       });
+      // Initialize filter-value-2 as a Select2 for generic values
       $('#filter-value-2').select2({
         placeholder: i18next.t("choose_value"),
         allowClear: true,
         width: '100%'
       });
+
+      // Initialize Datepicker for date range inputs
+      $("#submit-date-from").datepicker({
+          dateFormat: "yy-mm-dd",
+          changeMonth: true,
+          changeYear: true,
+          onSelect: function(selectedDate) {
+              $("#submit-date-to").datepicker("option", "minDate", selectedDate);
+              applyFilters(true); // Apply filter immediately
+          }
+      });
+
+      $("#submit-date-to").datepicker({
+          dateFormat: "yy-mm-dd",
+          changeMonth: true,
+          changeYear: true,
+          onSelect: function(selectedDate) {
+              $("#submit-date-from").datepicker("option", "maxDate", selectedDate);
+              applyFilters(true); // Apply filter immediately
+          }
+      });
+
 
       // Load dữ liệu cho "Chọn dự án"
       loadDistinctValuesForProject();
@@ -976,10 +1048,24 @@ if (data['Customer']) {
       $('#filter-value-1').on('change', function() {
         updateCascade(2);
       });
+
+      // Handle filter-column-2 change for datepicker or generic select2
       $('#filter-column-2').on('change', function() {
-        updateFilterValuesForBlock(2);
-        updateCascade(3);
+          const selectedColumn = $(this).val();
+          if (selectedColumn === 'Submit date') {
+              $('#submit-date-range-container').show();
+              $('#filter-value-2').next('.select2-container').hide(); // Hide Select2 container
+              $('#filter-value-2').val(null).trigger('change'); // Clear any existing values
+          } else {
+              $('#submit-date-range-container').hide();
+              $('#filter-value-2').next('.select2-container').show(); // Show Select2 container
+              $('#submit-date-from').val(''); // Clear datepicker values
+              $('#submit-date-to').val('');
+          }
+          updateFilterValuesForBlock(2);
+          updateCascade(3);
       });
+
       $('#filter-value-2').on('change', function() {
         updateCascade(3);
       });
@@ -999,6 +1085,8 @@ if (data['Customer']) {
       $('#clear-filters').on('click', function() {
         $('.value-select').val(null).trigger('change');
         $('#filter-value-2').val(null).trigger('change');
+        $('#submit-date-from').val(''); // Clear datepicker values
+        $('#submit-date-to').val('');
         applyFilters(true);
       });
       $('#load-more').on('click', function() {
@@ -1025,6 +1113,15 @@ if (data['Customer']) {
             queryParams[col] = values.join(',');
           }
         }
+        // Handle Submit date for Load All
+        const col2 = $('#filter-column-2').val();
+        if (col2 === 'Submit date') {
+            const fromDate = $('#submit-date-from').val();
+            const toDate = $('#submit-date-to').val();
+            if (fromDate) queryParams['Submit date_from'] = fromDate;
+            if (toDate) queryParams['Submit date_to'] = toDate;
+        }
+
         queryParams.limit = 1000000;
         queryParams.offset = 0;
         const queryString = $.param(queryParams);
@@ -1047,6 +1144,15 @@ if (data['Customer']) {
             queryParams[col] = values.join(',');
           }
         }
+        // Handle Submit date for Export All
+        const col2 = $('#filter-column-2').val();
+        if (col2 === 'Submit date') {
+            const fromDate = $('#submit-date-from').val();
+            const toDate = $('#submit-date-to').val();
+            if (fromDate) queryParams['Submit date_from'] = fromDate;
+            if (toDate) queryParams['Submit date_to'] = toDate;
+        }
+
         const queryString = $.param(queryParams);
         window.location.href = `/export?${queryString}`;
       });
@@ -1115,12 +1221,15 @@ if (data['Customer']) {
       distinctValues.sort((a, b) => a.localeCompare(b));
 
       const selectElem = $('#filter-value-' + blockIndex);
-      selectElem.empty();
-      distinctValues.forEach(function(val) {
-        const option = new Option(val, val, false, false);
-        selectElem.append(option);
-      });
-      selectElem.trigger('change');
+      // Only update select2 if it's not 'Submit date'
+      if (dependentColumn !== 'Submit date') {
+          selectElem.empty();
+          distinctValues.forEach(function(val) {
+              const option = new Option(val, val, false, false);
+              selectElem.append(option);
+          });
+          selectElem.trigger('change');
+      }
     }
 
     // Hàm cascade: cập nhật các block từ startBlock đến 3
@@ -1143,17 +1252,28 @@ if (data['Customer']) {
       }
       for (let i = 1; i <= 3; i++) {
         const col = $(`#filter-column-${i}`).val();
-        const values = $(`#filter-value-${i}`).val();
-        if (values && values.length > 0) {
-          queryParams[col] = values.join(',');
+        // Special handling for 'Submit date'
+        if (col === 'Submit date') {
+            const fromDate = $('#submit-date-from').val();
+            const toDate = $('#submit-date-to').val();
+            if (fromDate) queryParams['Submit date_from'] = fromDate;
+            if (toDate) queryParams['Submit date_to'] = toDate;
+        } else {
+            const values = $(`#filter-value-${i}`).val();
+            if (values && values.length > 0) {
+                queryParams[col] = values.join(',');
+            }
         }
       }
       currentFilters = queryParams;
       const queryString = $.param(queryParams);
+      showSpinner(); // Show spinner before AJAX call
       $.getJSON(`/search?${queryString}`, function(response) {
         totalData = response.total;
         currentOffset += pageSize;
         updateTable(response.data, true);
+      }).always(function() { // Hide spinner after AJAX call completes (success or failure)
+        hideSpinner();
       });
     }
 
@@ -1288,7 +1408,6 @@ function downloadExcel() {
   sortTable(col, newOrder);
 });
   </script>
-<!-- Modal OCR (Không có xem trước ảnh) -->
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; justify-content:center; align-items:center; z-index:9999; overflow-y:auto; transition: all 0.3s ease;">
 <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center; margin-bottom: 10vh;">
 <h3>📷 Quét Part Number</h3>
@@ -1478,13 +1597,13 @@ function hideSpinner() {
   $('#loading-spinner').hide();
 }
 
-$('#apply-filters').on('click', function () {
-  showSpinner();
-  setTimeout(() => {
-    applyFilters?.();
-    hideSpinner();
-  }, 100);
-});
+// $('#apply-filters').on('click', function () { // Removed direct spinner control here, moved to applyFilters()
+//   showSpinner();
+//   setTimeout(() => {
+//     applyFilters?.();
+//     hideSpinner();
+//   }, 100);
+// });
 
 // Tìm kiếm nhanh theo Part Number
 $('#quick-search').on('input', function () {
@@ -1533,7 +1652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.innerWidth >= 768) return;
     setTimeout(() => {
       const active = document.activeElement;
-      if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+      if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName) && !active.closest('.ui-datepicker-header')) { // Ignore datepicker clicks
         if (wasEditingTop) {
           // Vẫn giữ vùng top mở, chưa hiện bảng
           tableContainer.classList.remove('show-table-only');
@@ -1622,8 +1741,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener("DOMContentLoaded", renderSearchHistory);
 </script>
-<!-- 📜 Lịch sử nổi Part Number -->
-<!-- 📜 Nút mở popup + Popup lịch sử -->
 <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999;" title="Lịch sử tìm kiếm">🕘</button>
 <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1634,7 +1751,6 @@ document.addEventListener('DOMContentLoaded', () => {
 <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">🗑️ Xóa lịch sử</button>
 </div>
 
-<!-- 🔊 Nút chuyển sang trang voice -->
 <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
   🎤
 </a>
@@ -1642,9 +1758,12 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const historyList = document.getElementById("history-list");
+    // This historyList element seems to be a duplicate or leftover from an old structure.
+    // The main history is now managed by #searchHistory and functions saveSearchHistory/renderSearchHistory.
+    // If you intend to use #history-list, you'll need to populate it separately.
+    // For now, I'm commenting out its usage to avoid confusion with the new history popup.
+    /*
     const storedHistory = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
-
-
     if (storedHistory.length > 0) {
         storedHistory.forEach(item => {
             const div = document.createElement("div");
@@ -1658,156 +1777,14 @@ document.addEventListener("DOMContentLoaded", function () {
         emptyMsg.textContent = "Không có lịch sử tìm kiếm.";
         historyList.appendChild(emptyMsg);
     }
-
     document.getElementById("clear-history-btn").addEventListener("click", function () {
         localStorage.removeItem("partSearchHistory");
         location.reload();
     });
+    */
 });
 </script>
-
-<script>
-function showImage(erpCode, button) {
-  const imgId = `preview-${erpCode}`;
-  const rowId = `row-${erpCode}`;
-
-  document.querySelectorAll('.image-row').forEach(row => row.style.display = 'none');
-  document.querySelectorAll('.image-preview').forEach(img => img.src = '');
-
-  const existingRow = document.getElementById(rowId);
-  if (existingRow && existingRow.style.display === 'table-row') {
-    existingRow.style.display = 'none';
-    return;
-  }
-
-  if (!existingRow) {
-    const tr = document.createElement('tr');
-    tr.id = rowId;
-    tr.className = 'image-row';
-    tr.style.display = 'table-row';
-
-    const td = document.createElement('td');
-    td.colSpan = 30;
-    td.style.textAlign = 'center';
-
-    const img = document.createElement('img');
-    img.id = imgId;
-    img.className = 'image-preview';
-    img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/Home/ERP-CODE/ERP-CODE/${erpCode}.jpg`;
-    img.style.maxWidth = '90%';
-    img.style.maxHeight = '300px';
-    img.style.border = '2px solid black';
-    img.style.margin = '10px auto';
-    img.loading = 'lazy';
-
-    td.appendChild(img);
-    tr.appendChild(td);
-
-    button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
-  } else {
-    existingRow.style.display = 'table-row';
-    document.getElementById(imgId).src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/Home/ERP-CODE/ERP-CODE/${erpCode}.jpg`;
-  }
-}
-</script>
-
-<script>
-function showImage(erpCode, button) {
-  const imgId = `preview-${erpCode}`;
-  const rowId = `row-${erpCode}`;
-
-  document.querySelectorAll('.image-row').forEach(row => row.style.display = 'none');
-  document.querySelectorAll('.image-preview').forEach(img => img.remove());
-
-  const existingRow = document.getElementById(rowId);
-  if (existingRow && existingRow.style.display === 'table-row') {
-    existingRow.style.display = 'none';
-    return;
-  }
-
-  const tr = existingRow || document.createElement('tr');
-  tr.id = rowId;
-  tr.className = 'image-row';
-  tr.style.display = 'table-row';
-
-  const td = tr.firstChild || document.createElement('td');
-  td.colSpan = 30;
-  td.style.textAlign = 'center';
-  td.innerHTML = '';
-
-  const img = document.createElement('img');
-  img.className = 'image-preview';
-  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/Home/ERP-CODE/ERP-CODE/${erpCode}.jpg`;
-  img.style.maxWidth = '90%';
-  img.style.maxHeight = '300px';
-  img.style.border = '2px solid black';
-  img.style.margin = '10px auto';
-  img.loading = 'lazy';
-
-  img.onerror = function() {
-    img.remove();
-    td.innerHTML = '<div style="padding:10px;font-style:italic;color:gray">No photo</div>';
-  };
-
-  td.appendChild(img);
-  if (!existingRow) {
-    tr.appendChild(td);
-    button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
-  }
-}
-</script>
-
-<script>
-function showImage(erpCode, button) {
-  const cell = button.parentNode;
-  const rowId = `row-${erpCode}`;
-
-  document.querySelectorAll('.image-row').forEach(row => row.remove());
-
-  const img = document.createElement('img');
-  img.className = 'image-preview';
-  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/Home/ERP-CODE/ERP-CODE/${erpCode}.jpg`;
-  img.style.maxWidth = '120px';
-  img.style.maxHeight = '80px';
-  img.style.border = '1px solid gray';
-  img.style.marginTop = '5px';
-  img.loading = 'lazy';
-
-  img.onerror = function() {
-    cell.innerHTML = '<div style="padding:4px;font-style:italic;color:gray">No photo</div>';
-  };
-
-  // Clear cell and show image
-  cell.innerHTML = '';
-  cell.appendChild(img);
-}
-</script>
-
-<!-- Modal for image -->
-<div id="imageModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;z-index:9999;align-items:center;justify-content:center;">
-  <div onclick="closeModal()" style="position:absolute;top:10px;right:20px;font-size:28px;color:white;cursor:pointer;">×</div>
-  <img id="modalImg" style="max-width:90%;max-height:90%;border:4px solid white;border-radius:10px;" />
-</div>
-
-<script>
-function showImagePopup(erpCode) {
-  const modal = document.getElementById('imageModal');
-  const img = document.getElementById('modalImg');
-  img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/Home/ERP-CODE/ERP-CODE/${erpCode}.jpg`;
-  img.onerror = () => {
-    img.src = '';
-    img.alt = "No photo";
-    img.outerHTML = "<div style='color:white;font-size:20px;font-style:italic'>No photo</div>";
-  };
-  modal.style.display = 'flex';
-}
-function closeModal() {
-  document.getElementById('imageModal').style.display = 'none';
-}
-</script>
-</body>
-
-</html>
+</body></html>
 <script>
 function toggleHistoryPopup() {
   const popup = document.getElementById("floating-history-popup");
