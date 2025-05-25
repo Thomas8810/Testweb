@@ -460,10 +460,19 @@ document.getElementById('modeVoice').onclick = () => {
   document.querySelector('.search-text-area').style.display = 'none';
   document.getElementById('recordBtn').style.display = 'inline-block';
 };
+document.getElementById('modeText').onclick = () => {
+  currentMode = 'text';
+  document.getElementById('modeText').classList.add('mode-active');
+  document.getElementById('modeText').classList.remove('mode-inactive');
+  document.getElementById('modeVoice').classList.remove('mode-active');
+  document.getElementById('modeVoice').classList.add('mode-inactive');
+  document.querySelector('.search-text-area').style.display = 'block';
+  document.getElementById('recordBtn').style.display = 'none';
+};
 
 document.getElementById('searchBtn').onclick = () => {
   const val = document.getElementById('searchInput').value;
-  if (val.trim() !== '') processTranscript(val, true);
+  if (val.trim() !== '') processTranscript(val, false);
 };
 
 </script>
