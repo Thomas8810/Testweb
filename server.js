@@ -47,10 +47,10 @@ function loadDataFromFile() {
 
       // Tự động lấy cột
       const headerSet = new Set();
-      raw.forEach(row => {
-        Object.keys(row).forEach(key => headerSet.add(key));
-      });
-      headerOrder = Array.from(headerSet);
+raw.forEach(row => {
+  Object.keys(row).forEach(key => headerSet.add(key));
+});
+headerOrder = Array.from(headerSet);
 
       cachedData = raw.map(row => {
         const normalized = {};
@@ -427,28 +427,6 @@ app.get('/api/progress', isAuthenticated, async (req, res) => {
 
 // ----------------------- SEARCH & EXPORT ENDPOINTS -----------------------
 
-// Hàm chuyển đổi số serial Excel sang đối tượng Date của JavaScript
-function parseExcelDate(excelSerialDate) {
-    if (typeof excelSerialDate !== 'number' || isNaN(excelSerialDate)) {
-        return null;
-    }
-
-    // 25569 là số ngày từ 1899-12-31 đến 1970-01-01 (Unix epoch)
-    // Excel có một "lỗi" là coi năm 1900 là năm nhuận, nên ngày 29/02/1900 tồn tại trong Excel.
-    // Để khớp với JS (và các hệ thống chuẩn), cần điều chỉnh nếu ngày lớn hơn 28/02/1900.
-    let adjustedSerialDate = excelSerialDate;
-    if (excelSerialDate > 59) { // Ngày 59 là 28/02/1900 trong hệ thống Excel
-        adjustedSerialDate = excelSerialDate - 1; // Bỏ qua ngày 29/02/1900 giả định
-    }
-
-    const date = new Date(0); // Bắt đầu từ Unix epoch (01/01/1970 UTC)
-    date.setDate(adjustedSerialDate - 25569); // Cộng thêm số ngày đã điều chỉnh
-
-    // Đảm bảo trả về ngày theo múi giờ địa phương mà không bị lệch giờ
-    // Quan trọng: Sử dụng UTC để tránh vấn đề múi giờ khi so sánh ngày
-    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-}
-
 // API lấy danh sách giá trị lọc
 app.get('/filters', (req, res) => {
   const fs = require('fs');
@@ -488,40 +466,6 @@ app.get('/search', (req, res) => {
   let filtered = cachedData;
   const { limit, offset, ...filters } = req.query;
 
-  // Xử lý lọc theo ngày tháng trước
-  let fromDate = null;
-  let toDate = null;
-  const dateColumnFilterKey = 'Submit date'; // Tên cột ngày trong data.json
-
-  if (filters[`${dateColumnFilterKey}_from`]) {
-    fromDate = new Date(filters[`${dateColumnFilterKey}_from`]);
-    // Đảm bảo fromDate là đầu ngày (00:00:00) theo UTC để so sánh nhất quán
-    fromDate = new Date(Date.UTC(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate()));
-    delete filters[`${dateColumnFilterKey}_from`];
-  }
-  if (filters[`${dateColumnFilterKey}_to`]) {
-    toDate = new Date(filters[`${dateColumnFilterKey}_to`]);
-    // Đảm bảo toDate là cuối ngày (23:59:59) theo UTC để so sánh nhất quán
-    toDate = new Date(Date.UTC(toDate.getFullYear(), toDate.getMonth(), toDate.getDate(), 23, 59, 59, 999));
-    delete filters[`${dateColumnFilterKey}_to`];
-  }
-
-  // Áp dụng lọc theo ngày tháng
-  if (fromDate || toDate) {
-    filtered = filtered.filter(row => {
-      const rowDateValue = row[dateColumnFilterKey];
-      const rowDate = parseExcelDate(rowDateValue); // Chuyển đổi số Excel sang Date object
-
-      if (!rowDate) return false; // Bỏ qua nếu ngày không hợp lệ
-
-      const isAfterFrom = fromDate ? rowDate >= fromDate : true;
-      const isBeforeTo = toDate ? rowDate <= toDate : true;
-
-      return isAfterFrom && isBeforeTo;
-    });
-  }
-
-  // Xử lý các bộ lọc khác
   for (let key in filters) {
     if (filters[key]) {
       const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
@@ -544,41 +488,16 @@ app.get('/search', (req, res) => {
 });
 
 // API xuất dữ liệu sang file Excel
+
+// Route API JSON cho voice_search.html
+app.get('/api/data', isAuthenticated, (req, res) => {
+  res.json(cachedData);
+});
+
 app.get('/export', (req, res) => {
   let filtered = cachedData;
-  const { limit, offset, ...filters } = req.query; // Lấy tất cả filters trừ limit/offset
+  const { limit, offset, ...filters } = req.query;
 
-  // Xử lý lọc theo ngày tháng cho export
-  let fromDate = null;
-  let toDate = null;
-  const dateColumnFilterKey = 'Submit date';
-
-  if (filters[`${dateColumnFilterKey}_from`]) {
-    fromDate = new Date(filters[`${dateColumnFilterKey}_from`]);
-    fromDate = new Date(Date.UTC(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate()));
-    delete filters[`${dateColumnFilterKey}_from`];
-  }
-  if (filters[`${dateColumnFilterKey}_to`]) {
-    toDate = new Date(filters[`${dateColumnFilterKey}_to`]);
-    toDate = new Date(Date.UTC(toDate.getFullYear(), toDate.getMonth(), toDate.getDate(), 23, 59, 59, 999));
-    delete filters[`${dateColumnFilterKey}_to`];
-  }
-
-  if (fromDate || toDate) {
-    filtered = filtered.filter(row => {
-      const rowDateValue = row[dateColumnFilterKey];
-      const rowDate = parseExcelDate(rowDateValue);
-
-      if (!rowDate) return false;
-
-      const isAfterFrom = fromDate ? rowDate >= fromDate : true;
-      const isBeforeTo = toDate ? rowDate <= toDate : true;
-
-      return isAfterFrom && isBeforeTo;
-    });
-  }
-
-  // Xử lý các bộ lọc khác (ngoài ngày tháng)
   for (let key in filters) {
     if (filters[key]) {
       const filterValues = filters[key].split(',').map(val => val.trim().toLowerCase());
@@ -591,31 +510,30 @@ app.get('/export', (req, res) => {
       });
     }
   }
-
-  // Danh sách các cột ngày cần xử lý để định dạng lại cho Excel
+  // Danh sách các cột ngày cần xử lý
   const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
+  const isValidYMD = str => /^\d{4}-\d{2}-\d{2}$/.test(str);
 
   filtered = filtered.map(row => {
     const newRow = { ...row };
     dateColumns.forEach(col => {
       const val = newRow[col];
-      if (typeof val === 'number') {
-        const date = parseExcelDate(val);
-        if (date && !isNaN(date.getTime())) {
-          const year = date.getFullYear();
+      if (val && typeof val === 'string' && !isValidYMD(val)) {
+        const date = new Date(val);
+        if (!isNaN(date)) {
+          const yyyy = date.getFullYear();
           const mm = String(date.getMonth() + 1).padStart(2, '0');
           const dd = String(date.getDate()).padStart(2, '0');
-          newRow[col] = `${year}-${mm}-${dd}`;
+          newRow[col] = `${yyyy}-${mm}-${dd}`;
         }
-      } else if (typeof val === 'string') {
-        // Nếu đã là chuỗi ngày tháng YYYY-MM-DD, giữ nguyên
-        // Nếu là định dạng chuỗi khác, cố gắng parse và format
-        const date = new Date(val);
-        if (!isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            newRow[col] = `${year}-${mm}-${dd}`;
+      } else if (typeof val === 'number') {
+        // Nếu là số serial ngày từ Excel
+        const date = new Date((val - 25569) * 86400 * 1000);
+        if (!isNaN(date)) {
+          const yyyy = date.getFullYear();
+          const mm = String(date.getMonth() + 1).padStart(2, '0');
+          const dd = String(date.getDate()).padStart(2, '0');
+          newRow[col] = `${yyyy}-${mm}-${dd}`;
         }
       }
     });
