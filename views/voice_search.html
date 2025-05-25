@@ -66,6 +66,8 @@
             border: 1px solid #ccc;
             padding: 6px;
             white-space: nowrap;
+            text-align: center; /* Căn giữa nội dung ô */
+            vertical-align: middle; /* Căn giữa theo chiều dọc */
         }
         tr.active-row {
             background-color: #2a2a4d;
@@ -163,21 +165,20 @@
             cursor: pointer;
         }
 
-        /* Nút Xem ảnh trong bảng */
-        .view-image-btn {
-            background: none;
-            border: 1px solid #007bff;
-            color: #007bff;
-            padding: 4px 8px;
+        /* Style cho ảnh thumbnail trong bảng */
+        .thumbnail-image {
+            width: 80px; /* Kích thước thumbnail */
+            height: 60px;
+            cursor: pointer; /* Biểu tượng con trỏ */
+            object-fit: cover; /* Hiển thị ảnh vừa vặn */
+            border: 1px solid #555;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8em;
-            white-space: nowrap;
+            transition: transform 0.2s ease; /* Hiệu ứng khi hover */
         }
-        .view-image-btn:hover {
-            background: #007bff;
-            color: white;
+        .thumbnail-image:hover {
+           transform: scale(1.1); /* Phóng to nhẹ khi hover */
         }
+
         .no-photo-text {
             color: gray;
             font-style: italic;
@@ -382,7 +383,8 @@
             };
         }
 
-        // Hàm xử lý hiển thị nội dung ô 'Ảnh'
+        // *** HÀM ĐÃ THAY ĐỔI ***
+        // Hàm xử lý hiển thị nội dung ô 'Ảnh' - Hiển thị ảnh nhỏ
         function renderImageCell(erpCode, cellElement) {
             cellElement.innerHTML = ''; 
 
@@ -391,14 +393,23 @@
                 return;
             }
             
-            const button = document.createElement('button');
-            button.className = 'view-image-btn';
-            button.textContent = 'Xem ảnh';
-            button.onclick = (e) => {
+            const thumbnailImg = document.createElement('img');
+            // Sử dụng URL Cloudinary với biến đổi để tạo thumbnail (w_80: rộng 80px, h_60: cao 60px, c_fill: cắt vừa)
+            thumbnailImg.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_80,h_60,c_fill/ERP-CODE/${erpCode}.jpg`; 
+            thumbnailImg.alt = 'Thumbnail';
+            thumbnailImg.className = 'thumbnail-image'; // Áp dụng class CSS
+
+            thumbnailImg.onclick = (e) => {
                 e.stopPropagation(); // Ngăn chặn sự kiện click lan ra hàng (tr)
-                showFullImage(erpCode);
+                showFullImage(erpCode); // Gọi hàm phóng to ảnh khi click
             };
-            cellElement.appendChild(button);
+
+            // Xử lý nếu thumbnail không tải được
+            thumbnailImg.onerror = function() {
+                cellElement.innerHTML = '<div class="no-photo-text">No photo</div>';
+            };
+
+            cellElement.appendChild(thumbnailImg); // Thêm ảnh vào ô
         }
 
         async function processTranscript(transcript, fromHistory = false) {
@@ -461,12 +472,13 @@
                 relatedResultsDiv.innerHTML = html;
                 makeTableSortable('resultsTable');
 
+                // Gọi renderImageCell sau khi bảng được tạo
                 results.slice(0, 10).forEach((item, index) => {
                     const erpCode = item["ERP-CODE"]?.toUpperCase() || "";
                     const partNumberForId = item["Part Number"].replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
                     const imageCell = document.getElementById(`imageCell-${partNumberForId}-${index}`);
                     if (imageCell) {
-                        renderImageCell(erpCode, imageCell);
+                        renderImageCell(erpCode, imageCell); // Sử dụng hàm mới
                     }
                 });
             }
@@ -604,6 +616,13 @@
                 statusDiv.style.display = 'none'; 
             }
         };
+        // Bắt sự kiện nhấn Enter trong ô input
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Ngăn hành vi mặc định (nếu có)
+                searchBtn.click(); // Giả lập click nút tìm kiếm
+            }
+        });
 
         btnImage.onclick = () => {
             analysisMode = 'image';
@@ -626,20 +645,15 @@
         };
 
         // Highlight hàng khi click vào
-        // Đồng thời xử lý sự kiện click hàng để đọc kết quả
         document.addEventListener('click', function(e) {
-            const rows = document.querySelectorAll('table tbody tr');
-            rows.forEach(r => r.classList.remove('active-row'));
-            const targetRow = e.target.closest('tr');
-            if (targetRow && targetRow.parentNode.tagName === 'TBODY') {
-                targetRow.classList.add('active-row');
-                // Nếu bạn muốn đọc kết quả khi click vào hàng, uncomment dòng dưới
-                const partNumber = targetRow.dataset.partNumber;
-                // if (partNumber) {
-                //    // Cần tìm lại item trong data để lấy analyzePart(item)
-                //    // Hoặc lưu kết quả analyzePart vào data-attribute của hàng
-                //    // Hiện tại: để đơn giản, chức năng "speak" chỉ chạy khi tìm kiếm
-                // }
+            // Chỉ xử lý nếu click bên trong khu vực bảng kết quả
+            if (e.target.closest('#resultsTable')) {
+                const rows = document.querySelectorAll('table tbody tr');
+                rows.forEach(r => r.classList.remove('active-row'));
+                const targetRow = e.target.closest('tr');
+                if (targetRow && targetRow.parentNode.tagName === 'TBODY') {
+                    targetRow.classList.add('active-row');
+                }
             }
         });
 
