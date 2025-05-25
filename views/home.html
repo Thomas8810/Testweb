@@ -9,7 +9,9 @@
     <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"> <style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"> 
+
+    <style>
         /* Đoạn CSS responsive máy tính */
         @media (min-width: 768px) {
             html, body {
@@ -131,6 +133,7 @@
             border: 1px solid #555;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             color: #eee; /* Light text */
+            z-index: 1001; /* Ensure it's above overlay */
         }
         .flatpickr-day.selected, .flatpickr-day.selected:hover {
             background-color: #007bff; /* Highlight color */
@@ -170,6 +173,33 @@
         .flatpickr-weekday {
             color: #ccc;
         }
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
@@ -194,13 +224,15 @@
                     <option value="Customer" data-i18n="customerOption">Customer</option>
                     <option value="Commodity" data-i18n="commodityOption">Commodity</option>
                     <option value="PO Number" data-i18n="poNumberOption">PO Number</option>
-                    <option value="PO received date" data-i18n="poReceivedDateOption">PO received date</option> <option value="Customer need date" data-i18n="customerNeedDateOption">Customer need date</option> <option value="Approval Status" data-i18n="approvalStatusOption">Approval Status</option>
+                    <option value="PO received date" data-i18n="poReceivedDateOption">PO received date</option>
+                    <option value="Customer need date" data-i18n="customerNeedDateOption">Customer need date</option>
+                    <option value="Approval Status" data-i18n="approvalStatusOption">Approval Status</option>
                     <option value="Production Status" data-i18n="productionStatusOption">Production Status</option>
                     <option value="ERP-CODE" data-i18n="erpCodeOption">ERP-CODE</option>
                 </select>
             </div>
             <div id="text-search-group" class="search-input-group active">
-                <label class="block text-gray-400 text-sm font-bold mb-2" for="search-input" data-i18n="partNumberLabel">
+                <label class="block text-gray-400 text-sm font-bold mb-2" for="search-input" data-i18n="inputValueLabel">
                     Nhập giá trị:
                 </label>
                 <input autocomplete="off" class="shadow appearance-none border border-gray-700 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700" id="search-input" type="text"/>
@@ -274,6 +306,11 @@
     </div>
 </div>
 
+<div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <span class="ml-3" data-i18n="loadingMessage">Đang tải...</span>
+</div>
+
 <a href="voice_search.html" style="position: fixed; bottom: 20px; right: 20px; background-color: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
     🎤
 </a>
@@ -287,12 +324,12 @@
         .use(i18nextBrowserLanguageDetector)
         .init({
             fallbackLng: 'vi',
-            debug: true,
+            debug: false, // Set to true for debugging translation issues
             resources: {
                 en: {
                     translation: {
                         title: "Part Number Lookup",
-                        partNumberLabel: "Enter Value:",
+                        inputValueLabel: "Enter Value:",
                         filterLabel: "Filter by:",
                         partNumberOption: "Part Number",
                         descriptionOption: "Description",
@@ -311,24 +348,30 @@
                         searchHistoryTitle: "Search History",
                         clearHistoryButton: "Clear History",
                         dateRangeLabel: "Select Date Range:",
-                        // Add other translations as needed
+                        noSearchResults: "No data found.",
+                        noHistory: "No search history.",
+                        loadingMessage: "Loading...",
+                        // Pagination
+                        previousButton: "Previous",
+                        nextButton: "Next",
+                        paginationInfo: "Showing {{start}} to {{end}} of {{total}} entries"
                     }
                 },
                 vi: {
                     translation: {
                         title: "Tra cứu Part Number",
-                        partNumberLabel: "Nhập giá trị:",
+                        inputValueLabel: "Nhập giá trị:",
                         filterLabel: "Lọc theo:",
                         partNumberOption: "Part Number",
-                        descriptionOption: "Description",
-                        customerOption: "Customer",
-                        commodityOption: "Commodity",
-                        poNumberOption: "PO Number",
+                        descriptionOption: "Mô tả",
+                        customerOption: "Khách hàng",
+                        commodityOption: "Hàng hóa",
+                        poNumberOption: "Số PO",
                         poReceivedDateOption: "Ngày nhận PO",
                         customerNeedDateOption: "Ngày khách cần",
                         approvalStatusOption: "Trạng thái phê duyệt",
                         productionStatusOption: "Trạng thái sản xuất",
-                        erpCodeOption: "ERP-CODE",
+                        erpCodeOption: "Mã ERP",
                         searchButton: "Tìm kiếm",
                         viewAllButton: "Xem tất cả",
                         historyButton: "Lịch sử",
@@ -336,28 +379,63 @@
                         searchHistoryTitle: "Lịch sử Tìm kiếm",
                         clearHistoryButton: "Xóa lịch sử",
                         dateRangeLabel: "Chọn khoảng ngày:",
-                        // Add other translations as needed
+                        noSearchResults: "Không tìm thấy dữ liệu.",
+                        noHistory: "Không có lịch sử tìm kiếm.",
+                        loadingMessage: "Đang tải...",
+                        // Pagination
+                        previousButton: "Trước",
+                        nextButton: "Tiếp",
+                        paginationInfo: "Hiển thị {{start}} đến {{end}} của {{total}} mục"
                     }
                 }
             }
         }, function (err, t) {
+            if (err) return console.error('something went wrong loading', err);
             updateContent();
         });
 
     function updateContent() {
         document.querySelectorAll('[data-i18n]').forEach(element => {
-            element.textContent = i18next.t(element.dataset.i18n);
+            const key = element.dataset.i18n;
+            if (element.tagName === 'OPTION') {
+                // For select options, update textContent
+                element.textContent = i18next.t(key);
+            } else if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
+                element.placeholder = i18next.t(key);
+            } else {
+                element.textContent = i18next.t(key);
+            }
         });
-        document.getElementById('date-start').placeholder = i18next.t('Từ ngày');
-        document.getElementById('date-end').placeholder = i18next.t('Đến ngày');
+        // Update placeholders specifically for datepickers if they exist
+        const dateStartInput = document.getElementById('date-start');
+        const dateEndInput = document.getElementById('date-end');
+        if (dateStartInput) dateStartInput.placeholder = i18next.t('Từ ngày');
+        if (dateEndInput) dateEndInput.placeholder = i18next.t('Đến ngày');
+
+        // Update button texts
+        document.getElementById('prev-page').textContent = i18next.t('previousButton');
+        document.getElementById('next-page').textContent = i18next.t('nextButton');
+        
+        // Re-render history with updated language
+        renderHistory(); 
+        // Re-update pagination info
+        updatePaginationInfo();
     }
 
     document.getElementById('lang-vi').addEventListener('click', () => {
-        i18next.changeLanguage('vi').then(updateContent);
+        i18next.changeLanguage('vi').then(() => {
+            if (myFlatpickrStart) myFlatpickrStart.set('locale', 'vn');
+            if (myFlatpickrEnd) myFlatpickrEnd.set('locale', 'vn');
+            updateContent();
+        });
     });
 
     document.getElementById('lang-en').addEventListener('click', () => {
-        i18next.changeLanguage('en').then(updateContent);
+        i18next.changeLanguage('en').then(() => {
+            if (myFlatpickrStart) myFlatpickrStart.set('locale', 'en');
+            if (myFlatpickrEnd) myFlatpickrEnd.set('locale', 'en');
+            updateContent();
+        });
     });
 
     // Global variables
@@ -367,14 +445,23 @@
     let entriesPerPage = parseInt(document.getElementById('entries-per-page').value);
     let myFlatpickrStart, myFlatpickrEnd; // Biến lưu instance của flatpickr
 
-    // Date fields that should trigger date range picker
+    // Date fields that should trigger date range picker (MUST match your data.json keys)
     const dateFields = ["PO received date", "Customer need date"];
+
+    // Function to show/hide loading overlay
+    function showLoading() {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay').classList.add('hidden');
+    }
 
     // Function to initialize Flatpickr
     function initializeFlatpickr() {
         myFlatpickrStart = flatpickr("#date-start", {
             dateFormat: "Y-m-d",
-            locale: i18next.language, // Use current i18next language
+            locale: i18next.language === 'vi' ? 'vn' : 'en', // Use appropriate locale
             onChange: function(selectedDates, dateStr, instance) {
                 if (selectedDates.length > 0 && myFlatpickrEnd) {
                     myFlatpickrEnd.set("minDate", selectedDates[0]);
@@ -383,7 +470,7 @@
         });
         myFlatpickrEnd = flatpickr("#date-end", {
             dateFormat: "Y-m-d",
-            locale: i18next.language, // Use current i18next language
+            locale: i18next.language === 'vi' ? 'vn' : 'en', // Use appropriate locale
             onChange: function(selectedDates, dateStr, instance) {
                 if (selectedDates.length > 0 && myFlatpickrStart) {
                     myFlatpickrStart.set("maxDate", selectedDates[0]);
@@ -392,28 +479,26 @@
         });
     }
 
-
     // Function to toggle input field based on filter selection
     function toggleInputField() {
         const filterSelect = document.getElementById('filter-select');
         const searchInputGroup = document.getElementById('text-search-group');
         const dateInputGroup = document.getElementById('date-search-group');
         const searchInput = document.getElementById('search-input');
-        const dateStartInput = document.getElementById('date-start');
-        const dateEndInput = document.getElementById('date-end');
 
         if (dateFields.includes(filterSelect.value)) {
             searchInputGroup.classList.remove('active');
             dateInputGroup.classList.add('active');
             searchInput.value = ''; // Clear text input
-            // Clear date inputs
+            // Clear date inputs using Flatpickr's clear method
             if (myFlatpickrStart) myFlatpickrStart.clear();
             if (myFlatpickrEnd) myFlatpickrEnd.clear();
         } else {
             searchInputGroup.classList.add('active');
             dateInputGroup.classList.remove('active');
-            dateStartInput.value = ''; // Clear date inputs
-            dateEndInput.value = '';
+            // Clear text input if it was date picker previously
+            if (myFlatpickrStart) myFlatpickrStart.clear();
+            if (myFlatpickrEnd) myFlatpickrEnd.clear();
         }
     }
 
@@ -422,18 +507,23 @@
 
     // Fetch data from server
     async function fetchData() {
+        showLoading();
         try {
             const response = await fetch('/api/data'); // Sử dụng API endpoint từ server.js
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            allData = data; // Store all data
+            allData = data.data; // Server now sends data in a 'data' property
             filteredData = allData; // Initially, all data is filtered
             renderTable();
         } catch (error) {
             console.error('Error fetching data:', error);
-            document.getElementById('results-table').innerHTML = '<p class="text-red-400">Không thể tải dữ liệu. Vui lòng thử lại sau.</p>';
+            // Optionally display user-friendly error message
+            const tbody = document.querySelector('table tbody');
+            tbody.innerHTML = `<tr><td colspan="99" class="px-5 py-5 text-center text-red-400">${i18next.t('Không thể tải dữ liệu. Vui lòng thử lại sau.')}</td></tr>`;
+        } finally {
+            hideLoading();
         }
     }
 
@@ -459,7 +549,8 @@
         const dataToDisplay = filteredData.slice(startIndex, endIndex);
 
         if (filteredData.length > 0) {
-            const headers = Object.keys(filteredData[0]); // Get headers from the first item
+            // Ensure headers are correctly extracted from the first item
+            const headers = Object.keys(filteredData[0]); 
             renderTableHeaders(headers);
 
             dataToDisplay.forEach(item => {
@@ -471,8 +562,16 @@
                     let cellValue = item[header];
 
                     // Handle date fields: Convert Excel serial date to YYYY-MM-DD
+                    // This conversion happens only for display, not for search logic
                     if (dateFields.includes(header) && typeof cellValue === 'number' && cellValue > 0) {
-                        cellValue = excelSerialDateToJSDate(cellValue).toISOString().slice(0, 10);
+                        try {
+                             cellValue = excelSerialDateToJSDate(cellValue).toISOString().slice(0, 10);
+                        } catch (e) {
+                            console.warn(`Could not convert Excel date serial ${cellValue} for header ${header}:`, e);
+                            cellValue = 'Invalid Date';
+                        }
+                    } else if (cellValue === null || cellValue === undefined) {
+                        cellValue = '-'; // Display hyphen for null/undefined values
                     }
 
                     td.textContent = cellValue;
@@ -486,7 +585,7 @@
             const td = document.createElement('td');
             td.colSpan = 99; // Span across all potential columns
             td.className = 'px-5 py-5 text-center text-gray-400';
-            td.textContent = 'Không tìm thấy dữ liệu.';
+            td.textContent = i18next.t('noSearchResults');
             tr.appendChild(td);
             tbody.appendChild(tr);
         }
@@ -497,19 +596,24 @@
 
     // Convert Excel serial date to JavaScript Date object
     function excelSerialDateToJSDate(serial) {
-        const utc_days = Math.floor(serial - 25569);
-        const utc_value = utc_days * 86400; // 86400 seconds in a day
-        const date_info = new Date(utc_value * 1000);
-        return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
+        // Excel's epoch is Jan 1, 1900. But it has a bug that considers 1900 a leap year.
+        // So, 1 means 1900-01-01, but internally it's calculated from 1899-12-31.
+        // JS Date uses milliseconds from epoch (Jan 1, 1970).
+        // Difference in days between 1970-01-01 and 1899-12-31 is 25569.
+        // For UTC, Excel's 1899-12-31 is equivalent to 25569 days before 1970-01-01.
+        const days = serial - 25569; // Subtract the epoch offset
+        const date = new Date(days * 24 * 60 * 60 * 1000); // Convert days to milliseconds
+        return date;
     }
+
 
     // Update pagination info (e.g., "Showing 1 to 10 of 100 entries")
     function updatePaginationInfo() {
         const totalEntries = filteredData.length;
-        const startIndex = (currentPage - 1) * entriesPerPage + 1;
+        const startIndex = totalEntries === 0 ? 0 : (currentPage - 1) * entriesPerPage + 1;
         const endIndex = Math.min(startIndex + entriesPerPage - 1, totalEntries);
         const paginationInfo = document.getElementById('pagination-info');
-        paginationInfo.textContent = `Hiển thị ${startIndex} đến ${endIndex} của ${totalEntries} mục`;
+        paginationInfo.textContent = i18next.t('paginationInfo', { start: startIndex, end: endIndex, total: totalEntries });
     }
 
     // Update pagination buttons (enable/disable)
@@ -548,6 +652,8 @@
     // Handle search form submission
     document.getElementById('search-form').addEventListener('submit', async function (event) {
         event.preventDefault();
+        showLoading();
+
         const searchInput = document.getElementById('search-input');
         const filterSelect = document.getElementById('filter-select');
         const searchTerm = searchInput.value.trim();
@@ -555,26 +661,45 @@
         const dateStart = document.getElementById('date-start').value;
         const dateEnd = document.getElementById('date-end').value;
 
-        // Save search to history (only for actual search)
-        if (searchTerm || (dateStart && dateEnd && dateFields.includes(filterBy))) {
-            let historyItem = `${filterBy}: `;
-            if (dateFields.includes(filterBy)) {
-                historyItem += `${dateStart} - ${dateEnd}`;
+        // Construct URL for API call
+        let url = `/api/search?filterBy=${encodeURIComponent(filterBy)}`;
+        let historyQuery = `${filterBy}: `;
+
+        if (dateFields.includes(filterBy)) {
+            // Date range search
+            if (dateStart) {
+                url += `&startDate=${encodeURIComponent(dateStart)}`;
+                historyQuery += `${dateStart}`;
             } else {
-                historyItem += searchTerm;
+                historyQuery += 'Từ đầu';
             }
-            saveSearchHistory(historyItem);
+            historyQuery += ' - ';
+            if (dateEnd) {
+                url += `&endDate=${encodeURIComponent(dateEnd)}`;
+                historyQuery += `${dateEnd}`;
+            } else {
+                historyQuery += 'Hiện tại';
+            }
+            if (!dateStart && !dateEnd) { // If no dates selected, treat as "View All" for this field
+                url = `/api/data`; // or handle specifically to filter nothing by date
+                historyQuery = `${filterBy}: Toàn bộ`;
+            }
+        } else {
+            // Text search
+            if (searchTerm) {
+                url += `&searchTerm=${encodeURIComponent(searchTerm)}`;
+                historyQuery += searchTerm;
+            } else {
+                historyQuery += 'Trống'; // Or handle as an empty search
+            }
+        }
+
+        // Save search to history only if there's an actual search term or date range
+        if (searchTerm || (dateFields.includes(filterBy) && (dateStart || dateEnd))) {
+            saveSearchHistory(historyQuery);
         }
 
         try {
-            let url = `/api/search?filterBy=${encodeURIComponent(filterBy)}`;
-            if (dateFields.includes(filterBy)) {
-                if (dateStart) url += `&startDate=${encodeURIComponent(dateStart)}`;
-                if (dateEnd) url += `&endDate=${encodeURIComponent(dateEnd)}`;
-            } else {
-                if (searchTerm) url += `&searchTerm=${encodeURIComponent(searchTerm)}`;
-            }
-
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -585,26 +710,34 @@
             renderTable();
         } catch (error) {
             console.error('Error during search:', error);
-            alert('Đã có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại.');
+            alert(i18next.t('Đã có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại.'));
+            filteredData = []; // Clear results on error
+            renderTable();
+        } finally {
+            hideLoading();
         }
     });
 
 
     // "View All" button functionality
     document.getElementById('view-all-btn').addEventListener('click', async () => {
+        showLoading();
         try {
             const response = await fetch('/api/data'); // Lấy tất cả dữ liệu
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            allData = data;
+            allData = data.data; // Server now sends data in a 'data' property
             filteredData = allData;
             currentPage = 1;
             renderTable();
+            saveSearchHistory(i18next.t('viewAllButton')); // Save "View All" to history
         } catch (error) {
             console.error('Error viewing all data:', error);
-            alert('Không thể tải tất cả dữ liệu. Vui lòng thử lại.');
+            alert(i18next.t('Không thể tải tất cả dữ liệu. Vui lòng thử lại.'));
+        } finally {
+            hideLoading();
         }
     });
 
@@ -643,7 +776,7 @@
         }
 
         localStorage.setItem("partSearchHistory", JSON.stringify(storedHistory));
-        renderHistory(); // Re-render history list
+        // No need to call renderHistory() here, it's called when popup is opened
     }
 
     function renderHistory() {
@@ -658,16 +791,28 @@
                 div.textContent = "🔍 " + item;
                 div.onclick = () => {
                     // Populate search fields and perform search
-                    const [filterBy, value] = item.split(': ').map(s => s.trim());
+                    const parts = item.split(': ').map(s => s.trim());
+                    const filterBy = parts[0];
+                    const value = parts.slice(1).join(': '); // Re-join if there were multiple colons
+
                     document.getElementById('filter-select').value = filterBy;
-                    toggleInputField(); // Adjust input type
+                    // Trigger change event to ensure toggleInputField runs
+                    document.getElementById('filter-select').dispatchEvent(new Event('change'));
 
                     if (dateFields.includes(filterBy)) {
-                        const [startDate, endDate] = value.split(' - ');
-                        if (myFlatpickrStart) myFlatpickrStart.setDate(startDate);
-                        if (myFlatpickrEnd) myFlatpickrEnd.setDate(endDate);
+                        // Handle "Toàn bộ" case for date fields
+                        if (value === i18next.t('Toàn bộ') || value.includes('Toàn bộ')) {
+                            if (myFlatpickrStart) myFlatpickrStart.clear();
+                            if (myFlatpickrEnd) myFlatpickrEnd.clear();
+                        } else {
+                            const dateParts = value.split(' - ');
+                            const startDate = dateParts[0] === i18next.t('Từ đầu') ? '' : dateParts[0];
+                            const endDate = dateParts[1] === i18next.t('Hiện tại') ? '' : dateParts[1];
+                            if (myFlatpickrStart) myFlatpickrStart.setDate(startDate || null, false);
+                            if (myFlatpickrEnd) myFlatpickrEnd.setDate(endDate || null, false);
+                        }
                     } else {
-                        document.getElementById('search-input').value = value;
+                        document.getElementById('search-input').value = (value === i18next.t('Trống') || value === '') ? '' : value;
                     }
 
                     document.getElementById('search-form').dispatchEvent(new Event('submit'));
@@ -678,7 +823,7 @@
         } else {
             const emptyMsg = document.createElement("div");
             emptyMsg.className = "text-gray-400 px-3";
-            emptyMsg.textContent = i18next.t('Không có lịch sử tìm kiếm.');
+            emptyMsg.textContent = i18next.t('noHistory');
             historyList.appendChild(emptyMsg);
         }
     }
@@ -689,14 +834,14 @@
     });
 
 
-    // Initialize Select2
+    // Initialize Select2 and other functions on DOM ready
     $(document).ready(function() {
         $('#filter-select').select2({
             minimumResultsForSearch: Infinity // Hide search box for simplicity if not many options
         });
-        // Initial setup for input fields
-        toggleInputField();
-        initializeFlatpickr(); // Initialize Flatpickr after DOM is ready
+        
+        initializeFlatpickr(); // Initialize Flatpickr first
+        toggleInputField(); // Then set initial state of input fields
         fetchData(); // Load initial data
         updateContent(); // Apply initial translations
     });
