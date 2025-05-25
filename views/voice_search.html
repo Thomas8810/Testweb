@@ -69,8 +69,16 @@
             text-align: center; /* Căn giữa nội dung ô */
             vertical-align: middle; /* Căn giữa theo chiều dọc */
         }
+        /* *** Thêm cursor pointer cho hàng *** */
+        tbody tr {
+            cursor: pointer;
+        }
+        tbody tr:hover {
+            background-color: #252540;
+        }
         tr.active-row {
             background-color: #2a2a4d;
+            font-weight: bold;
         }
 
         @media (min-width: 600px) {
@@ -94,6 +102,12 @@
                 min-width: 100px;
                 background: #1e1e2f;
                 z-index: 4;
+            }
+             /* Đảm bảo nền cho hàng được chọn không bị đè */
+            tr.active-row td:first-child,
+            tr.active-row td:nth-child(2),
+            tr.active-row td:nth-child(3) {
+                background: #2a2a4d;
             }
         }
 
@@ -299,16 +313,25 @@
         }
 
         function speak(text) {
+             // Dừng việc đọc trước đó (nếu có) để tránh đọc chồng chéo
+            if ('speechSynthesis' in window && speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = "vi-VN";
-                speechSynthesis.speak(utterance);
+                // Thêm một chút delay để đảm bảo việc cancel đã hoàn tất (nếu cần)
+                setTimeout(() => speechSynthesis.speak(utterance), 50);
             } else {
                 console.warn("Speech Synthesis API không được hỗ trợ trên trình duyệt này.");
             }
         }
 
         function analyzePart(part) {
+            // Đảm bảo part là object và có các thuộc tính cần thiết
+            if (!part) return "Không có dữ liệu để phân tích.";
+
             const status = part["Approval Status"]?.toUpperCase() || "";
             const partPic = part["Part Pictures"]?.toUpperCase() || "";
             const packPic = part["Packaging Pictures"]?.toUpperCase() || "";
@@ -331,9 +354,9 @@
                     "REJECTED": "Bị từ chối",
                     "SUBMITTED": "Đã gửi"
                 };
-                return map[status] || `Trạng thái: ${status}`;
+                return map[status] || `Trạng thái: ${status || 'Không rõ'}`;
             }
-            return "Không rõ trạng thái.";
+            return `Trạng thái: ${status || 'Không rõ'}`; // Trả về mặc định nếu không khớp
         }
 
         function makeTableSortable(tableId) {
@@ -371,20 +394,17 @@
             });
         }
 
-        // Hàm hiển thị ảnh phóng to trong modal
         function showFullImage(erpCode) {
             modalImg.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
-            imageModal.style.display = "flex"; // Use flex to center content
+            imageModal.style.display = "flex"; 
             modalImg.onerror = function() {
-                modalImg.src = ''; // Clear broken image
+                modalImg.src = ''; 
                 modalImg.alt = "Không tìm thấy ảnh";
                 alert("Không tìm thấy ảnh cho Part Number này.");
                 imageModal.style.display = "none";
             };
         }
 
-        // *** HÀM ĐÃ THAY ĐỔI ***
-        // Hàm xử lý hiển thị nội dung ô 'Ảnh' - Hiển thị ảnh nhỏ
         function renderImageCell(erpCode, cellElement) {
             cellElement.innerHTML = ''; 
 
@@ -394,22 +414,20 @@
             }
             
             const thumbnailImg = document.createElement('img');
-            // Sử dụng URL Cloudinary với biến đổi để tạo thumbnail (w_80: rộng 80px, h_60: cao 60px, c_fill: cắt vừa)
             thumbnailImg.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_80,h_60,c_fill/ERP-CODE/${erpCode}.jpg`; 
             thumbnailImg.alt = 'Thumbnail';
-            thumbnailImg.className = 'thumbnail-image'; // Áp dụng class CSS
+            thumbnailImg.className = 'thumbnail-image';
 
             thumbnailImg.onclick = (e) => {
-                e.stopPropagation(); // Ngăn chặn sự kiện click lan ra hàng (tr)
-                showFullImage(erpCode); // Gọi hàm phóng to ảnh khi click
+                e.stopPropagation(); 
+                showFullImage(erpCode);
             };
 
-            // Xử lý nếu thumbnail không tải được
             thumbnailImg.onerror = function() {
                 cellElement.innerHTML = '<div class="no-photo-text">No photo</div>';
             };
 
-            cellElement.appendChild(thumbnailImg); // Thêm ảnh vào ô
+            cellElement.appendChild(thumbnailImg); 
         }
 
         async function processTranscript(transcript, fromHistory = false) {
@@ -452,8 +470,13 @@
                     <th>CE</th><th>Ảnh</th></tr></thead><tbody>`;
 
                 results.slice(0, 10).forEach((item, index) => {
-                    const partNumberForId = item["Part Number"].replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''); // Chuẩn hóa an toàn hơn
-                    html += `<tr data-part-number="${item["Part Number"]}">
+                    const partNumberForId = (item["Part Number"] || `item-${index}`).replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''); 
+                    // *** THÊM CÁC THUỘC TÍNH data-* VÀO TR ***
+                    html += `<tr 
+                                data-part-number="${item["Part Number"] || ""}" 
+                                data-status="${item["Approval Status"] || ""}" 
+                                data-part-pic="${item["Part Pictures"] || ""}" 
+                                data-pack-pic="${item["Packaging Pictures"] || ""}">
                         <td>${index + 1}</td>
                         <td>${item["Part Number"] || ""}</td>
                         <td>${item["REV"] || ""}</td>
@@ -472,13 +495,12 @@
                 relatedResultsDiv.innerHTML = html;
                 makeTableSortable('resultsTable');
 
-                // Gọi renderImageCell sau khi bảng được tạo
                 results.slice(0, 10).forEach((item, index) => {
                     const erpCode = item["ERP-CODE"]?.toUpperCase() || "";
-                    const partNumberForId = item["Part Number"].replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+                    const partNumberForId = (item["Part Number"] || `item-${index}`).replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
                     const imageCell = document.getElementById(`imageCell-${partNumberForId}-${index}`);
                     if (imageCell) {
-                        renderImageCell(erpCode, imageCell); // Sử dụng hàm mới
+                        renderImageCell(erpCode, imageCell);
                     }
                 });
             }
@@ -616,11 +638,10 @@
                 statusDiv.style.display = 'none'; 
             }
         };
-        // Bắt sự kiện nhấn Enter trong ô input
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Ngăn hành vi mặc định (nếu có)
-                searchBtn.click(); // Giả lập click nút tìm kiếm
+                e.preventDefault(); 
+                searchBtn.click(); 
             }
         });
 
@@ -644,15 +665,32 @@
             updateModeButtons();
         };
 
-        // Highlight hàng khi click vào
+        // *** HÀM ĐÃ CẬP NHẬT ***
+        // Xử lý click vào hàng (Highlight + Đọc kết quả)
         document.addEventListener('click', function(e) {
-            // Chỉ xử lý nếu click bên trong khu vực bảng kết quả
-            if (e.target.closest('#resultsTable')) {
+            const targetRow = e.target.closest('tr'); // Tìm hàng gần nhất được click
+
+            // Chỉ xử lý nếu click bên trong tbody của bảng kết quả
+            if (targetRow && targetRow.closest('#resultsTable') && targetRow.parentNode.tagName === 'TBODY') {
+                
+                // Bỏ highlight tất cả các hàng
                 const rows = document.querySelectorAll('table tbody tr');
                 rows.forEach(r => r.classList.remove('active-row'));
-                const targetRow = e.target.closest('tr');
-                if (targetRow && targetRow.parentNode.tagName === 'TBODY') {
-                    targetRow.classList.add('active-row');
+                
+                // Highlight hàng được click
+                targetRow.classList.add('active-row');
+
+                // Kiểm tra xem có phải click vào ảnh không
+                if (!e.target.classList.contains('thumbnail-image')) {
+                    // Nếu không phải click vào ảnh -> Đọc kết quả
+                    const itemData = {
+                        "Approval Status": targetRow.dataset.status,
+                        "Part Pictures": targetRow.dataset.partPic,
+                        "Packaging Pictures": targetRow.dataset.packPic
+                    };
+                    
+                    const msg = analyzePart(itemData); // Tính toán lại kết quả
+                    speak(msg); // Đọc kết quả
                 }
             }
         });
