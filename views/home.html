@@ -275,22 +275,20 @@
             padding: 5px;
             z-index: 10000;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            max-width: 250px; /* Giới hạn kích thước popup */
+            max-width: 250px; /* Giới hạn kích thước popup ban đầu */
             max-height: 250px;
             cursor: default;
-    transition: all 0.3s ease-in-out;
-    /* overflow: hidden; đã có, đổi thành auto để cho phép cuộn khi ảnh lớn hơn popup đã zoom */
-    overflow: auto;
+            transition: all 0.3s ease-in-out;
+            overflow: auto; /* Cho phép cuộn khi ảnh lớn hơn popup đã zoom */
         }
         #image-popup img {
             max-width: 100%;
             max-height: 100%;
             display: block; /* Loại bỏ khoảng trắng thừa dưới ảnh */
-            cursor: zoom-in;
-    /* object-fit: contain; để ảnh luôn vừa vặn, không bị cắt khi zoom */
-    object-fit: contain;
-    width: 100%; /* Đảm bảo ảnh chiếm đầy chiều rộng popup (trước khi zoom) */
-    height: 100%; /* Đảm bảo ảnh chiếm đầy chiều cao popup (trước khi zoom) */
+            cursor: zoom-in; /* Con trỏ ban đầu */
+            object-fit: contain; /* Đảm bảo ảnh luôn vừa vặn */
+            width: 100%; 
+            height: 100%;
         }
         
         #image-popup .no-image-text {
@@ -300,39 +298,54 @@
         }
 
         /* Class cho trạng thái phóng to */
-#image-popup.zoomed {
-    max-width: 90vw; /* Chiếm 90% chiều rộng viewport */
-    max-height: 90vh; /* Chiếm 90% chiều cao viewport */
-    width: auto;  /* Tự động điều chỉnh chiều rộng theo nội dung ảnh */
-    height: auto; /* Tự động điều chỉnh chiều cao theo nội dung ảnh */
-    padding: 15px; /* Tăng padding khi zoom */
-    /* Canh giữa popup khi zoom (đã được xử lý bằng top:50%, left:50%, transform:translate(-50%,-50%) trong JS) */
-}
+        #image-popup.zoomed {
+            max-width: 90vw; /* Chiếm 90% chiều rộng viewport */
+            max-height: 90vh; /* Chiếm 90% chiều cao viewport */
+            width: auto;  /* Tự động điều chỉnh chiều rộng theo nội dung ảnh */
+            height: auto; /* Tự động điều chỉnh chiều cao theo nội dung ảnh */
+            padding: 15px; /* Tăng padding khi zoom */
+        }
 
-#image-popup.zoomed img {
-    cursor: zoom-out; /* Đổi cursor khi ảnh đã được phóng to */
-    /* width và height sẽ tự động điều chỉnh theo object-fit: contain và kích thước của #image-popup.zoomed */
-}
+        #image-popup.zoomed img {
+            cursor: zoom-out; /* Đổi cursor khi ảnh đã được phóng to */
+        }
 
-/* Nút đóng (X) cần có z-index cao hơn ảnh */
-.image-popup-close {
-    position: absolute;
-    top: 0px; /* Điều chỉnh vị trí cho đẹp hơn */
-    right: 8px;
-    font-size: 24px; /* Tăng kích thước cho dễ click */
-    font-weight: bold;
-    cursor: pointer;
-    color: #333;
-    z-index: 10001; /* Đảm bảo nút đóng luôn ở trên cùng */
-    padding: 2px 5px;
-    background-color: rgba(255,255,255,0.7);
-    border-radius: 50%;
-    line-height: 1;
-}
-.image-popup-close:hover {
-    color: #000;
-    background-color: rgba(255,255,255,0.9);
-}
+        /* Nút đóng (X) */
+        .image-popup-close {
+            position: absolute;
+            top: 0px; 
+            right: 8px;
+            font-size: 24px; 
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            z-index: 10001; 
+            padding: 2px 5px;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            line-height: 1;
+        }
+        .image-popup-close:hover {
+            color: #000;
+            background-color: rgba(255,255,255,0.9);
+        }
+
+        /* CSS cho spinner tải ảnh trong popup */
+        .image-popup-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none; /* Ẩn ban đầu */
+            z-index: 10002; /* Trên ảnh */
+        }
+
         @media (max-width: 768px) {
           .language-switcher {
             position: static;
@@ -798,10 +811,7 @@
         <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
-    <div id="image-popup" style="display:none; position: fixed; border: 1px solid #ccc; background: white; padding: 5px; z-index: 10000; box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 250px; max-height: 250px; overflow: hidden;">
-    <span class="image-popup-close" style="position: absolute; top: -5px; right: 5px; font-size: 20px; cursor: pointer; color: #555;">&times;</span>
-    <img src="" alt="Part Image" style="display:none; max-width: 100%; max-height: 100%; display: block;">
-    <span class="no-image-text" style="display:none; padding: 10px; text-align: center; color: #555;"></span>
+    <div id="image-popup"> <span class="image-popup-close">&times;</span> <div class="image-popup-spinner"></div> <img src="" alt="Part Image" style="display:none;"> <span class="no-image-text" style="display:none;"></span>
     </div>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -946,7 +956,6 @@
         function changeLanguage(lng) {
           i18next.changeLanguage(lng, function() {
             updateStaticContent();
-            // Cập nhật lại placeholder cho Select2 sau khi đổi ngôn ngữ
             $('.value-select').each(function() {
                 const placeholderText = $(this).attr('id') === 'filter-project' ? i18next.t("choose_project") : i18next.t("choose_value");
                 $(this).data('select2').$container.find('.select2-selection__placeholder').text(placeholderText);
@@ -984,6 +993,14 @@
         let currentZoom = 1;
         let allData = null;
 
+        // --- CÁC BIẾN THAM CHIẾU POPUP ẢNH (KHAI BÁO MỘT LẦN) ---
+        const imagePopup = $('#image-popup');
+        const popupImg = imagePopup.find('img');
+        const popupText = imagePopup.find('span.no-image-text');
+        const popupCloseButton = imagePopup.find('.image-popup-close');
+        const popupSpinner = imagePopup.find('.image-popup-spinner'); // Spinner mới
+
+
         function loadAllData() {
           $.getJSON('/search?limit=1000000', function(response) { 
             allData = response.data;
@@ -1020,7 +1037,7 @@
                 valueSelectContainer.hide();
                 valueSelect.hide();
                 dateRangeInputs.show();
-                labelValue.hide(); // Ẩn label "Chọn giá trị"
+                labelValue.hide(); 
             } else {
                 dateRangeInputs.hide();
                 valueSelectContainer.show();
@@ -1209,6 +1226,54 @@
             } catch(e) {
                 console.log("colResizable not available:", e);
             }
+
+            // --- CÁC SỰ KIỆN CHO POPUP ẢNH (GẮN MỘT LẦN) ---
+            popupCloseButton.off('click.closepopup').on('click.closepopup', function() {
+                closeImagePopup();
+            });
+
+            $(document).off('mouseup.imagePopupOutside').on('mouseup.imagePopupOutside', function(e) {
+                if (imagePopup.is(':visible') && !imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
+                    closeImagePopup();
+                }
+            });
+            
+            popupImg.off('click.zoom').on('click.zoom', function() {
+                const $thisImage = $(this);
+                if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
+                    imagePopup.toggleClass('zoomed');
+                    
+                    popupSpinner.show(); // Hiển thị spinner
+                    $thisImage.hide(); // Ẩn ảnh hiện tại trong khi tải ảnh mới
+                    popupText.hide(); // Ẩn text (nếu có)
+
+                    if (imagePopup.hasClass('zoomed')) {
+                        // Popup được phóng to: Tải ảnh chất lượng cao
+                        const highQualityUrl = imagePopup.data('high-quality-url');
+                        if (highQualityUrl) {
+                            $thisImage.attr('src', highQualityUrl);
+                        } else {
+                            console.warn("Không tìm thấy URL ảnh chất lượng cao.");
+                            popupText.text('Lỗi: Không có URL ảnh lớn.').show();
+                            popupSpinner.hide();
+                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
+                        }
+                    } else {
+                        // Popup bị thu nhỏ: Tải lại ảnh thumbnail
+                        const thumbnailUrl = imagePopup.data('thumbnail-url');
+                        if (thumbnailUrl) {
+                            $thisImage.attr('src', thumbnailUrl);
+                        } else {
+                            console.warn("Không tìm thấy URL ảnh thumbnail.");
+                            popupText.text('Lỗi: Không có URL ảnh thumbnail.').show();
+                            popupSpinner.hide();
+                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
+                        }
+                    }
+                }
+            });
+            // Kết thúc các sự kiện cho popup ảnh
+
             applyFilters(true); 
         });
 
@@ -1321,8 +1386,8 @@
                 if (selectedOptionDataType === 'date') {
                     const dateStart = $(`#filter-date-start-${i}`).val();
                     const dateEnd = $(`#filter-date-end-${i}`).val();
-                    if (dateStart) queryParams[`${col}_start`] = dateStart; // Gửi dạng YYYY-MM-DD
-                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;     // Gửi dạng YYYY-MM-DD
+                    if (dateStart) queryParams[`${col}_start`] = dateStart;
+                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;    
                 } else {
                     const values = $(`#filter-value-${i}`).val();
                     if (values && values.length > 0) {
@@ -1343,48 +1408,21 @@
             });
         }
 
+        // --- HÀM ĐÓNG VÀ RESET POPUP (ĐÃ CÓ TRONG FILE GỐC, ĐẢM BẢO NÓ ĐƯỢC SỬ DỤNG) ---
+        function closeImagePopup() {
+            imagePopup.hide().removeClass('zoomed');
+            popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in');
+            popupText.text('').hide();
+            popupSpinner.hide(); // Ẩn spinner khi đóng
+            imagePopup.removeData('current-erp');
+            imagePopup.removeData('current-part-number');
+            imagePopup.removeData('thumbnail-url');
+            imagePopup.removeData('high-quality-url');
+        }
+
 function updateTable(data, reset) {
     const tbody = $('#results-table tbody');
     if (reset) tbody.empty();
-
-    const imagePopup = $('#image-popup');
-    const popupImg = imagePopup.find('img');
-    const popupText = imagePopup.find('span.no-image-text');
-    const popupCloseButton = imagePopup.find('.image-popup-close');
-
-    // Hàm đóng và reset popup
-    function closeImagePopup() {
-        imagePopup.hide().removeClass('zoomed'); // Xóa class zoomed khi đóng
-        popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in'); // Gỡ handler, xóa src, ẩn và reset cursor
-        popupText.text('').hide();
-        imagePopup.removeData('current-erp');
-        imagePopup.removeData('current-part-number');
-    }
-
-    // Gán sự kiện cho nút đóng (X) một lần bên ngoài vòng lặp
-    popupCloseButton.off('click.closepopup').on('click.closepopup', function() {
-        closeImagePopup();
-    });
-
-    // Gán sự kiện click ra ngoài để đóng popup một lần
-    $(document).off('mouseup.imagePopupOutside').on('mouseup.imagePopupOutside', function(e) {
-        if (imagePopup.is(':visible') && !imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
-            closeImagePopup();
-        }
-    });
-    
-    // Sự kiện click để zoom ảnh (gán một lần)
-    popupImg.off('click.zoom').on('click.zoom', function() {
-        if (imagePopup.is(':visible') && $(this).is(':visible')) { // Chỉ zoom nếu popup và ảnh đang hiển thị
-            imagePopup.toggleClass('zoomed');
-            if (imagePopup.hasClass('zoomed')) {
-                $(this).css('cursor', 'zoom-out');
-            } else {
-                $(this).css('cursor', 'zoom-in');
-            }
-        }
-    });
-
 
     data.forEach(function(row) {
         const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
@@ -1396,69 +1434,69 @@ function updateTable(data, reset) {
         const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
         partNumberCell.css('cursor', 'pointer');
 
+        // --- SỬA ĐỔI SỰ KIỆN CLICK CHO partNumberCell ---
         partNumberCell.on('click', function(e) {
             const currentErpCode = row['ERP-CODE']?.trim().toUpperCase();
-            const currentPartNumberValue = partNumberValue;
+            const currentPartNumberValueFromRow = row['Part Number'] || 'N/A'; // Lấy trực tiếp từ row
 
-            // Reset hoàn toàn trạng thái của popup trước khi hiển thị ảnh mới
-            imagePopup.removeClass('zoomed'); // Bỏ trạng thái zoom (nếu có)
-            popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in'); // Gỡ handler cũ, xóa src, ẩn, reset cursor
-            popupText.text('').hide(); // Xóa và ẩn text thông báo
+            // Reset trạng thái popup
+            imagePopup.removeClass('zoomed');
+            popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in');
+            popupText.text('').hide();
+            popupSpinner.hide(); // Đảm bảo spinner ẩn ban đầu
 
-            imagePopup.data('current-erp', currentErpCode); 
-            imagePopup.data('current-part-number', currentPartNumberValue);
+            // Lưu thông tin cần thiết vào data của popup
+            imagePopup.data('current-erp', currentErpCode);
+            imagePopup.data('current-part-number', currentPartNumberValueFromRow);
 
             if (currentErpCode) {
-                const cloudinaryUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${currentErpCode}.jpg`;
-                
-                popupImg.attr('src', cloudinaryUrl); // Đặt src mới SẼ kích hoạt load hoặc error
+                const thumbnailUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${currentErpCode}.jpg`;
+                const highQualityUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${currentErpCode}.jpg`;
 
+                imagePopup.data('thumbnail-url', thumbnailUrl);
+                imagePopup.data('high-quality-url', highQualityUrl);
+
+                popupSpinner.show(); // Hiển thị spinner trước khi tải
+                popupImg.attr('src', thumbnailUrl); // Bắt đầu tải ảnh thumbnail
+
+                // Gắn lại sự kiện load và error
                 popupImg.on('load', function() {
-                    if (imagePopup.data('current-erp') === currentErpCode && imagePopup.is(':hidden')) { // Kiểm tra lại nếu popup chưa hiện
-                        $(this).show(); 
-                        popupText.hide().text(''); 
-                        imagePopup.css({
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)'
-                        }).show();
-                    } else if (imagePopup.data('current-erp') === currentErpCode) {
-                         $(this).show(); 
-                         popupText.hide().text('');
+                    const expectedErp = imagePopup.data('current-erp');
+                    if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
+                        popupSpinner.hide(); // Ẩn spinner khi ảnh tải xong
+                        $(this).show();
+                        popupText.hide().text('');
+                        if (imagePopup.is(':hidden')) {
+                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                        }
                     }
                 });
 
                 popupImg.on('error', function() {
-                    if (imagePopup.data('current-erp') === currentErpCode) {
-                        $(this).hide(); 
-                        popupText.text(`Ảnh cho Part Number "${currentPartNumberValue}" (ERP: ${currentErpCode}) không tồn tại.`).show();
-                        if (imagePopup.is(':hidden')) { // Hiện popup nếu nó chưa hiện để báo lỗi
-                             imagePopup.css({
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)'
-                            }).show();
+                    const expectedErp = imagePopup.data('current-erp');
+                    const pn = imagePopup.data('current-part-number') || "N/A";
+                    if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
+                        popupSpinner.hide(); // Ẩn spinner khi có lỗi
+                        $(this).hide();
+                        popupText.text(`Ảnh cho Part Number "${pn}" (ERP: ${expectedErp}) không tồn tại.`).show();
+                        if (imagePopup.is(':hidden')) {
+                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                         }
                     }
                 });
-                // Hiển thị popup ngay sau khi bắt đầu tải, để người dùng thấy loading indicator (nếu có) hoặc text lỗi
-                 imagePopup.css({
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)'
-                }).show();
-                // Nếu ảnh lỗi ngay, text lỗi sẽ được hiển thị. Nếu ảnh load, text sẽ bị ẩn bởi handler 'load'.
+                
+                if (imagePopup.is(':hidden')) {
+                     imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                }
 
-            } else {
-                popupImg.hide(); 
-                popupText.text(`Không có ảnh cho Part Number "${currentPartNumberValue}". (Thiếu ERP-CODE)`).show();
-                imagePopup.css({
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)'
-                }).show();
+            } else { // Không có ERP-CODE
+                popupSpinner.hide();
+                popupImg.hide();
+                popupText.text(`Không có ảnh cho Part Number "${currentPartNumberValueFromRow}". (Thiếu ERP-CODE)`).show();
+                imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
             }
         });
+        // --- KẾT THÚC SỬA ĐỔI SỰ KIỆN CLICK partNumberCell ---
         
         tr.append(partNumberCell);
 
@@ -1895,7 +1933,7 @@ function updateTable(data, reset) {
         history.forEach(item => {
           const li = document.createElement("li");
           li.style.marginBottom = "6px";
-          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber}'); navigator.clipboard.writeText('${item.partNumber}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
+          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
           list.appendChild(li);
         });
       }
