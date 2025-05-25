@@ -266,77 +266,88 @@
           color: white;
         }
 
-        /* CSS cho popup ảnh */
-        #image-popup {
-    display: none;
+/* CSS cơ bản cho popup ảnh */
+#image-popup {
+    display: none; /* Ẩn ban đầu */
     position: fixed; /* Giữ cố định khi cuộn trang */
     top: 50%; /* Canh giữa theo chiều dọc */
     left: 50%; /* Canh giữa theo chiều ngang */
     transform: translate(-50%, -50%); /* Điều chỉnh để thực sự ở giữa */
     border: 1px solid #ccc;
     background: white;
-    padding: 10px; /* Tăng padding một chút */
+    padding: 10px; /* Padding cho popup ở trạng thái bình thường */
     z-index: 10000;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Tăng box-shadow cho đẹp hơn */
-    max-width: 270px; /* Kích thước ban đầu của popup */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    /* Kích thước ban đầu của popup */
+    max-width: 270px; 
     max-height: 270px;
+    width: 270px; /* Có thể đặt width, height cụ thể cho trạng thái ban đầu */
+    height: 270px;
     overflow: hidden; /* Ẩn phần thừa của ảnh nếu ảnh to hơn popup ban đầu */
-    transition: all 0.3s ease-in-out; /* Hiệu ứng chuyển động mượt */
+    transition: all 0.3s ease-in-out; /* Hiệu ứng chuyển động mượt cho việc thay đổi kích thước */
     box-sizing: border-box;
 }
 
+/* CSS cho ảnh bên trong popup */
 #image-popup img {
-    display: block; /* Hoặc none ban đầu, sẽ được JS đổi thành block */
+    display: none; /* Ẩn ban đầu, JS sẽ cho hiện khi tải xong */
     width: 100%;    /* Ảnh sẽ luôn cố gắng lấp đầy popup */
     height: 100%;
-    object-fit: contain; /* Giữ tỷ lệ ảnh, không bị cắt xén, vừa với khung */
+    object-fit: contain; /* Quan trọng: Giữ tỷ lệ ảnh, không bị cắt xén, vừa với khung */
     cursor: zoom-in; /* Con trỏ khi có thể zoom */
-    transition: transform 0.3s ease-in-out; /* Hiệu ứng cho ảnh nếu cần */
 }
 
+/* CSS cho text thông báo (khi không có ảnh hoặc lỗi) */
 #image-popup .no-image-text {
     display: none; /* Ẩn ban đầu */
-    padding: 20px; /* Tăng padding cho text */
+    padding: 20px;
     text-align: center;
     color: #555;
-    font-size: 14px; /* Tăng kích thước chữ */
+    font-size: 14px;
     width: 100%;
     height: 100%;
+    /* Sử dụng flex để canh giữa text */
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
 }
 
-/* Trạng thái khi popup được phóng to */
+/* CSS cho trạng thái khi popup được phóng to (thêm class .zoomed) */
 #image-popup.zoomed {
-    max-width: 90vw;  /* Chiếm 90% chiều rộng viewport */
-    max-height: 90vh; /* Chiếm 90% chiều cao viewport */
-    width: auto;      /* Để popup tự điều chỉnh theo kích thước ảnh lớn */
-    height: auto;
-    padding: 20px;    /* Padding lớn hơn khi zoom */
-    overflow: auto;   /* Cho phép cuộn nếu ảnh vẫn lớn hơn viewport */
+    width: 85vw;  /* Chiều rộng lớn, chiếm 85% chiều rộng viewport */
+    height: 85vh; /* Chiều cao lớn, chiếm 85% chiều cao viewport */
+    max-width: 85vw; /* Đảm bảo không vượt quá */
+    max-height: 85vh;
+    padding: 15px;    /* Padding có thể điều chỉnh khi zoom */
+    overflow: auto;   /* Cho phép cuộn nếu ảnh (đã được scale) vẫn lớn hơn kích thước popup đã zoom */
 }
 
+/* CSS cho ảnh khi popup được phóng to */
 #image-popup.zoomed img {
-    cursor: zoom-out; /* Đổi con trỏ khi đã zoom */
-    /* width và height của img vẫn là 100% của #image-popup.zoomed */
+    cursor: zoom-out; /* Đổi con trỏ khi ảnh đã được phóng to */
+    /* width: 100% và height: 100% từ quy tắc #image-popup img vẫn được áp dụng,
+       làm cho ảnh lấp đầy kích thước mới (85vw, 85vh) của #image-popup.zoomed */
 }
 
+/* CSS cho nút đóng (X) */
 .image-popup-close {
     position: absolute;
-    top: 5px; /* Điều chỉnh cho đẹp hơn */
+    top: 5px; 
     right: 10px;
-    font-size: 28px; /* To hơn cho dễ click */
+    font-size: 28px; 
     font-weight: bold;
     color: #888;
     cursor: pointer;
     z-index: 10001; /* Luôn ở trên cùng */
     padding: 0 5px;
-    line-height: 1;
+    line-height: 1; /* Căn chỉnh dấu X cho đẹp */
 }
 .image-popup-close:hover {
     color: #000;
 }
+
+        
         @media (max-width: 768px) {
           .language-switcher {
             position: static;
