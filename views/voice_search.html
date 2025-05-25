@@ -123,6 +123,15 @@
 </head>
 <body>
   <h2>🎤 Tra cứu Part Number bằng giọng nói</h2>
+<div class="mode-select">
+  <button id="modeText" class="mode-active">⌨️ Nhập tay</button>
+  <button id="modeVoice" class="mode-inactive">🎙️ Giọng nói</button>
+</div>
+<div class="search-text-area" style="margin: 1rem 0; display: block;">
+  <input type="text" id="searchInput" placeholder="Nhập từ khóa Part Number..." style="padding: 0.5rem; width: 60%; font-size: 1rem; border-radius: 6px; border: none;"/>
+  <button id="searchBtn" style="padding: 0.5rem 1rem; margin-left: 0.5rem; border-radius: 6px; background: #007bff; color: white; border: none;">🔍 Tìm</button>
+</div>
+
 
   <div class="mode-select">
     <button id="modeImage" class="mode-active">🖼️ Kiểm tra ảnh</button>
@@ -377,7 +386,35 @@ makeTableSortable('resultsTable');
         stopRecognition();
       }
     }
-  </script>
+  
+let currentMode = 'text';
+
+document.getElementById('modeText').onclick = () => {
+  currentMode = 'text';
+  document.getElementById('modeText').classList.add('mode-active');
+  document.getElementById('modeText').classList.remove('mode-inactive');
+  document.getElementById('modeVoice').classList.remove('mode-active');
+  document.getElementById('modeVoice').classList.add('mode-inactive');
+  document.querySelector('.search-text-area').style.display = 'block';
+  document.getElementById('recordBtn').style.display = 'none';
+};
+
+document.getElementById('modeVoice').onclick = () => {
+  currentMode = 'voice';
+  document.getElementById('modeVoice').classList.add('mode-active');
+  document.getElementById('modeVoice').classList.remove('mode-inactive');
+  document.getElementById('modeText').classList.remove('mode-active');
+  document.getElementById('modeText').classList.add('mode-inactive');
+  document.querySelector('.search-text-area').style.display = 'none';
+  document.getElementById('recordBtn').style.display = 'inline-block';
+};
+
+document.getElementById('searchBtn').onclick = () => {
+  const val = document.getElementById('searchInput').value;
+  if (val.trim() !== '') processTranscript(val, true);
+};
+
+</script>
   <script>
   // Highlight hàng khi click vào
   document.addEventListener('click', function(e) {
