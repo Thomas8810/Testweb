@@ -1383,31 +1383,90 @@ function updateTable(data, reset) {
     if (reset) tbody.empty();
 
     const imagePopup = $('#image-popup');
-    const popupImgElement = imagePopup.find('img')[0]; // Lấy DOM element
+    const popupImgElement = imagePopup.find('img')[0]; // Lấy DOM element của ảnh
     const $popupImg = $(popupImgElement); // jQuery object cho tiện
     const popupText = imagePopup.find('span.no-image-text');
     const popupCloseButton = imagePopup.find('.image-popup-close');
 
-    let currentImageRequestToken = null;
-    let currentZoomedErpCode = null; // Để biết ERP code của ảnh đang được zoom (nếu có)
-    let originalSmallImageUrl = ''; // Lưu URL ảnh nhỏ khi zoom
+    let currentImageRequestToken = null; // Token để quản lý request ảnh hiện tại
+    let originalSmallImageUrl = '';    // Lưu URL của ảnh nhỏ khi zoom
+    let currentErpForZoom = '';        // Lưu ERP code của ảnh đang được hiển thị/zoom
 
     function closeImagePopup() {
-        imagePopup.hide().removeClass('zoomed');
-        $popupImg.off('load error').attr('src', '').hide(); // Gỡ handler, xóa src, ẩn
-        $popupImg.css('cursor', 'zoom-in');
-        popupText.text('').hide();
+        imagePopup.hide().removeClass('zoomed'); // Quan trọng: Xóa class zoomed khi đóng
+        // Gỡ bỏ tất cả các trình xử lý sự kiện load/error của ảnh hiện tại
+        $popupImg.off('load.currentImage error.currentImage click.zoomImage'); // Gỡ cả click.zoomImage tạm thời
+        popupImgElement.src = ''; // Xóa src để dừng tải (nếu có) và tránh hiển thị ảnh cũ
+        $popupImg.hide().css('cursor', 'zoom-in'); // Ẩn ảnh và reset cursor
+        popupText.text('').hide(); // Xóa và ẩn text thông báo
         currentImageRequestToken = null;
-        currentZoomedErpCode = null;
         originalSmallImageUrl = '';
+        currentErpForZoom = '';
+        // Gắn lại sự kiện click để zoom sau khi đóng (nếu cần, nhưng tốt hơn là gắn một lần)
+        attachZoomClickHandler(); 
+    }
+    
+    function attachZoomClickHandler() {
+        if (!$popupImg.data('zoomHandlerAttached')) {
+            $popupImg.on('click.zoomImage', function() { // 'this' là popupImgElement
+                if (!imagePopup.is(':visible') || !$(this).is(':visible') || !this.src) {
+                    return; 
+                }
+
+                const isCurrentlyZoomed = imagePopup.hasClass('zoomed');
+                
+                // Nếu đang zoom ra (trở về ảnh nhỏ)
+                if (isCurrentlyZoomed) {
+                    imagePopup.removeClass('zoomed');
+                    $(this).css('cursor', 'zoom-in');
+                    if (originalSmallImageUrl && this.src !== originalSmallImageUrl) {
+                        this.src = originalSmallImageUrl; // Quay lại ảnh nhỏ đã lưu
+                    }
+                } else { // Nếu đang zoom vào (phóng to ảnh)
+                    if (!currentErpForZoom) return; // Cần ERP code để lấy ảnh lớn
+
+                    imagePopup.addClass('zoomed');
+                    $(this).css('cursor', 'zoom-out');
+                    
+                    if (!originalSmallImageUrl) originalSmallImageUrl = this.src; // Lưu ảnh nhỏ nếu chưa có
+
+                    // URL cho ảnh lớn hơn (không giới hạn w_250,h_250)
+                    const largeImageUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${currentErpForZoom}.jpg`;
+                    
+                    if (this.src !== largeImageUrl) {
+                        popupText.text('Đang tải ảnh lớn...').show();
+                        $popupImg.hide(); // Ẩn ảnh hiện tại trong khi tải ảnh mới
+
+                        const zoomLoader = new Image();
+                        zoomLoader.onload = () => {
+                            if (imagePopup.hasClass('zoomed') && currentErpForZoom === imagePopup.data('current-erp-for-token')) { // Kiểm tra token
+                                this.src = zoomLoader.src;
+                                $popupImg.show();
+                                popupText.hide().text('');
+                            }
+                        };
+                        zoomLoader.onerror = () => {
+                            if (imagePopup.hasClass('zoomed') && currentErpForZoom === imagePopup.data('current-erp-for-token')) {
+                                popupText.text('Lỗi tải ảnh lớn. Hiển thị ảnh nhỏ.').show();
+                                this.src = originalSmallImageUrl; 
+                                $popupImg.show();
+                            }
+                        };
+                        zoomLoader.src = largeImageUrl;
+                    }
+                }
+            });
+            $popupImg.data('zoomHandlerAttached', true);
+        }
     }
 
+
     // Gán sự kiện cho nút đóng (X) - chỉ gán một lần
-    if (!popupCloseButton.data('handler-attached')) {
+    if (!popupCloseButton.data('handler-attached-close')) {
         popupCloseButton.on('click.closepopup', function() {
             closeImagePopup();
         });
-        popupCloseButton.data('handler-attached', true);
+        popupCloseButton.data('handler-attached-close', true);
     }
 
     // Gán sự kiện click ra ngoài để đóng popup - chỉ gán một lần
@@ -1420,56 +1479,7 @@ function updateTable(data, reset) {
         $(document).data('imagePopupOutsideHandlerAttached', true);
     }
     
-    // Sự kiện click để zoom ảnh
-    if (!$popupImg.data('zoomHandlerAttached')) {
-        $popupImg.on('click.zoom', function() {
-            if (imagePopup.is(':visible') && $(this).is(':visible') && $(this).attr('src') && $(this).attr('src') !== '') {
-                const isCurrentlyZoomed = imagePopup.hasClass('zoomed');
-                const erpCodeForZoom = imagePopup.data('current-erp-for-display'); // Lấy ERP code của ảnh đang hiển thị
-
-                if (!erpCodeForZoom) return; // Không có ERP code, không zoom
-
-                imagePopup.toggleClass('zoomed');
-
-                if (imagePopup.hasClass('zoomed')) {
-                    // Đang chuyển sang zoom to
-                    $(this).css('cursor', 'zoom-out');
-                    originalSmallImageUrl = this.src; // Lưu URL ảnh nhỏ hiện tại
-                    // Tạo URL cho ảnh lớn hơn (ví dụ: không giới hạn w,h hoặc w_800,h_800)
-                    const largeImageUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${erpCodeForZoom}.jpg`;
-                    
-                    popupText.text('Đang tải ảnh lớn...').show();
-                    $popupImg.hide(); // Ẩn ảnh nhỏ trong khi tải ảnh lớn
-
-                    const zoomLoadImg = new Image();
-                    zoomLoadImg.onload = function() {
-                        if (imagePopup.hasClass('zoomed') && imagePopup.data('current-erp-for-display') === erpCodeForZoom) {
-                           popupImgElement.src = this.src;
-                           $popupImg.show();
-                           popupText.hide().text('');
-                        }
-                    };
-                    zoomLoadImg.onerror = function() {
-                         if (imagePopup.hasClass('zoomed') && imagePopup.data('current-erp-for-display') === erpCodeForZoom) {
-                            // Nếu lỗi tải ảnh lớn, quay lại ảnh nhỏ
-                            popupImgElement.src = originalSmallImageUrl;
-                            $popupImg.show();
-                            popupText.text('Lỗi tải ảnh lớn.').show();
-                         }
-                    };
-                    zoomLoadImg.src = largeImageUrl;
-
-                } else {
-                    // Đang chuyển về zoom nhỏ
-                    $(this).css('cursor', 'zoom-in');
-                    if (originalSmallImageUrl) {
-                        this.src = originalSmallImageUrl; // Quay lại ảnh nhỏ
-                    }
-                }
-            }
-        });
-        $popupImg.data('zoomHandlerAttached', true);
-    }
+    attachZoomClickHandler(); // Gọi để gắn sự kiện zoom
 
     data.forEach(function(row) {
         const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
@@ -1487,44 +1497,42 @@ function updateTable(data, reset) {
             
             const requestToken = Symbol(); 
             currentImageRequestToken = requestToken;
+            currentErpForZoom = erpCodeForThisClick; // Cập nhật ERP cho zoom
+            imagePopup.data('current-erp-for-token', erpCodeForThisClick); // Lưu token cho callback
 
-            // Reset popup hoàn toàn trước khi hiển thị
-            imagePopup.hide().removeClass('zoomed');
-            $popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in');
+            // Reset popup trước khi hiển thị
+            imagePopup.removeClass('zoomed'); // Luôn mở ở trạng thái chưa zoom
+            $popupImg.off('load.currentImage error.currentImage').attr('src', '').hide().css('cursor', 'zoom-in');
             popupText.text('').hide();
             
-            imagePopup.data('current-erp-for-display', erpCodeForThisClick); // Lưu ERP cho ảnh sẽ hiển thị
-
             imagePopup.css({
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-            }).show(); // Hiển thị khung popup trước
+                top: '50%', left: '50%', transform: 'translate(-50%, -50%)'
+            }).show();
 
             if (erpCodeForThisClick) {
                 popupText.text('Đang tải ảnh...').show();
                 $popupImg.hide();
 
-                const tempImg = new Image();
+                const tempImgLoader = new Image(); // Dùng đối tượng Image mới để tải
                 
-                tempImg.onload = function() {
-                    if (currentImageRequestToken === requestToken) {
+                tempImgLoader.onload = function() {
+                    if (currentImageRequestToken === requestToken) { // Chỉ xử lý nếu là request mới nhất
                         popupImgElement.src = this.src;
+                        originalSmallImageUrl = this.src; // Lưu URL ảnh nhỏ
                         $popupImg.show();
                         popupText.hide().text('');
-                        originalSmallImageUrl = this.src; // Lưu URL ảnh nhỏ cho chức năng zoom
                     }
                 };
                 
-                tempImg.onerror = function() {
+                tempImgLoader.onerror = function() {
                     if (currentImageRequestToken === requestToken) {
                         $popupImg.hide();
                         popupText.text(`Ảnh cho Part Number "${partNumberForThisClick}" (ERP: ${erpCodeForThisClick}) không tồn tại.`).show();
-                        originalSmallImageUrl = ''; // Không có ảnh nhỏ để quay lại
+                        originalSmallImageUrl = '';
                     }
                 };
-                
-                tempImg.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${erpCodeForThisClick}.jpg`;
+                // URL ảnh nhỏ ban đầu
+                tempImgLoader.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${erpCodeForThisClick}.jpg`;
 
             } else {
                 $popupImg.hide();
@@ -1535,6 +1543,7 @@ function updateTable(data, reset) {
         
         tr.append(partNumberCell);
 
+        // ... (phần còn lại của việc append các <td> vào <tr> giữ nguyên như cũ) ...
         tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
         tr.append(`<td>${row['Approval Status'] || ''}</td>`);
         tr.append(`<td>${row['Customer'] || ''}</td>`);
@@ -1600,7 +1609,6 @@ function updateTable(data, reset) {
         console.log("colResizable not available in updateTable:", e);
     }
 }
-
 
         function downloadExcel() {
             const table = document.getElementById('results-table');
