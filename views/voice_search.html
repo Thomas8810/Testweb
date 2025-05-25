@@ -386,17 +386,69 @@ makeTableSortable('resultsTable');
         stopRecognition();
       }
     }
-  
-let currentMode = 'text';
+  </script>
+  <script>
+  // Highlight hàng khi click vào
+  document.addEventListener('click', function(e) {
+    const rows = document.querySelectorAll('table tbody tr');
+    rows.forEach(r => r.classList.remove('active-row'));
+    const targetRow = e.target.closest('tr');
+    if (targetRow && targetRow.parentNode.tagName === 'TBODY') {
+      targetRow.classList.add('active-row');
+    }
+  });
+</script>
 
-document.getElementById('modeText').onclick = () => {
-  currentMode = 'text';
-  document.getElementById('modeText').classList.add('mode-active');
-  document.getElementById('modeText').classList.remove('mode-inactive');
-  document.getElementById('modeVoice').classList.remove('mode-active');
-  document.getElementById('modeVoice').classList.add('mode-inactive');
-  document.querySelector('.search-text-area').style.display = 'block';
-  document.getElementById('recordBtn').style.display = 'none';
+<hr style="margin-top:2rem; border:none; border-top:1px solid #666;">
+<h3>📜 Lịch sử tìm kiếm gần đây</h3>
+<ul id="historyList" style="list-style:none; padding:0; text-align:left;"></ul>
+<button onclick="clearHistory()" style="margin-top:0.5rem; background:#cc4444; color:white; padding:8px 16px; border:none; border-radius:6px; cursor:pointer;">
+  🗑️ Xóa lịch sử
+</button>
+
+
+<script>
+function showImage(erpCode, button) {
+  const imgId = `preview-${erpCode}`;
+  const rowId = `row-${erpCode}`;
+
+  document.querySelectorAll('.image-row').forEach(row => row.style.display = 'none');
+  document.querySelectorAll('.image-preview').forEach(img => img.src = '');
+
+  const existingRow = document.getElementById(rowId);
+  if (existingRow && existingRow.style.display === 'table-row') {
+    existingRow.style.display = 'none';
+    return;
+  }
+
+  if (!existingRow) {
+    const tr = document.createElement('tr');
+    tr.id = rowId;
+    tr.className = 'image-row';
+    tr.style.display = 'table-row';
+
+    const td = document.createElement('td');
+    td.colSpan = 30;
+    td.style.textAlign = 'center';
+
+    const img = document.createElement('img');
+    img.id = imgId;
+    img.className = 'image-preview';
+    img.src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
+    img.style.maxWidth = '90%';
+    img.style.maxHeight = '300px';
+    img.style.border = '2px solid black';
+    img.style.margin = '10px auto';
+    img.loading = 'lazy';
+
+    td.appendChild(img);
+    tr.appendChild(td);
+
+    button.closest('tr').parentNode.insertBefore(tr, button.closest('tr').nextSibling);
+  } else {
+    existingRow.style.display = 'table-row';
+    document.getElementById(imgId).src = `https://res.cloudinary.com/dyjcw9mlz/image/upload/ERP-CODE/${erpCode}.jpg`;
+  }
 };
 
 document.getElementById('modeVoice').onclick = () => {
