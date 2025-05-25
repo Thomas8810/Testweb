@@ -823,7 +823,7 @@ input:focus, select:focus {
 <th data-column="Datasheet form">Datasheet form</th>
 <th data-column="LAIR Data">LAIR Data</th>
 <th data-column="FAIR Data">FAIR Data</th>
-<th data-column="COC">COC</th>
+<th data-column="COC">COC</option>
 <th data-column="BOM">BOM</th>
 <th data-column="Mill">Mill</th>
 <th data-column="Test reports / evidences">Test reports / evidences</th>
@@ -1190,6 +1190,7 @@ input:focus, select:focus {
               dateFormat: "yy-mm-dd",
               changeMonth: true,
               changeYear: true,
+              yearRange: '1900:2050', // Added wide year range
               onSelect: function(selectedDate) {
                   $(`#filter-${i}-date-to`).datepicker("option", "minDate", selectedDate);
                   applyFilters(true);
@@ -1200,6 +1201,7 @@ input:focus, select:focus {
               dateFormat: "yy-mm-dd",
               changeMonth: true,
               changeYear: true,
+              yearRange: '1900:2050', // Added wide year range
               onSelect: function(selectedDate) {
                   $(`#filter-${i}-date-from`).datepicker("option", "maxDate", selectedDate);
                   applyFilters(true);
