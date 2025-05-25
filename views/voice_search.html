@@ -313,19 +313,6 @@ makeTableSortable('resultsTable');
         : `<div style='color:gray;font-style:italic'>No photo</div>`
     }</td>
   </tr>`;
-
-          html += `<tr onclick="speak('${analyzePart(item)}')">
-            <td>${index + 1}</td>
-            <td>${item["Part Number"] || ""}</td>
-            <td>${item["REV"] || ""}</td>
-            <td>${item["Approval Status"] || ""}</td>
-            <td>${item["Customer"] || ""}</td>
-            <td>${item["Commodity"] || ""}</td>
-            <td>${item["Part Pictures"] || ""}</td>
-            <td>${item["Packaging Pictures"] || ""}</td>
-            <td>${item["Critical"] || ""}</td>
-            <td>${item["CE"] || ""}</td>
-          </tr>`;
         });
         html += `</tbody></table>`;
         document.getElementById("relatedResults").innerHTML = html;
