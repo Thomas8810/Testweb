@@ -1313,17 +1313,19 @@ function updateTable(data, reset) {
     data.forEach(function(row) {
         const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
         const tr = $('<tr>');
+        const partNumberValue = row['Part Number'] || 'N/A'; // Lấy giá trị Part Number để hiển thị
 
         tr.append(`<td class="sticky-col-1">${serial}</td>`);
         
-        const partNumberCell = $(`<td>${row['Part Number'] || ''}</td>`).addClass('sticky-col-2');
-        partNumberCell.css('cursor', 'pointer'); // Thêm con trỏ để người dùng biết có thể click
+        const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
+        partNumberCell.css('cursor', 'pointer');
 
-        partNumberCell.on('click', function(e) { // Đổi từ 'mousemove' sang 'click'
+        partNumberCell.on('click', function(e) {
             const erpCode = row['ERP-CODE']?.trim().toUpperCase();
 
-            popupImg.hide().attr('src', '');
-            popupText.hide().text('');
+            // Reset trạng thái popup mỗi khi click
+            popupImg.hide().attr('src', ''); // Ẩn ảnh và xóa src
+            popupText.hide().text('');   // Ẩn text và xóa nội dung text cũ
 
             if (erpCode) {
                 const cloudinaryUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${erpCode}.jpg`;
@@ -1331,9 +1333,8 @@ function updateTable(data, reset) {
                 popupImg.attr('src', cloudinaryUrl);
 
                 popupImg.off('load').on('load', function() {
-                    $(this).show();
-                    popupText.hide();
-                    // Canh giữa popup trên màn hình thay vì theo con trỏ chuột
+                    $(this).show(); // Hiện ảnh
+                    popupText.hide().text(''); // Đảm bảo không có text lỗi nào hiển thị
                     imagePopup.css({
                         top: '50%',
                         left: '50%',
@@ -1342,8 +1343,9 @@ function updateTable(data, reset) {
                 });
 
                 popupImg.off('error').on('error', function() {
-                    $(this).hide();
-                    popupText.text(`Ảnh không tồn tại cho ${erpCode}`).show();
+                    $(this).hide(); // Ẩn thẻ img nếu ảnh lỗi
+                    // Hiển thị thông báo lỗi cụ thể với Part Number và ERP-CODE
+                    popupText.text(`Ảnh cho Part Number "${partNumberValue}" (ERP: ${erpCode}) không tồn tại.`).show();
                     imagePopup.css({
                         top: '50%',
                         left: '50%',
@@ -1351,8 +1353,9 @@ function updateTable(data, reset) {
                     }).show();
                 });
             } else {
-                popupImg.hide();
-                popupText.text('Không có ERP-CODE').show();
+                popupImg.hide(); // Đảm bảo ảnh ẩn
+                // Hiển thị thông báo khi không có ERP-CODE, kèm Part Number
+                popupText.text(`Không có ảnh cho Part Number "${partNumberValue}". (Thiếu ERP-CODE)`).show();
                 imagePopup.css({
                     top: '50%',
                     left: '50%',
@@ -1411,16 +1414,16 @@ function updateTable(data, reset) {
     // Đóng popup khi click nút (X)
     popupCloseButton.off('click').on('click', function() {
         imagePopup.hide();
-        popupImg.attr('src', ''); 
-        popupText.hide();
+        popupImg.attr('src', '').hide(); // Xóa src và ẩn ảnh
+        popupText.text('').hide();   // Xóa text và ẩn text
     });
 
-    // Đóng popup khi click ra ngoài nó (optional)
+    // Đóng popup khi click ra ngoài nó
     $(document).off('mouseup.imagePopup').on('mouseup.imagePopup', function(e) {
         if (!imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
             imagePopup.hide();
-            popupImg.attr('src', '');
-            popupText.hide();
+            popupImg.attr('src', '').hide(); // Xóa src và ẩn ảnh
+            popupText.text('').hide();   // Xóa text và ẩn text
         }
     });
 
@@ -1436,7 +1439,6 @@ function updateTable(data, reset) {
         console.log("colResizable not available in updateTable:", e);
     }
 }
-
 
 
         function downloadExcel() {
