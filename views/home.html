@@ -275,7 +275,7 @@
             height: 270px;
             overflow: hidden; 
             box-sizing: border-box;
-            transition: opacity 0.3s ease-in-out; /* Hiệu ứng khi hiện/ẩn */
+            transition: opacity 0.3s ease-in-out; 
         }
 
         #image-popup img {
@@ -283,7 +283,7 @@
             width: 100%;   
             height: 100%;
             object-fit: contain; 
-            cursor: pointer; /* Đổi cursor để báo hiệu có thể click mở ảnh lớn */
+            cursor: pointer; 
         }
 
         #image-popup .no-image-text {
@@ -294,13 +294,13 @@
             text-align: center;
             color: #555;
             font-size: 14px;
-            display: flex;
+            display: flex; /* Sửa lại: display: flex để canh giữa */
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
         }
 
-        .image-popup-close { /* Nút đóng cho popup nhỏ */
+        .image-popup-close { 
             position: absolute;
             top: 3px; 
             right: 8px;
@@ -321,17 +321,16 @@
 
         /* CSS cho Modal Hiển Thị Ảnh Lớn */
         #full-image-modal {
-            display: none; /* Ẩn ban đầu */
-            position: fixed; /* Che phủ toàn màn hình */
-            z-index: 10005; /* Phải cao hơn #image-popup */
+            display: none; /* SỬA LỖI: Đảm bảo modal ẩn ban đầu */
+            position: fixed; 
+            z-index: 10005; 
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto; /* Cho phép cuộn nếu ảnh quá lớn */
-            background-color: rgba(0, 0, 0, 0.85); /* Nền mờ */
-            /* Sử dụng flex để canh giữa nội dung */
-            display: flex; 
+            overflow: auto; 
+            background-color: rgba(0, 0, 0, 0.85); 
+            /* display: flex;  Bỏ dòng này, JS sẽ đặt khi mở */
             justify-content: center; 
             align-items: center; 
             padding: 20px;
@@ -340,14 +339,14 @@
 
         #full-image-modal img {
             display: block;
-            max-width: 90%;   /* Ảnh lớn nhất là 90% chiều rộng viewport */
-            max-height: 90vh; /* Ảnh lớn nhất là 90% chiều cao viewport */
-            margin: auto;     /* Canh giữa ảnh trong modal */
+            max-width: 90%;   
+            max-height: 90vh; 
+            margin: auto;     
             border: 3px solid white;
             box-shadow: 0 0 25px rgba(0,0,0,0.5);
         }
 
-        #full-image-modal .modal-close-button { /* Nút đóng cho modal ảnh lớn */
+        #full-image-modal .modal-close-button { 
             position: absolute;
             top: 20px;
             right: 35px;
@@ -1404,12 +1403,14 @@
             const modalCloseBtn = fullImageModal.find('.modal-close-button');
 
             let currentImageRequestToken = null;
-            let currentErpForPopup = ''; 
+            let currentErpForPopup = ''; // ERP code của ảnh đang hiển thị trong popup nhỏ
 
             function closeSmallImagePopup() {
                 console.log("Closing small popup.");
                 imagePopup.hide();
-                $popupImg.off('load.currentImage error.currentImage click.openLargeImage');
+                // Gỡ bỏ các sự kiện load/error đã được namespaced của ảnh hiện tại
+                $popupImg.off('load.currentImage error.currentImage');
+                // Không gỡ bỏ 'click.openLargeImage' ở đây vì nó được gắn một lần
                 popupImgElement.src = ''; 
                 $popupImg.hide();
                 popupText.text('').hide(); 
@@ -1420,17 +1421,19 @@
             function openLargeImageModal(erpCode) {
                 if (!erpCode) return;
                 console.log("Opening large image modal for ERP:", erpCode);
+                // URL cho ảnh lớn, không có giới hạn w_250,h_250
                 const largeImageUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${erpCode}.jpg`;
                 modalImageContent.attr('src', largeImageUrl);
-                fullImageModal.css('display', 'flex'); 
+                fullImageModal.css('display', 'flex'); // Sử dụng flex để canh giữa
             }
 
             function closeLargeImageModal() {
                 console.log("Closing large image modal.");
                 fullImageModal.hide();
-                modalImageContent.attr('src', '#'); 
+                modalImageContent.attr('src', '#'); // Reset src để tránh hiển thị ảnh cũ
             }
 
+            // Gán sự kiện cho các nút đóng (chỉ gán một lần để tránh lặp lại)
             if (!popupCloseButton.data('handlerAttachedCloseSmall')) {
                 popupCloseButton.on('click.closeSmallPopup', function() {
                     closeSmallImagePopup();
@@ -1445,22 +1448,25 @@
                 modalCloseBtn.data('handlerAttachedCloseLarge', true);
             }
             
+            // Đóng modal lớn khi click ra ngoài ảnh (vào nền mờ)
             if (!fullImageModal.data('handlerAttachedOutsideClickLarge')) {
                 fullImageModal.on('click.outsideLargeModal', function(e) {
-                    if (e.target === this) { 
+                    if (e.target === this) { // Chỉ đóng nếu click vào chính fullImageModal (nền)
                         closeLargeImageModal();
                     }
                 });
                 fullImageModal.data('handlerAttachedOutsideClickLarge', true);
             }
             
+            // Gán sự kiện click để mở ảnh lớn từ popup nhỏ (chỉ gán một lần)
             if (!$popupImg.data('openLargeHandlerAttached')) {
                 $popupImg.on('click.openLargeImage', function() {
                     console.log("Small image clicked. Current ERP for popup:", currentErpForPopup, "Src:", this.src);
-                    if (currentErpForPopup && this.src && !this.src.startsWith('data:')) { 
+                    // Chỉ mở modal nếu có ảnh hợp lệ (src không rỗng và không phải placeholder)
+                    if (currentErpForPopup && this.src && this.src !== '#' && !this.src.startsWith('data:')) { 
                         openLargeImageModal(currentErpForPopup);
                     } else {
-                        console.log("Conditions not met to open large image.");
+                        console.log("Conditions not met to open large image. ERP:", currentErpForPopup, "Src:", this.src);
                     }
                 });
                 $popupImg.data('openLargeHandlerAttached', true);
@@ -1483,21 +1489,24 @@
                     
                     console.log("Part number cell clicked. ERP:", erpCodeForThisClick, "PN:", partNumberForThisClick);
                     const requestToken = Symbol(); 
-                    currentImageRequestToken = requestToken;
+                    currentImageRequestToken = requestToken; // Cập nhật token cho request mới
                     
+                    // Đóng và reset popup nhỏ cũ trước khi mở cái mới
                     closeSmallImagePopup(); 
+                    // Gán lại ERP cho lần click này sau khi popup đã được reset
                     currentErpForPopup = erpCodeForThisClick; 
                     
                     imagePopup.css({
                         top: '50%', left: '50%', transform: 'translate(-50%, -50%)'
-                    }).show(); 
+                    }).show(); // Hiển thị khung popup nhỏ trước
 
                     if (erpCodeForThisClick) {
                         popupText.text(i18next.t("loading_image")).show();
-                        $popupImg.hide();
+                        $popupImg.hide(); // Ẩn ảnh cũ (nếu có)
 
                         const tempImgLoader = new Image();
-                        $(tempImgLoader).off('load error'); 
+                        // Gỡ handler cũ của tempImgLoader và namespaced sự kiện
+                        $(tempImgLoader).off('load.currentImage error.currentImage'); 
                         
                         tempImgLoader.onload = function() {
                             console.log("Small image loaded. Token match:", currentImageRequestToken === requestToken);
@@ -1507,7 +1516,6 @@
                                 popupText.hide().text('');
                             }
                         };
-                        
                         tempImgLoader.onerror = function() {
                             console.error("Error loading small image. Token match:", currentImageRequestToken === requestToken);
                             if (currentImageRequestToken === requestToken) {
