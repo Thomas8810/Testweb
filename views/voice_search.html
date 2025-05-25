@@ -590,6 +590,10 @@ function showImage(erpCode, button) {
   cell.appendChild(img);
 }
 </script>
+  <div id="imageModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:9999;">
+  <img id="modalImage" src="" style="max-width:90vw; max-height:90vh; border:4px solid white; border-radius:10px;" />
+</div>
+
 </body>
 
 
@@ -629,6 +633,23 @@ function showImage(erpCode, button) {
 
   window.onload = () => {
     renderHistory();
+  };
+</script>
+<script>
+  // Khi click ảnh nhỏ trong bảng => phóng to
+  document.addEventListener('click', function(e) {
+    const img = e.target.closest('img');
+    if (img && img.classList.contains('image-preview')) {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('modalImage');
+      modalImg.src = img.src;
+      modal.style.display = 'flex';
+    }
+  });
+
+  // Khi click vùng nền thì đóng ảnh
+  document.getElementById('imageModal').onclick = function() {
+    this.style.display = 'none';
   };
 </script>
 
