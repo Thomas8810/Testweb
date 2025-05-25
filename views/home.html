@@ -831,6 +831,64 @@ input:focus, select:focus {
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
 <script>
+    // Hàm chuyển đổi số serial Excel sang đối tượng Date của JavaScript
+    function parseExcelDate(excelSerialDate) {
+        if (typeof excelSerialDate !== 'number' || isNaN(excelSerialDate)) {
+            return null;
+        }
+
+        // 25569 là số ngày từ 1899-12-31 đến 1970-01-01 (Unix epoch)
+        // Excel có một "lỗi" là coi năm 1900 là năm nhuận, nên ngày 29/02/1900 tồn tại trong Excel.
+        // Để khớp với JS (và các hệ thống chuẩn), cần điều chỉnh nếu ngày lớn hơn 28/02/1900.
+        let adjustedSerialDate = excelSerialDate;
+        if (excelSerialDate > 59) { // Ngày 59 là 28/02/1900 trong hệ thống Excel
+            adjustedSerialDate = excelSerialDate - 1; // Bỏ qua ngày 29/02/1900 giả định
+        }
+
+        const date = new Date(0); // Bắt đầu từ Unix epoch (01/01/1970 UTC)
+        date.setDate(adjustedSerialDate - 25569); // Cộng thêm số ngày đã điều chỉnh
+
+        // Đảm bảo trả về ngày theo múi giờ địa phương mà không bị lệch giờ
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    // Hàm parse ngày từ nhiều định dạng (số Excel, chuỗi) về đối tượng Date (chuẩn hóa về 00:00:00)
+    function parseDate(dateValue) {
+        if (typeof dateValue === 'number') {
+            return parseExcelDate(dateValue);
+        } else if (typeof dateValue === 'string') {
+            const date = new Date(dateValue);
+            if (!isNaN(date.getTime())) { // Check if it's a valid date
+                return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Reset time to midnight for comparison
+            }
+        }
+        return null; // Return null for invalid or unparseable dates
+    }
+
+    // Hàm format Date object hoặc số Excel ra chuỗi YYYY-MM-DD
+    function formatExcelDate(val) {
+        if (!val) return '';
+
+        let date;
+        if (typeof val === 'number') {
+            date = parseExcelDate(val);
+        } else if (typeof val === 'string') {
+            date = new Date(val);
+        } else if (val instanceof Date) {
+            date = val;
+        } else {
+            return String(val); // Return as string if unknown type
+        }
+
+        if (date && !isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${year}-${mm}-${dd}`;
+        }
+        return String(val); // Fallback if parsing fails
+    }
+
     // Khởi tạo i18next với resource cho tiếng Anh và tiếng Việt
     i18next.use(i18nextBrowserLanguageDetector).init({
       fallbackLng: 'vi',
@@ -942,10 +1000,13 @@ input:focus, select:focus {
       if (labelValue1) { labelValue1.innerText = i18next.t("choose_value"); }
       // Only update labelValue2 if it's visible (not datepicker)
       var labelValue2 = document.getElementById("label-filter-value-2");
-      if (labelValue2 && $('#filter-column-2').val() !== 'Submit date') {
-          labelValue2.innerText = i18next.t("choose_value");
-      } else if (labelValue2) {
-          labelValue2.innerText = ''; // Hide label when datepicker is active
+      if (labelValue2) { // check if element exists
+          if ($('#filter-column-2').val() !== 'Submit date') {
+              labelValue2.innerText = i18next.t("choose_value");
+              labelValue2.style.display = 'block'; // Show label
+          } else {
+              labelValue2.style.display = 'none'; // Hide label when datepicker is active
+          }
       }
       var labelValue3 = document.getElementById("label-filter-value-3");
       if (labelValue3) { labelValue3.innerText = i18next.t("choose_value"); }
@@ -990,50 +1051,6 @@ input:focus, select:focus {
     }
   </script>
 <script>
-    // Hàm format Excel date
-    function formatExcelDate(val) {
-        if (!val) return '';
-        if (typeof val === 'number') {
-            // Nếu là số serial ngày từ Excel
-            let date = new Date((val - 25569) * 86400 * 1000);
-            if (!isNaN(date)) {
-                const year = date.getFullYear();
-                const mm = String(date.getMonth() + 1).padStart(2, '0');
-                const dd = String(date.getDate()).padStart(2, '0');
-                return `${year}-${mm}-${dd}`;
-            }
-        } else if (typeof val === 'string') {
-            // Nếu là chuỗi ngày dạng ISO hoặc có giờ
-            const parsed = new Date(val);
-            if (!isNaN(parsed.getTime())) { // Check if it's a valid date
-                const year = parsed.getFullYear();
-                const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-                const dd = String(parsed.getDate()).padStart(2, '0');
-                return `${year}-${mm}-${dd}`;
-            }
-        }
-        return val;
-    }
-
-    // Hàm parse ngày từ nhiều định dạng (số Excel, chuỗi) về đối tượng Date (chuẩn hóa về 00:00:00)
-    function parseDate(dateValue) {
-        if (typeof dateValue === 'number') {
-            // Assume Excel serial number
-            const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Excel's epoch is Dec 30, 1899
-            const millisecondsPerDay = 24 * 60 * 60 * 1000;
-            const date = new Date(excelEpoch.getTime() + dateValue * millisecondsPerDay);
-            return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Reset time to midnight for comparison
-        } else if (typeof dateValue === 'string') {
-            // Attempt to parse as a string (e.g., "YYYY-MM-DD" or "MM/DD/YYYY")
-            const date = new Date(dateValue);
-            if (!isNaN(date.getTime())) { // Check if it's a valid date
-                return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Reset time to midnight for comparison
-            }
-        }
-        return null; // Return null for invalid or unparseable dates
-    }
-
-
     let currentFilters = {};
     let currentOffset = 0;
     const pageSize = 50;
@@ -1152,15 +1169,16 @@ input:focus, select:focus {
       // Handle filter-column-2 change for datepicker or generic select2
       $('#filter-column-2').on('change', function() {
           const selectedColumn = $(this).val();
+          const labelValue2 = document.getElementById("label-filter-value-2");
           if (selectedColumn === 'Submit date') {
               $('#submit-date-range-container').show();
               $('#filter-value-2').next('.select2-container').hide(); // Hide Select2 container
-              $('#label-filter-value-2').hide(); // Hide generic "Chọn giá trị" label
+              if (labelValue2) labelValue2.style.display = 'none'; // Hide generic "Chọn giá trị" label
               $('#filter-value-2').val(null).trigger('change'); // Clear any existing values
           } else {
               $('#submit-date-range-container').hide();
               $('#filter-value-2').next('.select2-container').show(); // Show Select2 container
-              $('#label-filter-value-2').show(); // Show generic "Chọn giá trị" label
+              if (labelValue2) labelValue2.style.display = 'block'; // Show generic "Chọn giá trị" label
               $('#submit-date-from').val(''); // Clear datepicker values
               $('#submit-date-to').val('');
           }
@@ -1300,13 +1318,27 @@ input:focus, select:focus {
       // Lọc theo các block trước (block 1 đến blockIndex - 1)
       for (let i = 1; i < blockIndex; i++) {
         let col = $('#filter-column-' + i).val();
-        let values = $('#filter-value-' + i).val();
-        if (col && values && values.length > 0) {
-          filteredData = filteredData.filter(function(row) {
-            return values.some(function(v) {
-              return row[col] && row[col].toString().toLowerCase().includes(v.toLowerCase());
-            });
-          });
+        // Special handling for date columns in filtering
+        if (['PO received date', 'Customer need date', 'Submit date'].includes(col)) {
+            const fromDate = parseDate($('#submit-date-from').val());
+            const toDate = parseDate($('#submit-date-to').val());
+            if (fromDate || toDate) {
+                filteredData = filteredData.filter(row => {
+                    const rowDate = parseDate(row[col]);
+                    return rowDate &&
+                           (!fromDate || rowDate >= fromDate) &&
+                           (!toDate || rowDate <= toDate);
+                });
+            }
+        } else {
+            let values = $('#filter-value-' + i).val();
+            if (col && values && values.length > 0) {
+              filteredData = filteredData.filter(function(row) {
+                return values.some(function(v) {
+                  return row[col] && row[col].toString().toLowerCase().includes(v.toLowerCase());
+                });
+              });
+            }
         }
       }
       // Lấy giá trị distinct cho cột của block hiện tại
@@ -1709,11 +1741,11 @@ $('#quick-search').on('input', function () {
   });
 });
 
-// Chuyển số Excel sang ngày JS
-function excelDateToJSDate(serial) {
-  const excelEpoch = new Date(1899, 11, 30);
-  return new Date(excelEpoch.getTime() + serial * 86400000);
-}
+// Chuyển số Excel sang ngày JS (đã được thay bằng parseExcelDate phía trên)
+// function excelDateToJSDate(serial) {
+//   const excelEpoch = new Date(1899, 11, 30);
+//   return new Date(excelEpoch.getTime() + serial * 86400000);
+// }
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
