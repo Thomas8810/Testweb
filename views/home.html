@@ -12,11 +12,13 @@
         @media (min-width: 768px) {
           html, body {
             height: 100vh; /* Đảm bảo body chiếm toàn bộ chiều cao viewport */
-            overflow: hidden; /* Ngăn cuộn trang chính */
+            /* Removed overflow: hidden; from here */
           }
 
           body {
-            overflow-y: auto; /* Cho phép cuộn nếu nội dung body vượt quá (thường không xảy ra với flex) */
+            display: flex; /* Make body a flex container */
+            flex-direction: column; /* Stack children vertically */
+            /* Removed overflow-y: auto; from here as page-container will manage it */
           }
 
           input, select, textarea {
@@ -35,9 +37,10 @@
 
           /* CSS cho desktop để cố định các phần tử */
           .page-container {
-            height: 100%; /* Chiếm toàn bộ chiều cao body */
+            flex-grow: 1; /* Allow page-container to grow and fill available space */
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* Prevent page-container from overflowing, its children will manage scroll */
           }
 
           .top-container {
@@ -52,16 +55,16 @@
           }
 
           .table-container {
-            flex-grow: 1; /* Chiếm không gian còn lại */
-            overflow-y: auto; /* Kích hoạt cuộn dọc cho bảng */
-            overflow-x: auto; /* Kích hoạt cuộn ngang cho bảng */
+            flex-grow: 1; /* This is key for the table to take remaining space and scroll */
+            overflow-y: auto; /* Vertical scrollbar for the table */
+            overflow-x: auto; /* Horizontal scrollbar for the table */
             margin: 0 1%; /* Điều chỉnh lề nếu cần */
-            height: auto; /* Để flex-grow tự động xác định chiều cao */
+            height: auto; /* Let flex-grow determine height */
           }
 
           .bottom-controls-wrapper {
-            flex-shrink: 0;
-            padding: 10px 0; /* Thêm khoảng đệm để phân tách trực quan */
+            flex-shrink: 0; /* Ensure this section doesn't shrink */
+            padding: 10px 0;
           }
         }
         /* Cài đặt CSS cơ bản */
@@ -347,7 +350,7 @@
             max-height: 100%;
             display: block; /* Loại bỏ khoảng trắng thừa dưới ảnh */
             cursor: zoom-in; /* Con trỏ ban đầu */
-            object-fit: contain; /* Đảm bảo ảnh luôn vừa vặn */
+            object-fit: contain; /* Đảm bảo ảnh luôn vừa vừa vặn */
             width: 100%; 
             height: 100%;
         }
