@@ -254,7 +254,7 @@
         .quick-search-wrapper { /* Wrapper mới cho quick-search */
             flex-shrink: 0;
             text-align: center;
-            margin: 10px 0;
+            margin: 5px 0; /* Reduced vertical margin */
         }
         #quick-search {
             width: 60%;
@@ -447,6 +447,9 @@
             }
              #quick-search {
                 font-size: 13px !important; /* Đảm bảo quick search dễ thấy */
+            }
+             .quick-search-wrapper {
+                margin: 5px 0 !important; /* Ensure reduced margin on mobile too */
             }
         }
         @media (max-width: 480px) {
@@ -1977,7 +1980,7 @@ function updateTable(data, reset) {
     });
     </script>
     <script>
-    // PHẦN SCRIPT CẦN THAY THẾ BẮT ĐẦU TỪ ĐÂY
+    // PHẦN SCRIPT LOGIC RESPONSIVE CHO FOCUS INPUT
     document.addEventListener('DOMContentLoaded', () => {
       const topContainer = document.querySelector('.top-container');
       const quickSearchWrapper = document.querySelector('.quick-search-wrapper');
@@ -1986,11 +1989,8 @@ function updateTable(data, reset) {
       const applyBtn = document.getElementById('apply-filters');
       const clearBtn = document.getElementById('clear-filters');
 
-      let wasEditingTop = false; // Biến này không còn cần thiết với logic mới nhưng giữ lại nếu có reference khác
-
       // Hàm helper để khôi phục giao diện mặc định
-      function revealTableAndSearch() {
-        wasEditingTop = false; // Đặt lại trạng thái
+      function revealNormalLayout() {
         topContainer.classList.remove('full-top-container', 'hide-top-container');
         quickSearchWrapper.style.display = 'block';
         tableContainer.style.display = 'block';
@@ -1998,12 +1998,11 @@ function updateTable(data, reset) {
       }
 
       document.addEventListener('focusin', (e) => {
-        if (window.innerWidth >= 768) return; // Chỉ áp dụng cho màn hình nhỏ
+        if (window.innerWidth >= 768) return; // Chỉ áp dụng cho màn hình nhỏ (<768px)
         const target = e.target;
 
         if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
           // Người dùng focus vào một trường trong top-container (bộ lọc)
-          wasEditingTop = true;
           topContainer.classList.add('full-top-container');
           topContainer.classList.remove('hide-top-container');
           
@@ -2012,7 +2011,6 @@ function updateTable(data, reset) {
           bottomControlsWrapper.style.display = 'none';
         } else if (quickSearchWrapper.contains(target) && target.tagName === 'INPUT') {
           // Người dùng focus vào trường quick-search
-          wasEditingTop = false;
           topContainer.classList.add('hide-top-container');
           topContainer.classList.remove('full-top-container');
 
@@ -2025,33 +2023,35 @@ function updateTable(data, reset) {
       document.addEventListener('focusout', (e) => {
         if (window.innerWidth >= 768) return; // Chỉ áp dụng cho màn hình nhỏ
 
-        // Sử dụng timeout ngắn để cho phép focus chuyển sang một phần tử mới
+        // Sử dụng timeout ngắn để cho phép focus chuyển sang một phần tử mới một cách an toàn
+        // hoặc để xác định người dùng đã thực sự thoát khỏi vùng nhập liệu.
         setTimeout(() => {
           const activeElement = document.activeElement;
           
           // Kiểm tra xem focus có còn nằm trong các vùng nhập liệu chính không
           const isFocusStillInTopFilters = topContainer.contains(activeElement) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(activeElement.tagName);
           const isFocusStillInQuickSearch = quickSearchWrapper.contains(activeElement) && activeElement.tagName === 'INPUT';
+          const isFocusStillInSelect2 = activeElement.closest('.select2-container') !== null;
 
-          if (!isFocusStillInTopFilters && !isFocusStillInQuickSearch) {
-            // Nếu focus đã thoát ra khỏi các vùng nhập liệu chính (ví dụ: click vào body, table,...)
+
+          if (!isFocusStillInTopFilters && !isFocusStillInQuickSearch && !isFocusStillInSelect2) {
+            // Nếu focus đã thoát ra khỏi các vùng nhập liệu chính và không phải là select2 đang mở
             // thì khôi phục lại giao diện mặc định.
-            revealTableAndSearch();
+            revealNormalLayout();
           }
           // Nếu focus chuyển giữa các input trong cùng một nhóm (ví dụ từ filter A sang filter B),
-          // sự kiện focusin của input mới sẽ xử lý lại giao diện.
-        }, 150); // Timeout 150ms
+          // hoặc vào Select2, sự kiện focusin của input/select2 mới sẽ xử lý lại giao diện.
+        }, 150); // Timeout 150ms, có thể điều chỉnh nếu cần
       });
 
       // Gắn sự kiện click cho các nút filter để khôi phục giao diện
       if(applyBtn) {
-        applyBtn.addEventListener('click', revealTableAndSearch);
+        applyBtn.addEventListener('click', revealNormalLayout);
       }
       if(clearBtn) {
-        clearBtn.addEventListener('click', revealTableAndSearch);
+        clearBtn.addEventListener('click', revealNormalLayout);
       }
     });
-    // PHẦN SCRIPT CẦN THAY THẾ KẾT THÚC TẠI ĐÂY
     </script>
     <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999; transition: all 0.3s ease-out;" title="Lịch sử tìm kiếm">🕘</button>
     <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
@@ -2100,7 +2100,9 @@ function updateTable(data, reset) {
         setTimeout(() => {
             $('#filter-value-1').val([partNumber]).trigger('change');
             applyFilters(true);
-            toggleHistoryPopup(); 
+            if (typeof toggleHistoryPopup === 'function') { // Check if function exists
+                toggleHistoryPopup(); 
+            }
         }, 50);
       }
 
