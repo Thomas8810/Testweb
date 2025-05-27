@@ -32,6 +32,37 @@
             outline: none;
             box-shadow: none;
           }
+
+          /* CSS cho desktop để cố định các phần tử */
+          .page-container {
+            height: 100%; /* Chiếm toàn bộ chiều cao body */
+            display: flex;
+            flex-direction: column;
+          }
+
+          .top-container {
+            flex-shrink: 0; /* Ngăn không cho phần này bị co lại */
+            max-height: 40vh; /* Giới hạn chiều cao của phần lọc */
+            overflow-y: auto; /* Cho phép cuộn bên trong phần lọc nếu nội dung quá dài */
+          }
+
+          .quick-search-wrapper {
+            flex-shrink: 0;
+            padding: 10px 0; /* Thêm khoảng đệm để phân tách trực quan */
+          }
+
+          .table-container {
+            flex-grow: 1; /* Chiếm không gian còn lại */
+            overflow-y: auto; /* Kích hoạt cuộn dọc cho bảng */
+            overflow-x: auto; /* Kích hoạt cuộn ngang cho bảng */
+            margin: 0 1%; /* Điều chỉnh lề nếu cần */
+            height: auto; /* Để flex-grow tự động xác định chiều cao */
+          }
+
+          .bottom-controls-wrapper {
+            flex-shrink: 0;
+            padding: 10px 0; /* Thêm khoảng đệm để phân tách trực quan */
+          }
         }
         /* Cài đặt CSS cơ bản */
         html, body { height: 100%; margin: 0; padding: 0; }
@@ -53,7 +84,6 @@
           flex-shrink: 0; /* Ngăn không cho phần này bị co lại */
           background: rgba(0, 0, 0, 0.85);
           padding: 15px;
-          /* max-height: 40vh; */ /* Bỏ max-height cho desktop, để nội dung tự định nghĩa chiều cao */
           overflow-y: auto; /* Cho phép cuộn bên trong top-container nếu nội dung quá dài */
           position: relative;
         }
@@ -229,12 +259,8 @@
             font-size: 14px;
         }
         .table-container {
-          flex-grow: 1; /* Điều này sẽ làm cho nó mở rộng để lấp đầy không gian còn lại */
           margin: 5px auto;
           width: 98%;
-          /* max-height: calc(100vh - 260px); */ /* Bỏ max-height ở đây, flex-grow sẽ quản lý */
-          overflow-y: auto;
-          overflow-x: auto;
           background: rgba(255, 255, 255, 0.9);
           border-radius: 5px;
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
@@ -287,7 +313,7 @@
           z-index: 3;
         }
         td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
-          background: #e6e6e6; /* Màu nền khác cho td cố định để phân biệt */
+          background: #f3f3f3; /* Màu nền khác cho td cố định để phân biệt */
           color: #333;
           z-index: 1; /* Cao hơn td thường nhưng thấp hơn th cố định */
         }
@@ -404,7 +430,6 @@
           .header p { font-size: 14px; }
           table, th, td { font-size: 10px; }
           .table-container {
-            /* max-height: calc(100vh - 320px); */ /* Điều chỉnh nếu cần */
             max-height: 50vh; /* Giữ lại max-height cho mobile để tránh tràn khi bàn phím mở */
           }
            .top-container {
@@ -445,7 +470,6 @@
 
         @media screen and (orientation: landscape), (orientation: portrait) {
           .table-container {
-            /* max-height: 60vh; */ /* Bỏ ở đây, sẽ được định nghĩa lại cụ thể hơn bên dưới */
             overflow-y: auto;
             overflow-x: auto;
             touch-action: pan-y; /* Cho phép cuộn dọc bằng cảm ứng */
@@ -462,7 +486,6 @@
         /* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
         .table-container {
           width: 100vw; /* Chiếm toàn bộ chiều rộng viewport */
-          /* max-height: 50vh; */ /* Chiều cao tối đa - sẽ được định nghĩa lại */
           overflow-x: auto;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
@@ -495,7 +518,6 @@
             width: 100%; /* Đảm bảo container chiếm toàn bộ chiều rộng cha */
             overflow-x: auto;
             overflow-y: auto;
-            /* max-height: 60vh; */ /* Hoặc giá trị phù hợp */
             -webkit-overflow-scrolling: touch;
         }
         table {
@@ -561,18 +583,25 @@
         }
 
         /* Hiệu ứng nổi bật hàng khi di chuột */
-        #results-table tbody tr {
-            transition: background-color 0.2s ease-in-out; /* Chỉ chuyển đổi màu nền */
+        /* Áp dụng transition cho tất cả các ô */
+        #results-table td {
+            transition: background-color 0.2s ease-in-out;
         }
-        #results-table tbody tr:hover {
-            background-color: #e0e0e0; /* Màu nền khi hover */
-            /* Đã loại bỏ transform và box-shadow */
+
+        /* Màu nền cơ bản cho các ô cố định */
+        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+            background: #f3f3f3;
         }
-        /* Đảm bảo các cột sticky vẫn có màu nền phù hợp khi hover */
-        #results-table tbody tr:hover td.sticky-col-1,
-        #results-table tbody tr:hover td.sticky-col-2,
-        #results-table tbody tr:hover td.sticky-col-3 {
-            background-color: #d0d0d0; /* Màu nền cho sticky cells khi hover */
+
+        /* Hiệu ứng hover cho tất cả các ô trong hàng, bao gồm cả các ô cố định */
+        #results-table tbody tr:hover td {
+            background-color: #e0e0e0; /* Màu hover nhất quán cho tất cả các ô */
+        }
+
+        /* Đảm bảo các ô cố định giữ z-index và vị trí */
+        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+            position: sticky;
+            z-index: 1; /* Giữ nó trên các ô bình thường nhưng dưới tiêu đề cố định */
         }
 
 
@@ -1947,9 +1976,9 @@ function updateTable(data, reset) {
     <script>
     document.addEventListener('DOMContentLoaded', () => {
       const topContainer = document.querySelector('.top-container');
-      const quickSearchWrapper = document.querySelector('.quick-search-wrapper'); // Changed from quickSearch
+      const quickSearchWrapper = document.querySelector('.quick-search-wrapper');
       const tableContainer = document.querySelector('.table-container');
-      const bottomControlsWrapper = document.querySelector('.bottom-controls-wrapper'); // New
+      const bottomControlsWrapper = document.querySelector('.bottom-controls-wrapper');
       const applyBtn = document.getElementById('apply-filters');
       const clearBtn = document.getElementById('clear-filters');
 
@@ -1958,17 +1987,17 @@ function updateTable(data, reset) {
       document.addEventListener('focusin', (e) => {
           if (window.innerWidth >= 768) return;
         const target = e.target;
-        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTMANIPULATION'].includes(target.tagName)) { // Changed TEXTAREA to TEXTMANIPULATION
+        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
           wasEditingTop = true;
           topContainer.classList.add('full-top-container');
           topContainer.classList.remove('hide-top-container');
-          tableContainer.style.display = 'none'; // Hide table
-          quickSearchWrapper.style.display = 'none'; // Hide quick search
-          bottomControlsWrapper.style.display = 'none'; // Hide bottom controls
-        } else if (quickSearchWrapper.contains(target)) { // Check if focus is in quick search wrapper
+          tableContainer.style.display = 'none';
+          quickSearchWrapper.style.display = 'none';
+          bottomControlsWrapper.style.display = 'none';
+        } else if (quickSearchWrapper.contains(target)) {
           topContainer.classList.add('hide-top-container');
-          tableContainer.style.display = 'block'; // Show table
-          bottomControlsWrapper.style.display = 'none'; // Hide bottom controls
+          tableContainer.style.display = 'block';
+          bottomControlsWrapper.style.display = 'none';
         }
       });
 
@@ -1976,16 +2005,16 @@ function updateTable(data, reset) {
             if (window.innerWidth >= 768) return;
         setTimeout(() => {
           const active = document.activeElement;
-          if (!['INPUT', 'SELECT', 'TEXTMANIPULATION'].includes(active.tagName)) { // Changed TEXTAREA to TEXTMANIPULATION
+          if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
             if (wasEditingTop) {
-              tableContainer.style.display = 'block'; // Show table
-              quickSearchWrapper.style.display = 'block'; // Show quick search
-              bottomControlsWrapper.style.display = 'block'; // Show bottom controls
+              tableContainer.style.display = 'block';
+              quickSearchWrapper.style.display = 'block';
+              bottomControlsWrapper.style.display = 'block';
             } else {
               topContainer.classList.remove('full-top-container', 'hide-top-container');
-              tableContainer.style.display = 'block'; // Show table
-              quickSearchWrapper.style.display = 'block'; // Show quick search
-              bottomControlsWrapper.style.display = 'block'; // Show bottom controls
+              tableContainer.style.display = 'block';
+              quickSearchWrapper.style.display = 'block';
+              bottomControlsWrapper.style.display = 'block';
             }
           }
         }, 300);
@@ -1994,9 +2023,9 @@ function updateTable(data, reset) {
       function revealTableAndSearch() {
         wasEditingTop = false;
         topContainer.classList.remove('full-top-container', 'hide-top-container');
-        quickSearchWrapper.style.display = 'block'; // Show quick search
-        tableContainer.style.display = 'block'; // Show table
-        bottomControlsWrapper.style.display = 'block'; // Show bottom controls
+        quickSearchWrapper.style.display = 'block';
+        tableContainer.style.display = 'block';
+        bottomControlsWrapper.style.display = 'block';
       }
 
       applyBtn?.addEventListener('click', revealTableAndSearch);
