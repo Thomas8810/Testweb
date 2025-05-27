@@ -1299,8 +1299,42 @@
                 }
             });
             
-            // Removed global popupImg.on('load/error') handlers, they are now inside partNumberCell.on('click')
-            // This ensures they are always fresh and tied to the specific image being loaded for that click event.
+            // Re-added the click handler for zooming the image within the popup
+            popupImg.off('click.zoom').on('click.zoom', function() {
+                const $thisImage = $(this);
+                if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
+                    imagePopup.toggleClass('zoomed');
+                    
+                    popupSpinner.show(); // Show spinner while loading new image size
+                    $thisImage.hide(); // Hide current image
+
+                    if (imagePopup.hasClass('zoomed')) {
+                        // Popup is zoomed in: Load high-quality image
+                        const highQualityUrl = imagePopup.data('high-quality-url');
+                        if (highQualityUrl) {
+                            $thisImage.attr('src', highQualityUrl);
+                            $thisImage.css('cursor', 'zoom-out');
+                        } else {
+                            console.warn("High-quality image URL not found.");
+                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
+                            popupSpinner.hide();
+                            $thisImage.show(); // Show thumbnail if high-quality is missing
+                        }
+                    } else {
+                        // Popup is zoomed out: Load thumbnail image
+                        const thumbnailUrl = imagePopup.data('thumbnail-url');
+                        if (thumbnailUrl) {
+                            $thisImage.attr('src', thumbnailUrl);
+                            $thisImage.css('cursor', 'zoom-in');
+                        } else {
+                            console.warn("Thumbnail image URL not found.");
+                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
+                            popupSpinner.hide();
+                            $thisImage.show(); // Show thumbnail if high-quality is missing
+                        }
+                    }
+                }
+            });
 
             applyFilters(true); 
         });
