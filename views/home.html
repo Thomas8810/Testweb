@@ -11,12 +11,12 @@
         /* Đoạn CSS responsive máy tính */
         @media (min-width: 768px) {
           html, body {
-            height: 100%;
-            overflow: hidden;
+            height: 100vh; /* Đảm bảo body chiếm toàn bộ chiều cao viewport */
+            overflow: hidden; /* Ngăn cuộn trang chính */
           }
 
           body {
-            overflow-y: auto;
+            overflow-y: auto; /* Cho phép cuộn nếu nội dung body vượt quá (thường không xảy ra với flex) */
           }
 
           input, select, textarea {
@@ -45,14 +45,16 @@
         .page-container {
           display: flex;
           flex-direction: column;
-          height: 100%;
+          height: 100%; /* Đảm bảo page-container chiếm toàn bộ chiều cao body */
+          flex-grow: 1; /* Cho phép nó mở rộng để lấp đầy chiều cao còn lại của body */
+          overflow: hidden; /* Ngăn cuộn page-container, để các phần tử con quản lý cuộn */
         }
         .top-container {
-          flex: 0 0 auto;
+          flex-shrink: 0; /* Ngăn không cho phần này bị co lại */
           background: rgba(0, 0, 0, 0.85);
           padding: 15px;
-          max-height: 40vh;
-          overflow-y: auto;
+          /* max-height: 40vh; */ /* Bỏ max-height cho desktop, để nội dung tự định nghĩa chiều cao */
+          overflow-y: auto; /* Cho phép cuộn bên trong top-container nếu nội dung quá dài */
           position: relative;
         }
         .header {
@@ -216,16 +218,29 @@
           color: white;
         }
         /* Bảng dữ liệu */
+        .quick-search-wrapper { /* Wrapper mới cho quick-search */
+            flex-shrink: 0;
+            text-align: center;
+            margin: 10px 0;
+        }
+        #quick-search {
+            width: 60%;
+            padding: 5px;
+            font-size: 14px;
+        }
         .table-container {
-          flex: 1 1 auto;
+          flex-grow: 1; /* Điều này sẽ làm cho nó mở rộng để lấp đầy không gian còn lại */
           margin: 5px auto;
           width: 98%;
-          max-height: calc(100vh - 260px); /* Điều chỉnh nếu top-container thay đổi chiều cao */
+          /* max-height: calc(100vh - 260px); */ /* Bỏ max-height ở đây, flex-grow sẽ quản lý */
           overflow-y: auto;
           overflow-x: auto;
           background: rgba(255, 255, 255, 0.9);
           border-radius: 5px;
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .bottom-controls-wrapper { /* Wrapper mới cho load more và footer */
+            flex-shrink: 0; /* Ngăn không cho phần này bị co lại */
         }
         table {
           width: auto; /* Cho phép bảng co giãn theo nội dung */
@@ -389,7 +404,8 @@
           .header p { font-size: 14px; }
           table, th, td { font-size: 10px; }
           .table-container {
-            max-height: calc(100vh - 320px); /* Điều chỉnh nếu cần */
+            /* max-height: calc(100vh - 320px); */ /* Điều chỉnh nếu cần */
+            max-height: 50vh; /* Giữ lại max-height cho mobile để tránh tràn khi bàn phím mở */
           }
            .top-container {
                 max-height: 45vh !important; /* Tăng chiều cao tối đa cho vùng filter */
@@ -429,7 +445,7 @@
 
         @media screen and (orientation: landscape), (orientation: portrait) {
           .table-container {
-            max-height: 60vh;
+            /* max-height: 60vh; */ /* Bỏ ở đây, sẽ được định nghĩa lại cụ thể hơn bên dưới */
             overflow-y: auto;
             overflow-x: auto;
             touch-action: pan-y; /* Cho phép cuộn dọc bằng cảm ứng */
@@ -446,7 +462,7 @@
         /* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
         .table-container {
           width: 100vw; /* Chiếm toàn bộ chiều rộng viewport */
-          max-height: 50vh; /* Chiều cao tối đa */
+          /* max-height: 50vh; */ /* Chiều cao tối đa - sẽ được định nghĩa lại */
           overflow-x: auto;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
@@ -479,7 +495,7 @@
             width: 100%; /* Đảm bảo container chiếm toàn bộ chiều rộng cha */
             overflow-x: auto;
             overflow-y: auto;
-            max-height: 60vh; /* Hoặc giá trị phù hợp */
+            /* max-height: 60vh; */ /* Hoặc giá trị phù hợp */
             -webkit-overflow-scrolling: touch;
         }
         table {
@@ -600,7 +616,7 @@
         /* Hiệu ứng mượt cho vùng động */
         .top-container,
         .table-container,
-        #quick-search {
+        .quick-search-wrapper { /* Áp dụng transition cho wrapper */
           transition: all 0.3s ease-in-out;
         }
         .full-top-container {
@@ -617,7 +633,7 @@
           pointer-events: none;
         }
         .show-table-only {
-          height: calc(100vh - 60px); /* 60px là chiều cao của quick search và footer */
+          /* Lớp này sẽ được xử lý trong JS để ẩn/hiện các wrapper khác */
         }
 
         /* Style cho thông báo sao chép */
@@ -816,7 +832,7 @@
             <div class="results-count" id="results-count">Total rows: 0</div>
         </div>
 
-        <div style="text-align:center; margin: 10px;">
+        <div class="quick-search-wrapper">
             <input id="quick-search" placeholder="🔍 Tìm Part Number..." style="padding:5px; width: 60%; font-size:14px;" type="text"/>
         </div>
 
@@ -859,11 +875,13 @@
                     </tbody>
             </table>
         </div>
-        <div id="load-more-container" style="text-align:center; margin:10px;">
-            <button id="load-more">Load More</button>
-            <button id="load-all">Load All</button>
+        <div class="bottom-controls-wrapper">
+            <div id="load-more-container" style="text-align:center; margin:10px;">
+                <button id="load-more">Load More</button>
+                <button id="load-all">Load All</button>
+            </div>
+            <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
         </div>
-        <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
     <div id="image-popup"> <span class="image-popup-close">&times;</span> <div class="image-popup-spinner"></div> <img src="" alt="Part Image" style="display:none;"> <span class="no-image-text" style="display:none;"></span>
@@ -1300,7 +1318,24 @@
             });
             
             // Re-added the click handler for zooming the image within the popup
-            popupImg.off('click.zoom').on('click.zoom', function() {
+            popupImg.off('load error').on('load', function() {
+                const expectedErp = imagePopup.data('current-erp');
+                if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
+                    popupSpinner.hide();
+                    $(this).show();
+                    popupText.hide().text('');
+                    imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                }
+            }).on('error', function() {
+                const expectedErp = imagePopup.data('current-erp');
+                const pn = imagePopup.data('current-part-number') || "N/A";
+                if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
+                    popupSpinner.hide();
+                    $(this).hide();
+                    popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
+                    imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                }
+            }).on('click.zoom', function() {
                 const $thisImage = $(this);
                 if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
                     imagePopup.toggleClass('zoomed');
@@ -1551,7 +1586,6 @@ function updateTable(data, reset) {
                         popupSpinner.hide();
                         $(this).show();
                         popupText.hide().text('');
-                        // Removed the `if (imagePopup.is(':hidden'))` check here
                         imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                     }
                 }).on('error', function() {
@@ -1562,7 +1596,6 @@ function updateTable(data, reset) {
                         popupSpinner.hide();
                         $(this).hide();
                         popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
-                        // Removed the `if (imagePopup.is(':hidden'))` check here
                         imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                     }
                 });
@@ -1581,7 +1614,7 @@ function updateTable(data, reset) {
         
         tr.append(partNumberCell);
 
-        tr.append(`<td class="sticky-col-col-3">${row['REV'] || ''}</td>`);
+        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
         tr.append(`<td>${row['Approval Status'] || ''}</td>`);
         tr.append(`<td>${row['Customer'] || ''}</td>`);
         tr.append(`<td>${row['Commodity'] || ''}</td>`);
@@ -1914,8 +1947,9 @@ function updateTable(data, reset) {
     <script>
     document.addEventListener('DOMContentLoaded', () => {
       const topContainer = document.querySelector('.top-container');
+      const quickSearchWrapper = document.querySelector('.quick-search-wrapper'); // Changed from quickSearch
       const tableContainer = document.querySelector('.table-container');
-      const quickSearch = document.getElementById('quick-search');
+      const bottomControlsWrapper = document.querySelector('.bottom-controls-wrapper'); // New
       const applyBtn = document.getElementById('apply-filters');
       const clearBtn = document.getElementById('clear-filters');
 
@@ -1924,15 +1958,17 @@ function updateTable(data, reset) {
       document.addEventListener('focusin', (e) => {
           if (window.innerWidth >= 768) return;
         const target = e.target;
-        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
+        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTMANIPULATION'].includes(target.tagName)) { // Changed TEXTAREA to TEXTMANIPULATION
           wasEditingTop = true;
           topContainer.classList.add('full-top-container');
           topContainer.classList.remove('hide-top-container');
-          tableContainer.classList.remove('show-table-only');
-          quickSearch.style.display = 'none';
-        } else if (target === quickSearch) {
+          tableContainer.style.display = 'none'; // Hide table
+          quickSearchWrapper.style.display = 'none'; // Hide quick search
+          bottomControlsWrapper.style.display = 'none'; // Hide bottom controls
+        } else if (quickSearchWrapper.contains(target)) { // Check if focus is in quick search wrapper
           topContainer.classList.add('hide-top-container');
-          tableContainer.classList.add('show-table-only');
+          tableContainer.style.display = 'block'; // Show table
+          bottomControlsWrapper.style.display = 'none'; // Hide bottom controls
         }
       });
 
@@ -1940,14 +1976,16 @@ function updateTable(data, reset) {
             if (window.innerWidth >= 768) return;
         setTimeout(() => {
           const active = document.activeElement;
-          if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+          if (!['INPUT', 'SELECT', 'TEXTMANIPULATION'].includes(active.tagName)) { // Changed TEXTAREA to TEXTMANIPULATION
             if (wasEditingTop) {
-              tableContainer.classList.remove('show-table-only');
-              quickSearch.style.display = 'none';
+              tableContainer.style.display = 'block'; // Show table
+              quickSearchWrapper.style.display = 'block'; // Show quick search
+              bottomControlsWrapper.style.display = 'block'; // Show bottom controls
             } else {
               topContainer.classList.remove('full-top-container', 'hide-top-container');
-              tableContainer.classList.remove('show-table-only');
-              quickSearch.style.display = 'block';
+              tableContainer.style.display = 'block'; // Show table
+              quickSearchWrapper.style.display = 'block'; // Show quick search
+              bottomControlsWrapper.style.display = 'block'; // Show bottom controls
             }
           }
         }, 300);
@@ -1956,8 +1994,9 @@ function updateTable(data, reset) {
       function revealTableAndSearch() {
         wasEditingTop = false;
         topContainer.classList.remove('full-top-container', 'hide-top-container');
-        quickSearch.style.display = 'block';
-        tableContainer.classList.remove('show-table-only');
+        quickSearchWrapper.style.display = 'block'; // Show quick search
+        tableContainer.style.display = 'block'; // Show table
+        bottomControlsWrapper.style.display = 'block'; // Show bottom controls
       }
 
       applyBtn?.addEventListener('click', revealTableAndSearch);
