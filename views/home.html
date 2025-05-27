@@ -4,894 +4,215 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4F46E5', // Indigo
+                        secondary: '#10B981', // Emerald
+                        accent: '#F59E0B', // Amber
+                        dark: '#1F2937', // Gray 800
+                        light: '#F9FAFB', // Gray 50
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
+    <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
     <style>
-        /* Basic CSS setup */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif; /* Apply Inter font */
-            background-color: #1a1a2e; /* Dark background */
-            color: #e0e0e0; /* Light text color */
+        /* Custom CSS for Select2 to match Tailwind aesthetics */
+        .select2-container--default .select2-selection--multiple {
+            @apply bg-white border border-gray-300 rounded-md shadow-sm min-h-[38px] text-gray-700;
         }
-
-        /* Responsive CSS for desktop */
-        @media (min-width: 768px) {
-            html, body {
-                overflow: hidden; /* Prevent main scrollbar */
-            }
-
-            body {
-                overflow-y: auto; /* Allow content to scroll if needed */
-            }
-
-            input, select, textarea {
-                touch-action: manipulation;
-                -webkit-user-select: text;
-                user-select: text;
-                caret-color: auto;
-            }
-
-            input:focus,
-            select:focus,
-            textarea:focus {
-                outline: none;
-                box-shadow: none;
-            }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            @apply bg-indigo-100 text-indigo-800 text-sm font-medium px-2 py-1 rounded-full flex items-center;
         }
-
-        /* General styling for containers */
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #2a2a4a; /* Slightly lighter dark background for containers */
-            border-radius: 12px; /* Rounded corners */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            border: 1px solid #3a3a5a;
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            @apply text-indigo-600 hover:text-indigo-900 ml-1;
         }
-
-        /* Form elements styling */
-        .form-group {
-            margin-bottom: 15px;
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            @apply p-1;
         }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #c0c0c0;
+        .select2-container--default .select2-selection--single {
+            @apply bg-white border border-gray-300 rounded-md shadow-sm h-[38px] flex items-center;
         }
-
-        input[type="text"],
-        select {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #4a4a6a;
-            border-radius: 8px;
-            background-color: #3a3a5a;
-            color: #e0e0e0;
-            box-sizing: border-box;
-            font-size: 1rem;
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            @apply text-gray-700 leading-none px-3;
         }
-
-        input[type="text"]::placeholder {
-            color: #888;
+        .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+            @apply bg-primary text-white;
         }
-
-        /* Button styling */
-        button {
-            background-color: #007bff; /* Primary blue */
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
-            margin-right: 10px; /* Spacing between buttons */
+        .select2-dropdown {
+            @apply border border-gray-300 rounded-md shadow-lg;
         }
-
-        button:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
+        .select2-search input {
+            @apply border border-gray-300 rounded-md p-2;
         }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .button-group {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        /* DataTables specific styling adjustments (kept for general table look, though DataTables is not used for main table) */
-        .dataTables_wrapper .dataTables_filter input {
-            margin-left: 0.5em;
-            border-radius: 8px;
-            padding: 8px 12px;
-            background-color: #3a3a5a;
-            border: 1px solid #4a4a6a;
-            color: #e0e0e0;
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            border-radius: 8px;
-            padding: 8px 12px;
-            background-color: #3a3a5a;
-            border: 1px solid #4a4a6a;
-            color: #e0e0e0;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            background-color: #3a3a5a;
-            color: #e0e0e0 !important;
-            border: 1px solid #4a4a6a;
-            border-radius: 8px;
-            margin: 0 5px;
-            padding: 6px 12px;
-            transition: background-color 0.3s ease;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background-color: #007bff;
-            color: white !important;
-            border-color: #007bff;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background-color: #0056b3;
-            color: white !important;
-        }
-
-        table.dataTable thead th,
-        table.dataTable tbody td {
-            color: #e0e0e0;
-            border-bottom: 1px solid #4a4a6a;
-            padding: 12px 15px;
-        }
-
-        table.dataTable thead th {
-            background-color: #3a3a5a;
-            font-weight: 600;
-        }
-
-        table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child:before,
-        table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child:before {
-            background-color: #007bff !important;
-        }
-
-        /* Custom styling for copyable Part Number in history popup (original) */
-        .copyable-part-number {
-            cursor: copy; /* Indicate that it's copyable */
-            text-decoration: underline; /* Visual cue */
-            color: #87ceeb; /* A distinct color */
-            transition: color 0.2s ease;
-        }
-
-        .copyable-part-number:hover {
-            color: #4682b4; /* Darker on hover */
-        }
-
-        /* NEW: Custom styling for copyable Part Number in the main table */
-        .copyable-table-part-number {
-            cursor: copy; /* Indicate that it's copyable */
-            text-decoration: underline; /* Visual cue */
-            color: #87ceeb; /* A distinct color */
-            transition: color 0.2s ease;
-        }
-
-        .copyable-table-part-number:hover {
-            color: #4682b4; /* Darker on hover */
-        }
-
-
-        /* Floating History Popup */
-        #floating-history-popup {
-            display: none; /* Hidden by default */
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #2a2a4a;
-            border: 1px solid #3a3a5a;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-            padding: 25px;
-            z-index: 1000;
-            max-height: 80vh;
-            overflow-y: auto;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        #floating-history-popup h3 {
-            color: #e0e0e0;
-            margin-top: 0;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        #floating-history-popup ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        #floating-history-popup ul li {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        #floating-history-popup ul li button {
-            background-color: #444;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            width: calc(100% - 70px);
-            text-align: left;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            box-shadow: none; /* Remove button shadow */
-            transition: background-color 0.2s ease;
-        }
-        #floating-history-popup ul li button:hover {
-            background-color: #555;
-            transform: none; /* No transform on history buttons */
-        }
-
-        #floating-history-popup ul li small {
-            color: #ccc;
-            font-size: 0.75rem;
-            flex-shrink: 0;
-        }
-
-        #floating-history-popup .popup-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        #floating-history-popup .popup-buttons button {
-            flex-grow: 1;
-            margin: 0 5px;
-        }
-
-        /* Custom Message Box Styling (NEW) */
-        #custom-message-box {
+        /* Hide Select2 search input for single selects */
+        .select2-container--default .select2-selection--single .select2-search__field {
             display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #3a3a5a;
-            color: #e0e0e0;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            z-index: 1001; /* Higher than history popup */
-            text-align: center;
-            max-width: 300px;
-            width: 80%;
         }
 
-        #custom-message-box p {
-            margin: 0 0 15px 0;
-            font-size: 1.1rem;
+        /* Sticky table headers and columns */
+        .table-container table {
+            border-collapse: separate; /* Use separate to allow border-radius on cells */
+            border-spacing: 0;
         }
 
-        #custom-message-box button {
-            background-color: #007bff;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        .table-container th,
+        .table-container td {
+            @apply border border-gray-200;
         }
 
-        #custom-message-box button:hover {
-            background-color: #0056b3;
+        .table-container th {
+            @apply bg-primary text-white sticky top-0 z-20;
         }
 
-        /* Original CSS from your file */
-        html, body { height: 100%; margin: 0; padding: 0; }
-        body {
-          font-family: Arial, sans-serif;
-          background: url('background.jpg') no-repeat center center/cover;
-          color: #333;
-          display: flex;
-          flex-direction: column;
-        }
-        .page-container {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-        }
-        .top-container {
-          flex: 0 0 auto;
-          background: rgba(0, 0, 0, 0.85);
-          padding: 15px;
-          max-height: 40vh;
-          overflow-y: auto;
-          position: relative;
-        }
-        .header {
-          text-align: center;
-          padding: 10px;
-          position: relative;
-        }
-        .tasks-link {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: #fff;
-            background: #007bff;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        .tasks-link:hover {
-            background: #0056b3;
-        }
-        .header h1 { margin: 0; font-size: 28px; color: white; }
-        .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
-        /* Language switcher ở góc trên bên phải */
-        .language-switcher {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-        }
-        .language-switcher button {
-          padding: 4px 8px;
-          margin-left: 5px;
-          font-size: 12px;
-          cursor: pointer;
-          border: none;
-          border-radius: 3px;
-          background: #ff8c00;
-          color: white;
-          transition: background 0.3s;
-        }
-        .language-switcher button:hover {
-          background: #ff6500;
-        }
-        /* Khối chứa các tiêu chí lọc */
-        .filter-bar {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          padding: 5px;
-        }
-        .filter-block {
-          background: #444;
-          border-radius: 5px;
-          padding: 5px;
-          margin: 5px;
-          width: 220px; /* Tăng chiều rộng để chứa 2 date input */
-          font-size: 12px;
-          color: white;
-          box-sizing: border-box;
-        }
-        .filter-block label {
-          display: block;
-          margin-bottom: 3px;
-          font-weight: bold;
-        }
-        .filter-block select, .filter-block input[type="date"] {
-          width: 100%;
-          padding: 3px;
-          margin-bottom: 3px;
-          font-size: 12px;
-          box-sizing: border-box;
-          border-radius: 3px;
-          border: 1px solid #666;
-        }
-        .filter-block input[type="date"] {
-            background-color: #fff;
-            color: #333;
-        }
-        .date-range-inputs {
-            display: none; /* Ẩn ban đầu */
-        }
-        .date-range-inputs label {
-            font-size: 10px;
-            margin-top: 5px;
-            margin-bottom: 1px;
-        }
-
-
-        /* Khối chứa các nút chức năng */
-        .action-bar {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          padding: 5px;
-        }
-        .action-bar > div {
-          background: #444;
-          border-radius: 5px;
-          padding: 5px;
-          margin: 5px;
-          font-size: 12px;
-          color: white;
-          text-align: center;
-        }
-        .action-bar button {
-          padding: 6px 12px;
-          font-size: 12px;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: 0.3s;
-          margin: 3px;
-        }
-        .filter-actions button {
-          background: linear-gradient(45deg, #ff8c00, #ff4500);
-          color: white;
-        }
-        .filter-actions button:hover {
-          background: linear-gradient(45deg, #ff6500, #ff0000);
-        }
-        .download-container button {
-          background: linear-gradient(45deg, #007bff, #0056b3);
-          color: white;
-        }
-        .download-container button:hover {
-          background: linear-gradient(45deg, #3399ff, #007bff);
-        }
-        .zoom-controls button {
-          background: linear-gradient(45deg, #28a745, #218838);
-          color: white;
-        }
-        .zoom-controls button:hover {
-          background: linear-gradient(45deg, #34d058, #28a745);
-        }
-        /* Phần hiển thị tổng số dòng */
-        .results-count {
-          text-align: center;
-          margin: 5px;
-          font-size: 14px;
-          color: white;
-        }
-        /* Bảng dữ liệu */
-        .table-container {
-          flex: 1 1 auto;
-          margin: 5px auto;
-          width: 98%;
-          max-height: calc(100vh - 260px); /* Điều chỉnh nếu top-container thay đổi chiều cao */
-          overflow-y: auto;
-          overflow-x: auto;
-          background: rgba(255, 255, 255, 0.9);
-          border-radius: 5px;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        table {
-          width: auto; /* Cho phép bảng co giãn theo nội dung */
-          min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng container */
-          border-collapse: collapse;
-          table-layout: fixed; /* Giúp cột cố định hoạt động tốt hơn */
-        }
-        th, td {
-          padding: 6px 8px;
-          border: 1px solid #ccc;
-          font-size: 12px;
-          text-align: center;
-          white-space: nowrap;
-        }
-        th {
-          background: #4a76a8;
-          color: white;
-          position: sticky;
-          top: 0;
-          z-index: 2;
-        }
         .sticky-col-1 {
-          position: sticky;
-          left: 0;
-          width: 40px; /* Cố định chiều rộng cho cột No */
-          min-width: 40px;
-          background: #4a76a8; /* Màu nền giống th */
-          z-index: 3; /* Cao hơn th thường và td thường */
-        }
-        .sticky-col-2 {
-          position: sticky;
-          left: 40px; /* No (40px) */
-          width: 100px; /* Cố định chiều rộng cho Part Number */
-          min-width: 100px;
-          background: #4a76a8;
-          z-index: 3;
-        }
-        .sticky-col-3 {
-          position: sticky;
-          left: 140px; /* No (40px) + Part Number (100px) */
-          width: 50px; /* Cố định chiều rộng cho REV */
-          min-width: 50px;
-          background: #4a76a8;
-          z-index: 3;
-        }
-        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
-          background: #e6e6e6; /* Màu nền khác cho td cố định để phân biệt */
-          color: #333;
-          z-index: 1; /* Cao hơn td thường nhưng thấp hơn th cố định */
-        }
-        tr.selected { background-color: #ffeb99 !important; }
-        .footer {
-          flex: 0 0 auto;
-          text-align: center;
-          padding: 5px;
-          font-size: 14px;
-          background: #333;
-          color: white;
-        }
-
-        /* CSS cho popup ảnh */
-        #image-popup {
-            display: none;
-            position: fixed;
-            border: 1px solid #ccc;
-            background: white;
-            padding: 5px;
-            z-index: 10000;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            max-width: 250px; /* Giới hạn kích thước popup ban đầu */
-            max-height: 250px;
-            cursor: default;
-            transition: all 0.3s ease-in-out;
-            overflow: auto; /* Cho phép cuộn khi ảnh lớn hơn popup đã zoom */
-        }
-        #image-popup img {
-            max-width: 100%;
-            max-height: 100%;
-            display: block; /* Loại bỏ khoảng trắng thừa dưới ảnh */
-            cursor: zoom-in; /* Con trỏ ban đầu */
-            object-fit: contain; /* Đảm bảo ảnh luôn vừa vặn */
-            width: 100%; 
-            height: 100%;
-        }
-        
-        #image-popup .no-image-text {
-            padding: 10px;
-            text-align: center;
-            color: #555;
-        }
-
-        /* Class cho trạng thái phóng to */
-        #image-popup.zoomed {
-            max-width: 90vw; /* Chiếm 90% chiều rộng viewport */
-            max-height: 90vh; /* Chiếm 90% chiều cao viewport */
-            width: auto;  /* Tự động điều chỉnh chiều rộng theo nội dung ảnh */
-            height: auto; /* Tự động điều chỉnh chiều cao theo nội dung ảnh */
-            padding: 15px; /* Tăng padding khi zoom */
-        }
-
-        #image-popup.zoomed img {
-            cursor: zoom-out; /* Đổi cursor khi ảnh đã được phóng to */
-        }
-
-        /* Nút đóng (X) */
-        .image-popup-close {
-            position: absolute;
-            top: 0px; 
-            right: 8px;
-            font-size: 24px; 
-            font-weight: bold;
-            cursor: pointer;
-            color: #333;
-            z-index: 10001; 
-            padding: 2px 5px;
-            background-color: rgba(255,255,255,0.7);
-            border-radius: 50%;
-            line-height: 1;
-        }
-        .image-popup-close:hover {
-            color: #000;
-            background-color: rgba(255,255,255,0.9);
-        }
-
-        /* CSS cho spinner tải ảnh trong popup */
-        .image-popup-spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            display: none; /* Ẩn ban đầu */
-            z-index: 10002; /* Trên ảnh */
-        }
-
-        @media (max-width: 768px) {
-          .language-switcher {
-            position: static;
-            margin-top: 10px;
-            text-align: center;
-          }
-          .language-switcher button {
-            padding: 3px 6px;
-            margin: 0 3px;
-            font-size: 10px;
-          }
-          .filter-bar, .action-bar {
-            flex-direction: column;
-            align-items: stretch;
-          }
-          .filter-block, .action-bar > div {
-            width: 90%; /* Tăng chiều rộng cho dễ thao tác */
-            margin: 5px auto;
-          }
-          .header h1 { font-size: 24px; }
-          .header p { font-size: 14px; }
-          table, th, td { font-size: 10px; }
-          .table-container {
-            max-height: calc(100vh - 320px); /* Điều chỉnh nếu cần */
-          }
-           .top-container {
-                max-height: 45vh !important; /* Tăng chiều cao tối đa cho vùng filter */
-                padding: 8px !important;
-                overflow-y: auto;
-            }
-            .action-bar button,
-            .language-switcher button {
-                font-size: 16px; /* Tăng kích thước chữ cho nút */
-                padding: 10px 16px; /* Tăng padding cho nút */
-            }
-             #quick-search {
-                font-size: 13px !important; /* Đảm bảo quick search dễ thấy */
-            }
-        }
-        @media (max-width: 480px) {
-          .tasks-link {
-            position: relative;
-            top: 0;
+            position: sticky;
             left: 0;
-            display: block;
-            width: 100%;
-            text-align: center;
-            padding: 10px 0;
-            font-size: 16px;
-          }
-          .header h1 { font-size: 20px; }
-          .header p { font-size: 12px; }
-          table, th, td { font-size: 9px; }
-        }
-
-        @media (max-width: 768px) {
-          body {
-            padding-bottom: 300px; /* chừa chỗ cho bàn phím */
-          }
-        }
-
-        @media screen and (orientation: landscape), (orientation: portrait) {
-          .table-container {
-            max-height: 60vh;
-            overflow-y: auto;
-            overflow-x: auto;
-            touch-action: pan-y; /* Cho phép cuộn dọc bằng cảm ứng */
-          }
-          table {
-            width: auto; /* Cho phép bảng co giãn theo nội dung */
-            min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng container */
-            border-collapse: collapse;
-            table-layout: fixed; /* Giúp cột cố định hoạt động tốt hơn */
-          }
-          td, th {
-            word-break: break-word; /* Cho phép ngắt từ nếu cần */
-          }
-        }
-
-        /* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
-        .table-container {
-          width: 100vw; /* Chiếm toàn bộ chiều rộng viewport */
-          max-height: 50vh; /* Chiều cao tối đa */
-          overflow-x: auto;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
-          scroll-behavior: smooth;
-          touch-action: auto; /* Cho phép cả cuộn ngang và dọc */
-        }
-
-        @media screen and (orientation: landscape) {
-          .table-container {
-            max-height: 60vh;
-          }
-        }
-
-        @media screen and (orientation: portrait) {
-          .table-container {
-            max-height: 50vh;
-          }
-        }
-
-        table {
-          min-width: 800px; /* Chiều rộng tối thiểu của bảng, điều chỉnh nếu cần */
-        }
-
-        th, td {
-          word-break: break-word;
-          white-space: nowrap;
-        }
-
-        .table-container {
-            width: 100%; /* Đảm bảo container chiếm toàn bộ chiều rộng cha */
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: 60vh; /* Hoặc giá trị phù hợp */
-            -webkit-overflow-scrolling: touch;
-        }
-        table {
-            border-collapse: collapse;
-            min-width: 1000px; /* Hoặc giá trị phù hợp với số cột */
-        }
-        th, td {
-            white-space: nowrap; /* Giữ nội dung trên một dòng */
-            padding: 6px; /* Điều chỉnh padding nếu cần */
-            font-size: 12px;
-        }
-        .sticky-col-1 {
-            position: sticky; left: 0; background: #4a76a8; z-index: 3;
+            @apply bg-primary z-30;
         }
         .sticky-col-2 {
-            position: sticky; left: 40px; background: #4a76a8; z-index: 3;
+            position: sticky;
+            left: 40px; /* Width of sticky-col-1 */
+            @apply bg-primary z-30;
         }
         .sticky-col-3 {
-            position: sticky; left: 140px; background: #4a76a8; z-index: 3;
-        }
-        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
-            background: #f3f3f3; /* Màu nền sáng hơn cho td cố định */
-        }
-
-        /* --- Cải tiến cho input khi focus --- */
-        input:focus, select:focus {
-          outline: 2px solid #ff8c00; /* Viền cam nổi bật khi focus */
-          background-color: #fffce6; /* Nền vàng nhạt khi focus */
+            position: sticky;
+            left: 140px; /* Width of sticky-col-1 + sticky-col-2 */
+            @apply bg-primary z-30;
         }
 
-        /* Tăng font input trên điện thoại để dễ nhập */
-        @media (max-width: 768px) {
-          input, select {
-            font-size: 16px; /* Kích thước chữ lớn hơn cho input trên mobile */
-          }
+        .table-container td.sticky-col-1,
+        .table-container td.sticky-col-2,
+        .table-container td.sticky-col-3 {
+            @apply bg-gray-50 text-gray-800 z-10;
         }
 
-        /* Cải thiện bảng khi xoay ngang */
-        @media screen and (orientation: landscape) {
-            .top-container {
-                max-height: 30vh; /* Giảm chiều cao vùng filter khi xoay ngang */
-                overflow-y: auto;
-            }
-            .table-container {
-                height: auto; /* Cho phép bảng tự điều chỉnh chiều cao */
-                max-height: 90vh; /* Tăng chiều cao tối đa cho bảng */
-                min-height: 70vh; /* Chiều cao tối thiểu cho bảng */
-                overflow-x: auto;
-                overflow-y: auto;
-            }
-            table {
-                min-width: 1200px; /* Tăng chiều rộng tối thiểu của bảng khi xoay ngang */
-            }
-        }
-
-
+        /* Spinner animation */
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        #results-table td, #results-table th {
-          user-select: text; /* Cho phép chọn văn bản trong bảng */
+        #loading-spinner > div {
+          animation: spin 1s linear infinite;
         }
 
+        /* Image popup styling */
+        #image-popup {
+            @apply hidden fixed border border-gray-300 bg-white p-2 shadow-xl cursor-default transition-all duration-300 ease-in-out overflow-auto;
+            z-index: 10000;
+            max-width: 250px;
+            max-height: 250px;
+        }
+        #image-popup img {
+            @apply max-w-full max-h-full block object-contain w-full h-full cursor-zoom-in;
+        }
+        #image-popup.zoomed {
+            @apply max-w-[90vw] max-h-[90vh] w-auto h-auto p-4;
+        }
+        #image-popup.zoomed img {
+            @apply cursor-zoom-out;
+        }
+        .image-popup-close {
+            @apply absolute top-0 right-2 text-2xl font-bold cursor-pointer text-gray-700 bg-white rounded-full leading-none px-1 py-0.5;
+            z-index: 10001;
+        }
+        .image-popup-close:hover {
+            @apply text-gray-900 bg-gray-100;
+        }
+        .image-popup-spinner {
+            @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-4 border-gray-200 border-t-4 border-t-blue-500 rounded-full w-8 h-8 hidden;
+            animation: spin 1s linear infinite;
+            z-index: 10002;
+        }
+        .no-image-text {
+            @apply p-4 text-center text-gray-600;
+        }
 
-        @media (max-width: 768px) {
+        /* Mobile specific adjustments */
+        @media (max-width: 767px) {
             .top-container {
-                max-height: 40vh !important; /* Quan trọng: Đảm bảo ghi đè các style khác */
+                max-height: 45vh !important;
                 padding: 8px !important;
                 overflow-y: auto;
             }
-
-            .header h1 { font-size: 20px; }
-            .header p { font-size: 12px; }
-
-            .filter-block,
-            .action-bar > div {
-                padding: 4px;
-                margin: 3px;
-                font-size: 11px;
-            }
-
             .action-bar button,
             .language-switcher button {
-                font-size: 16px; /* Tăng kích thước chữ cho nút */
-                padding: 10px 16px; /* Tăng padding cho nút */
+                @apply text-base px-4 py-2;
             }
-
-            .filter-block select {
-                font-size: 12px;
-            }
-
-            .results-count {
-                font-size: 12px;
-            }
-
             #quick-search {
-                font-size: 13px !important; /* Đảm bảo quick search dễ thấy */
+                @apply text-base;
+            }
+            .table-container {
+                max-height: calc(100vh - 320px);
+            }
+            body {
+                padding-bottom: 300px; /* Space for keyboard */
             }
         }
 
-
-        /* Hiệu ứng mượt cho vùng động */
-        .top-container,
-        .table-container,
-        #quick-search {
-          transition: all 0.3s ease-in-out;
+        /* Landscape orientation adjustments */
+        @media screen and (orientation: landscape) {
+            .top-container {
+                max-height: 30vh;
+            }
+            .table-container {
+                height: auto;
+                max-height: 90vh;
+                min-height: 70vh;
+            }
+            table {
+                min-width: 1200px;
+            }
         }
+
+        /* Dynamic container classes */
         .full-top-container {
-          height: 100vh !important;
-          max-height: 100vh !important;
-          overflow-y: auto;
+            @apply h-screen max-h-screen overflow-y-auto;
         }
         .hide-top-container {
-          height: 0 !important;
-          max-height: 0 !important;
-          overflow: hidden;
-          padding: 0 !important;
-          opacity: 0;
-          pointer-events: none;
+            @apply h-0 max-h-0 overflow-hidden p-0 opacity-0 pointer-events-none;
         }
         .show-table-only {
-          height: calc(100vh - 60px); /* 60px là chiều cao của quick search và footer */
+            @apply h-[calc(100vh-60px)]; /* Adjust based on quick search and footer height */
         }
-
     </style>
 </head>
-<body>
-    <div id="custom-message-box" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #3a3a5a; color: #e0e0e0; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); z-index: 1001; text-align: center; max-width: 300px; width: 80%;">
-        <p id="message-text"></p>
-        <button onclick="document.getElementById('custom-message-box').style.display = 'none';">OK</button>
+<body class="font-sans bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+    <div id="loading-spinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+        <div class="border-6 border-gray-300 border-t-6 border-t-blue-500 rounded-full w-10 h-10"></div>
     </div>
 
-    <div id="loading-spinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
-        <div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
-    </div>
-
-    <div class="page-container">
-        <div class="top-container">
-            <div class="header">
-                <a class="tasks-link" href="/tasks">Tasks</a>
-                <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
-                <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
-                <div class="language-switcher">
-                    <button onclick="changeLanguage('vi')">Vi</button>
-                    <button onclick="changeLanguage('en')">En</button>
-                    <button onclick="changeLanguage('ko')">Ko</button>
+    <div class="page-container flex flex-col flex-grow">
+        <div class="top-container bg-dark p-4 shadow-lg relative overflow-y-auto max-h-[40vh] transition-all duration-300 ease-in-out">
+            <div class="header text-center p-2 relative">
+                <a class="tasks-link absolute top-2 left-2 bg-primary hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300" href="/tasks">Tasks</a>
+                <h1 id="header-title" class="text-3xl font-extrabold text-white mb-1">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
+                <p id="header-subtitle" class="text-lg text-gray-300">Tra cứu tình trạng FAIR</p>
+                <div class="language-switcher absolute top-2 right-2 flex space-x-2">
+                    <button onclick="changeLanguage('vi')" class="bg-accent hover:bg-amber-600 text-white text-sm font-semibold py-1.5 px-3 rounded-md transition duration-300">Vi</button>
+                    <button onclick="changeLanguage('en')" class="bg-accent hover:bg-amber-600 text-white text-sm font-semibold py-1.5 px-3 rounded-md transition duration-300">En</button>
+                    <button onclick="changeLanguage('ko')" class="bg-accent hover:bg-amber-600 text-white text-sm font-semibold py-1.5 px-3 rounded-md transition duration-300">Ko</button>
                 </div>
             </div>
 
-            <div class="filter-bar">
-                <div class="filter-block" id="filter-block-project">
-                    <label for="filter-project" id="label-filter-project">Chọn dự án (Customer)</label>
-                    <select class="value-select" id="filter-project" multiple="multiple"></select>
+            <div class="filter-bar flex flex-wrap justify-center p-2 gap-4">
+                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
+                    <label for="filter-project" id="label-filter-project" class="block mb-2 font-semibold">Chọn dự án (Customer)</label>
+                    <select class="value-select w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-project" multiple="multiple"></select>
                 </div>
-                <div class="filter-block" id="filter-block-1">
-                    <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
-                    <select id="filter-column-1">
+                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
+                    <label for="filter-column-1" id="label-criteria-1" class="block mb-2 font-semibold">Chọn tiêu chí số 1:</label>
+                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-1">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -915,26 +236,26 @@
                         <option value="LAIR data">LAIR data</option>
                         <option value="FAIR Data">FAIR Data</option>
                         <option value="COC">COC</option>
-                        <option value="BOM">BOM</th
-                        ><option value="Mill">Mill</th
-                        ><option value="Test reports / evidences">Test reports / evidences</th
-                        ><option value="Remark 1">Remark 1</th
-                        ><option value="Remark 2">Remark 2</th
-                        ><option value="Submit date" data-type="date">Submit date</th
-                        ><option value="Reject comments">Reject comments</option>
+                        <option value="BOM">BOM</option>
+                        <option value="Mill">Mill</option>
+                        <option value="Test reports / evidences">Test reports / evidences</option>
+                        <option value="Remark 1">Remark 1</option>
+                        <option value="Remark 2">Remark 2</option>
+                        <option value="Submit date" data-type="date">Submit date</option>
+                        <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
-                    <select class="value-select" id="filter-value-1" multiple="multiple"></select>
-                    <div class="date-range-inputs" id="date-range-1">
-                        <label for="filter-date-start-1">Từ ngày:</label>
-                        <input type="date" class="date-select-start" id="filter-date-start-1">
-                        <label for="filter-date-end-1">Đến ngày:</label>
-                        <input type="date" class="date-select-end" id="filter-date-end-1">
+                    <label for="filter-value-1" id="label-filter-value-1" class="block mt-3 mb-2 font-semibold">Chọn giá trị</label>
+                    <select class="value-select w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-1" multiple="multiple"></select>
+                    <div class="date-range-inputs hidden mt-2">
+                        <label for="filter-date-start-1" class="block text-xs mb-1">Từ ngày:</label>
+                        <input type="date" class="date-select-start w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-1">
+                        <label for="filter-date-end-1" class="block text-xs mt-2 mb-1">Đến ngày:</label>
+                        <input type="date" class="date-select-end w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-1">
                     </div>
                 </div>
-                <div class="filter-block" id="filter-block-2">
-                    <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
-                    <select id="filter-column-2">
+                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
+                    <label for="filter-column-2" id="label-criteria-2" class="block mb-2 font-semibold">Chọn tiêu chí số 2 (paste ex):</label>
+                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-2">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -958,26 +279,26 @@
                         <option value="LAIR data">LAIR data</option>
                         <option value="FAIR Data">FAIR Data</option>
                         <option value="COC">COC</option>
-                        <option value="BOM">BOM</th
-                        ><option value="Mill">Mill</th
-                        ><option value="Test reports / evidences">Test reports / evidences</th
-                        ><option value="Remark 1">Remark 1</th
-                        ><option value="Remark 2">Remark 2</th
-                        ><option value="Submit date" data-type="date">Submit date</th
-                        ><option value="Reject comments">Reject comments</option>
+                        <option value="BOM">BOM</option>
+                        <option value="Mill">Mill</option>
+                        <option value="Test reports / evidences">Test reports / evidences</option>
+                        <option value="Remark 1">Remark 1</option>
+                        <option value="Remark 2">Remark 2</option>
+                        <option value="Submit date" data-type="date">Submit date</option>
+                        <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
-                    <select id="filter-value-2" multiple="multiple"></select>
-                     <div class="date-range-inputs" id="date-range-2">
-                        <label for="filter-date-start-2">Từ ngày:</label>
-                        <input type="date" class="date-select-start" id="filter-date-start-2">
-                        <label for="filter-date-end-2">Đến ngày:</label>
-                        <input type="date" class="date-select-end" id="filter-date-end-2">
+                    <label for="filter-value-2" id="label-filter-value-2" class="block mt-3 mb-2 font-semibold">Chọn giá trị</label>
+                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-2" multiple="multiple"></select>
+                     <div class="date-range-inputs hidden mt-2">
+                        <label for="filter-date-start-2" class="block text-xs mb-1">Từ ngày:</label>
+                        <input type="date" class="date-select-start w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-2">
+                        <label for="filter-date-end-2" class="block text-xs mt-2 mb-1">Đến ngày:</label>
+                        <input type="date" class="date-select-end w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-2">
                     </div>
                 </div>
-                <div class="filter-block" id="filter-block-3">
-                    <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
-                    <select id="filter-column-3">
+                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
+                    <label for="filter-column-3" id="label-criteria-3" class="block mb-2 font-semibold">Chọn tiêu chí số 3:</label>
+                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-3">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -1001,112 +322,178 @@
                         <option value="LAIR data">LAIR data</option>
                         <option value="FAIR Data">FAIR Data</option>
                         <option value="COC">COC</option>
-                        <option value="BOM">BOM</th
-                        ><option value="Mill">Mill</th
-                        ><option value="Test reports / evidences">Test reports / evidences</th
-                        ><option value="Remark 1">Remark 1</th
-                        ><option value="Remark 2">Remark 2</th
-                        ><option value="Submit date" data-type="date">Submit date</th
-                        ><option value="Reject comments">Reject comments</option>
+                        <option value="BOM">BOM</option>
+                        <option value="Mill">Mill</option>
+                        <option value="Test reports / evidences">Test reports / evidences</option>
+                        <option value="Remark 1">Remark 1</option>
+                        <option value="Remark 2">Remark 2</option>
+                        <option value="Submit date" data-type="date">Submit date</option>
+                        <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
-                    <select class="value-select" id="filter-value-3" multiple="multiple"></select>
-                    <div class="date-range-inputs" id="date-range-3">
-                        <label for="filter-date-start-3">Từ ngày:</label>
-                        <input type="date" class="date-select-start" id="filter-date-start-3">
-                        <label for="filter-date-end-3">Đến ngày:</label>
-                        <input type="date" class="date-select-end" id="filter-date-end-3">
+                    <label for="filter-value-3" id="label-filter-value-3" class="block mt-3 mb-2 font-semibold">Chọn giá trị</label>
+                    <select class="value-select w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-3" multiple="multiple"></select>
+                    <div class="date-range-inputs hidden mt-2">
+                        <label for="filter-date-start-3" class="block text-xs mb-1">Từ ngày:</label>
+                        <input type="date" class="date-select-start w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-3">
+                        <label for="filter-date-end-3" class="block text-xs mt-2 mb-1">Đến ngày:</label>
+                        <input type="date" class="date-select-end w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-3">
                     </div>
                 </div>
             </div>
 
-            <div class="action-bar">
-                <div class="filter-actions">
-                    <button id="apply-filters">Áp Dụng Lọc</button>
-                    <button id="clear-filters">Xóa Lọc</button>
+            <div class="action-bar flex flex-wrap justify-center p-2 gap-4">
+                <div class="filter-actions bg-gray-700 rounded-lg p-4 text-white text-center shadow-md flex-grow">
+                    <button id="apply-filters" class="bg-gradient-to-r from-accent to-orange-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mr-2">Áp Dụng Lọc</button>
+                    <button id="clear-filters" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Xóa Lọc</button>
                 </div>
-                <div class="download-container">
-                    <button id="download-excel">Xuất Excel (Đang xem)</button>
-                    <button id="export-all">Xuất Excel (Tất cả)</button>
+                <div class="download-container bg-gray-700 rounded-lg p-4 text-white text-center shadow-md flex-grow">
+                    <button id="download-excel" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mr-2">Xuất Excel (Đang xem)</button>
+                    <button id="export-all" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Xuất Excel (Tất cả)</button>
                 </div>
-                <div class="zoom-controls">
-                    <button id="zoom-in">Phóng to</button>
-                    <button id="zoom-out">Thu nhỏ</button>
+                <div class="zoom-controls bg-gray-700 rounded-lg p-4 text-white text-center shadow-md flex-grow">
+                    <button id="zoom-in" class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-700 hover:to-green-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mr-2">Phóng to</button>
+                    <button id="zoom-out" class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-700 hover:to-green-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Thu nhỏ</button>
                 </div>
             </div>
-            <div class="scan-camera" style="text-align:center; margin-top:10px;">
-                <button id="btnScanCamera">📷 Quét Camera</button>
+            <div class="scan-camera text-center mt-4">
+                <button id="btnScanCamera" class="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-700 hover:to-purple-900 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">
+                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.382 3H8.618a1 1 0 00-.707.293L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                    </svg>
+                    Quét Camera
+                </button>
             </div>
-            <div class="results-count" id="results-count">Total rows: 0</div>
+            <div class="results-count text-center mt-3 text-white text-base font-medium" id="results-count">Total rows: 0</div>
         </div>
 
-        <div style="text-align:center; margin: 10px;">
-            <input id="quick-search" placeholder="🔍 Tìm Part Number..." style="padding:5px; width: 60%; font-size:14px;" type="text"/>
+        <div class="text-center my-4">
+            <input id="quick-search" placeholder="🔍 Tìm Part Number..." type="text" class="p-3 w-11/12 md:w-3/5 lg:w-2/5 rounded-full border border-gray-300 shadow-md focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-300"/>
         </div>
 
-        <div class="table-container">
-            <table id="results-table">
-                <thead><tr>
-                    <th class="sticky-col-1" data-column="No">No</th>
-                    <th class="sticky-col-2" data-column="Part Number">Part Number</th>
-                    <th class="sticky-col-3" data-column="REV">REV</th>
-                    <th data-column="Approval Status">Approval Status</th>
-                    <th data-column="Customer">Customer</th>
-                    <th data-column="Commodity">Commodity</th>
-                    <th data-column="Production Status">Production Status</th>
-                    <th data-column="Part Pictures">Part Pictures</th>
-                    <th data-column="Packaging Pictures">Packaging Pictures</th>
-                    <th data-column="Critical">Critical</th>
-                    <th data-column="CE">CE</th
-                    ><th data-column="PO Number">PO Number</th
-                    ><th data-column="Description">Description</th
-                    ><th data-column="ERP-CODE">ERP-CODE</th
-                    ><th data-column="Note Number">Note Number</th
-                    ><th data-column="PO received date">PO received date</th
-                    ><th data-column="Customer need date">Customer need date</th
-                    ><th data-column="Requirements">Requirements</th
-                    ><th data-column="FAIR Cover sheet">FAIR Cover sheet</th
-                    ><th data-column="Bubble Drawings">Bubble Drawings</th
-                    ><th data-column="Datasheet form">Datasheet form</th
-                    ><th data-column="LAIR Data">LAIR Data</th
-                    ><th data-column="FAIR Data">FAIR Data</th
-                    ><th data-column="COC">COC</th
-                    ><th data-column="BOM">BOM</th
-                    ><th data-column="Mill">Mill</th
-                    ><th data-column="Test reports / evidences">Test reports / evidences</th
-                    ><th data-column="Remark 1">Remark 1</th
-                    ><th data-column="Remark 2">Remark 2</th
-                    ><th data-column="Submit date">Submit date</th
-                    ><th data-column="Reject comments">Reject comments</th>
-                </tr></thead>
+        <div class="table-container flex-grow mx-auto w-11/12 bg-white rounded-lg shadow-xl overflow-auto max-h-[calc(100vh-260px)] transition-all duration-300 ease-in-out">
+            <table id="results-table" class="min-w-full table-auto">
+                <thead>
+                    <tr>
+                        <th class="sticky-col-1 py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="No">No</th>
+                        <th class="sticky-col-2 py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Number">Part Number</th>
+                        <th class="sticky-col-3 py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="REV">REV</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Approval Status">Approval Status</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer">Customer</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Commodity">Commodity</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Production Status">Production Status</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Pictures">Part Pictures</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Packaging Pictures">Packaging Pictures</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Critical">Critical</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="CE">CE</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO Number">PO Number</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Description">Description</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="ERP-CODE">ERP-CODE</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Note Number">Note Number</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO received date">PO received date</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer need date">Customer need date</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Requirements">Requirements</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Cover sheet">FAIR Cover sheet</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Bubble Drawings">Bubble Drawings</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Datasheet form">Datasheet form</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="LAIR Data">LAIR Data</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Data">FAIR Data</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="COC">COC</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="BOM">BOM</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Mill">Mill</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Test reports / evidences">Test reports / evidences</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 1">Remark 1</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 2">Remark 2</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Submit date">Submit date</th>
+                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Reject comments">Reject comments</th>
+                    </tr>
+                </thead>
                 <tbody>
                     </tbody>
             </table>
         </div>
-        <div id="load-more-container" style="text-align:center; margin:10px;">
-            <button id="load-more">Load More</button>
-            <button id="load-all">Load All</button>
+        <div id="load-more-container" class="text-center my-4 flex justify-center gap-4">
+            <button id="load-more" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">Tải thêm</button>
+            <button id="load-all" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">Tải toàn bộ</button>
         </div>
-        <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
+        <div class="footer text-center py-2 bg-dark text-gray-300 text-sm" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
-    <div id="image-popup"> <span class="image-popup-close">&times;</span> <div class="image-popup-spinner"></div> <img src="" alt="Part Image" style="display:none;"> <span class="no-image-text" style="display:none;"></span>
+    <div id="image-popup" class="rounded-lg">
+        <span class="image-popup-close">&times;</span>
+        <div class="image-popup-spinner"></div>
+        <img src="" alt="Part Image" class="rounded-md">
+        <span class="no-image-text"></span>
     </div>
     
+    <button onclick="toggleHistoryPopup()" class="fixed bottom-5 left-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-lg transition duration-300 z-50" title="Lịch sử tìm kiếm">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z" clip-rule="evenodd"></path>
+        </svg>
+    </button>
+
+    <div id="floating-history-popup" class="hidden fixed bottom-20 left-5 bg-gray-800 text-white p-4 rounded-xl w-72 max-h-96 overflow-y-auto shadow-2xl z-50">
+        <div class="flex justify-between items-center mb-3">
+            <h4 class="m-0 text-lg font-semibold">📜 Lịch sử tìm kiếm</h4>
+            <button onclick="toggleHistoryPopup()" class="bg-transparent text-white text-3xl leading-none hover:text-gray-300 transition duration-300">&times;</button>
+        </div>
+        <ul id="searchHistory" class="list-none p-0 m-0 space-y-2"></ul>
+        <button onclick="clearSearchHistory()" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg w-full shadow-md transition duration-300">
+            <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            Xóa lịch sử
+        </button>
+    </div>
+
+    <a href="/voice_search" class="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-lg transition duration-300 z-50" title="Tìm kiếm bằng giọng nói">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0 5 5 0 01-5 5 1 1 0 00-1 1v1a1 1 0 102 0v-1.172a2 2 0 00-.586-1.414L10 10.586V13a1 1 0 001 1.93z" clip-rule="evenodd"></path>
+        </svg>
+    </a>
+
+    <div id="cameraModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999] overflow-y-auto transition-all duration-300 ease">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-md text-center mb-20">
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">📷 Quét Part Number</h3>
+            <div class="relative w-full max-h-60 overflow-hidden rounded-lg bg-gray-200 mb-4">
+                <video id="camera" playsinline autoplay class="w-full h-full object-cover"></video>
+                <div id="ocrGuideBox" class="absolute border-2 border-red-500 top-[35%] left-[10%] w-[80%] h-[20%] box-border pointer-events-none rounded-md"></div>
+            </div>
+            <div id="zoomContainer" class="hidden my-4 text-gray-700">
+              🔍 Zoom:
+              <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" class="w-4/5 accent-primary"/>
+            </div>
+            <canvas id="canvas" width="320" height="240" class="hidden"></canvas>
+            <div class="flex flex-wrap justify-center gap-3 mt-4">
+                <button id="btnCapture" class="bg-primary hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
+                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.382 3H8.618a1 1 0 00-.707.293L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                    </svg>
+                    Chụp &amp; Quét
+                </button>
+                <button id="btnApplyOcrFilter" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
+                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Lọc
+                </button>
+                <button id="btnCloseCamera" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
+                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                    Đóng
+                </button>
+            </div>
+            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." class="mt-4 w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-gray-800"/>
+            <p id="ocrStatus" class="text-sm mt-3 mb-5 text-gray-600">Đang chờ thao tác...</p>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 
     <script>
-        // Custom message box function (NEW)
-        function showMessageBox(message) {
-            const msgBox = document.getElementById('custom-message-box');
-            document.getElementById('message-text').innerText = message;
-            msgBox.style.display = 'block';
-        }
-
         // Khởi tạo i18next
         i18next.use(i18nextBrowserLanguageDetector).init({
           fallbackLng: 'vi',
@@ -1132,7 +519,9 @@
                 "total_rows": "Total rows: {{count}} / {{total}}",
                 "developer": "Developer: Nguyễn Văn Đạo",
                 "date_from": "From Date:",
-                "date_to": "To Date:"
+                "date_to": "To Date:",
+                "no_image_found": "No image found for Part Number \"{{partNumber}}\" (ERP: {{erpCode}}).",
+                "no_erp_code": "No image for Part Number \"{{partNumber}}\". (Missing ERP-CODE)"
               }
             },
             ko: {
@@ -1153,9 +542,11 @@
                 "load_more": "더 불러오기",
                 "load_all": "전체 불러오기",
                 "total_rows": "총 행: {{count}} / {{total}}",
-                "developer": "개발자: Nguyễn Văn Đạo",
+                "developer": "개발자: Nguyễn Văn Văn",
                 "date_from": "시작 날짜:",
-                "date_to": "종료 날짜:"
+                "date_to": "종료 날짜:",
+                "no_image_found": "부품 번호 \"{{partNumber}}\" (ERP: {{erpCode}})에 대한 이미지를 찾을 수 없습니다.",
+                "no_erp_code": "부품 번호 \"{{partNumber}}\"에 대한 이미지가 없습니다. (ERP-CODE 누락)"
               }
             },
             vi: {
@@ -1178,7 +569,9 @@
                 "total_rows": "Tổng số dòng: {{count}} / {{total}}",
                 "developer": "Người phát triển: Nguyễn Văn Đạo",
                 "date_from": "Từ ngày:",
-                "date_to": "Đến ngày:"
+                "date_to": "Đến ngày:",
+                "no_image_found": "Ảnh cho Part Number \"{{partNumber}}\" (ERP: {{erpCode}}) không tồn tại.",
+                "no_erp_code": "Không có ảnh cho Part Number \"{{partNumber}}\". (Thiếu ERP-CODE)"
               }
             }
           }
@@ -1226,7 +619,7 @@
 
           reinitializeSelect2('#filter-project', i18next.t("choose_project"), { closeOnSelect: false });
           reinitializeSelect2('#filter-value-1', i18next.t("choose_value"), { closeOnSelect: false });
-          reinitializeSelect2('#filter-value-2', i18next.t("choose_value"), { closeOnSelect: false }); // Changed to closeOnSelect: false
+          reinitializeSelect2('#filter-value-2', i18next.t("choose_value"), {});
           reinitializeSelect2('#filter-value-3', i18next.t("choose_value"), { closeOnSelect: false });
 
           document.getElementById("apply-filters").innerText = i18next.t("apply_filter");
@@ -1278,7 +671,7 @@
         const pageSize = 50;
         let totalData = 0;
         let currentZoom = 1;
-        let allData = null; // This will hold all data for client-side filtering of dropdowns
+        let allData = null;
 
         // --- CÁC BIẾN THAM CHIẾU POPUP ẢNH (KHAI BÁO MỘT LẦN) ---
         const imagePopup = $('#image-popup');
@@ -1288,54 +681,27 @@
         const popupSpinner = imagePopup.find('.image-popup-spinner'); // Spinner mới
 
 
-        // Function to load all data for filter dropdowns
-        function loadAllDataForFilters() {
-          console.log("loadAllDataForFilters: Đang tải toàn bộ dữ liệu cho các bộ lọc...");
-          // This call should fetch ALL data, not just a page
-          $.getJSON('/search?limit=1000000', function(response) {
-            console.log("loadAllDataForFilters: Phản hồi từ server:", response);
+        function loadAllData() {
+          $.getJSON('/search?limit=1000000', function(response) { 
             allData = response.data;
-            totalData = response.total; // Update totalData from this initial full load
-            if (!allData || allData.length === 0) {
-                console.warn("loadAllDataForFilters: allData trống hoặc null. Kiểm tra server.js và endpoint /search.");
-                showMessageBox("Không tải được dữ liệu ban đầu cho bộ lọc. Vui lòng kiểm tra kết nối hoặc server.");
-            } else {
-                console.log("loadAllDataForFilters: allData đã được tải thành công. Số lượng:", allData.length);
-            }
-            // After allData is loaded, update filter dropdowns
-            loadDistinctValuesForProject(); // Populate Project dropdown
-            updateFilterValuesForBlock(1); // Populate first filter dropdown
-            updateCascade(2); // Populate subsequent filter dropdowns
-            applyFilters(true); // Trigger the initial table load after filters are ready
-          }).fail(function(jqXHR, textStatus, errorThrown) {
-              console.error("loadAllDataForFilters: Lỗi khi tải dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
-              showMessageBox("Lỗi mạng hoặc server khi tải dữ liệu ban đầu cho bộ lọc. Vui lòng thử lại.");
+            totalData = response.total;
+            updateFilterValuesForBlock(1);
+            updateCascade(2); 
           });
         }
 
-        // Function to load distinct values for the Project (Customer) dropdown
         function loadDistinctValuesForProject() {
           const selectElem = $('#filter-project');
-          selectElem.empty(); // Clear existing options
-          console.log("loadDistinctValuesForProject: Đang điền giá trị độc lập cho Project (Customer)...");
-          
-          if (!allData) {
-              console.warn("loadDistinctValuesForProject: allData chưa sẵn sàng. Bỏ qua điền Project.");
-              return;
-          }
-
-          let distinctCustomers = Array.from(new Set(
-              allData.map(row => row['Customer'])
-                     .filter(val => val != null && val.toString().trim() !== '')
-                     .map(val => val.toString().trim().toUpperCase())
-          )).sort((a, b) => a.localeCompare(b));
-
-          distinctCustomers.forEach(function(val) {
-            const option = new Option(val, val, false, false);
-            selectElem.append(option);
+          selectElem.empty();
+          $.getJSON('/filters', function(data) {
+            if (data['Customer']) {
+              data['Customer'].forEach(function(val) {
+                const option = new Option(val, val, false, false);
+                selectElem.append(option);
+              });
+            }
+            selectElem.trigger('change');
           });
-          console.log("loadDistinctValuesForProject: Đã điền giá trị cho Project:", distinctCustomers);
-          selectElem.trigger('change'); // Trigger change to update Select2
         }
 
         function handleFilterTypeChange(blockIndex) {
@@ -1346,7 +712,6 @@
             const labelValue = $(`label[for="filter-value-${blockIndex}"]`);
 
             const selectedOptionDataType = columnSelect.find('option:selected').data('type');
-            console.log(`handleFilterTypeChange(${blockIndex}): Cột được chọn: ${columnSelect.val()}, Kiểu dữ liệu: ${selectedOptionDataType}`);
 
             if (selectedOptionDataType === 'date') {
                 valueSelectContainer.hide();
@@ -1363,12 +728,9 @@
 
 
         $(document).ready(function() {
-            console.log("Document Ready: Bắt đầu khởi tạo.");
-            
-            // Load all data for filters first, then trigger initial table load inside its callback
-            loadAllDataForFilters();
-            
-            // Initialize Select2 instances
+            loadAllData();
+            loadDistinctValuesForProject();
+
             $('.value-select').not('#filter-value-2').select2({
                 placeholder: i18next.t("choose_value"),
                 allowClear: true,
@@ -1381,15 +743,12 @@
                 width: '100%',
                 closeOnSelect: false
             });
-            // Changed filter-value-2 to also closeOnSelect: false for consistency if pasting multiple
             $('#filter-value-2').select2({
                 placeholder: i18next.t("choose_value"),
                 allowClear: true,
-                width: '100%',
-                closeOnSelect: false 
+                width: '100%'
             });
 
-            // Initial handling of filter types to show/hide date pickers
             handleFilterTypeChange(1);
             handleFilterTypeChange(2);
             handleFilterTypeChange(3);
@@ -1408,43 +767,35 @@
                 var newValues = currentValues.concat(values);
                 newValues = Array.from(new Set(newValues));
                 $select.val(newValues).trigger('change');
-                console.log("Paste event: Đã dán các giá trị vào filter-value-2:", newValues);
             });
 
             $('#filter-project').on('change', function(){
-                console.log("filter-project changed:", $(this).val());
                 updateFilterValuesForBlock(1);
                 updateCascade(2);
             });
 
             $('#filter-column-1').on('change', function() {
-                console.log("filter-column-1 changed:", $(this).val());
                 handleFilterTypeChange(1);
                 updateFilterValuesForBlock(1);
                 updateCascade(2);
             });
             $('#filter-value-1, #filter-date-start-1, #filter-date-end-1').on('change', function() {
-                console.log("filter-value-1 or date changed.");
                 updateCascade(2);
             });
             $('#filter-column-2').on('change', function() {
-                console.log("filter-column-2 changed:", $(this).val());
                 handleFilterTypeChange(2);
                 updateFilterValuesForBlock(2);
                 updateCascade(3);
             });
             $('#filter-value-2, #filter-date-start-2, #filter-date-end-2').on('change', function() {
-                console.log("filter-value-2 or date changed.");
                 updateCascade(3);
             });
             $('#filter-column-3').on('change', function() {
-                console.log("filter-column-3 changed:", $(this).val());
                 handleFilterTypeChange(3);
                 updateFilterValuesForBlock(3);
             });
 
             $('#apply-filters').on('click', function() {
-                console.log("Apply Filters clicked.");
                 const col1 = $('#filter-column-1').val();
                 const val1 = $('#filter-value-1').val();
                 if (col1 === 'Part Number' && val1 && val1.length > 0) {
@@ -1453,7 +804,6 @@
                 applyFilters(true);
             });
             $('#clear-filters').on('click', function() {
-                console.log("Clear Filters clicked.");
                 $('.value-select').val(null).trigger('change');
                 $('#filter-value-2').val(null).trigger('change');
                 $('.date-select-start').val(''); 
@@ -1464,28 +814,23 @@
                 applyFilters(true);
             });
             $('#load-more').on('click', function() {
-                console.log("Load More clicked. Current offset:", currentOffset, "Total data:", totalData);
                 let loadMoreFilters = { ...currentFilters, offset: currentOffset, limit: pageSize };
                 delete loadMoreFilters.limit; 
                 
                 if (currentOffset < totalData) {
                     showSpinner();
                     $.getJSON(`/search?${$.param(loadMoreFilters)}`, function(response) {
-                        console.log("Load More: Phản hồi từ server:", response);
                         currentOffset += response.data.length; 
                         updateTable(response.data, false); 
-                    }).fail(function(jqXHR, textStatus, errorThrown) {
-                        console.error("Load More: Lỗi khi tải thêm dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
-                        showMessageBox("Lỗi mạng hoặc server khi tải thêm dữ liệu.");
                     }).always(function() {
                         hideSpinner();
                     });
                 } else {
-                    showMessageBox("Đã tải hết dữ liệu!"); 
+                    // Using custom modal instead of alert
+                    showCustomMessage("Đã tải hết dữ liệu!", "info");
                 }
             });
             $('#load-all').on('click', function() {
-                console.log("Load All clicked.");
                 let queryParams = {};
                 const sheetValues = $('#filter-project').val();
                 if (sheetValues && sheetValues.length > 0) {
@@ -1512,19 +857,14 @@
                 queryParams.offset = 0;
                 showSpinner();
                 $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
-                  console.log("Load All: Phản hồi từ server:", response);
                   currentOffset = response.total; 
                   updateTable(response.data, true); 
-                }).fail(function(jqXHR, textStatus, errorThrown) {
-                    console.error("Load All: Lỗi khi tải toàn bộ dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
-                    showMessageBox("Lỗi mạng hoặc server khi tải toàn bộ dữ liệu.");
                 }).always(function() {
                     hideSpinner();
                 });
             });
-            $('#download-excel').on('click', function() { console.log("Download Excel clicked."); downloadExcel(); });
+            $('#download-excel').on('click', function() { downloadExcel(); });
             $('#export-all').on('click', function() {
-                console.log("Export All clicked.");
                 let queryParams = {};
                 const sheetValues = $('#filter-project').val();
                 if (sheetValues && sheetValues.length > 0) {
@@ -1551,12 +891,10 @@
                 window.location.href = `/export?${queryString}`;
             });
             $('#zoom-in').on('click', function() {
-                console.log("Zoom In clicked.");
                 currentZoom += 0.1;
                 $('#results-table').css('zoom', currentZoom);
             });
             $('#zoom-out').on('click', function() {
-                console.log("Zoom Out clicked.");
                 if (currentZoom > 0.5) {
                   currentZoom -= 0.1;
                   $('#results-table').css('zoom', currentZoom);
@@ -1565,144 +903,80 @@
             try {
                 if (typeof $.fn.colResizable === 'function') {
                   $('#results-table').colResizable({ liveDrag: true });
-                  console.log("colResizable đã được khởi tạo.");
                 }
             } catch(e) {
-                console.log("colResizable không khả dụng:", e);
+                console.log("colResizable not available:", e);
             }
 
             // --- CÁC SỰ KIỆN CHO POPUP ẢNH (GẮN MỘT LẦN) ---
             popupCloseButton.off('click.closepopup').on('click.closepopup', function() {
                 closeImagePopup();
-                console.log("Popup ảnh đã đóng.");
             });
 
             $(document).off('mouseup.imagePopupOutside').on('mouseup.imagePopupOutside', function(e) {
                 if (imagePopup.is(':visible') && !imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
                     closeImagePopup();
-                    console.log("Click bên ngoài popup ảnh, đã đóng.");
                 }
             });
             
-            popupImg.off('load.zoom error.zoom').on('click.zoom', function() { // Added .zoom namespace
+            popupImg.off('click.zoom').on('click.zoom', function() {
                 const $thisImage = $(this);
                 if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
                     imagePopup.toggleClass('zoomed');
-                    console.log("Popup ảnh: Đã chuyển đổi trạng thái zoom.");
                     
-                    popupSpinner.show(); 
-                    $thisImage.hide(); 
-                    popupText.hide(); 
+                    popupSpinner.show(); // Hiển thị spinner
+                    $thisImage.hide(); // Ẩn ảnh hiện tại trong khi tải ảnh mới
+                    popupText.hide(); // Ẩn text (nếu có)
 
                     if (imagePopup.hasClass('zoomed')) {
+                        // Popup được phóng to: Tải ảnh chất lượng cao
                         const highQualityUrl = imagePopup.data('high-quality-url');
                         if (highQualityUrl) {
                             $thisImage.attr('src', highQualityUrl);
-                            console.log("Popup ảnh: Đang tải ảnh chất lượng cao:", highQualityUrl);
                         } else {
-                            console.warn("Popup ảnh: Không tìm thấy URL ảnh chất lượng cao.");
-                            popupText.text('Lỗi: Không có URL ảnh lớn.').show();
+                            console.warn("Không tìm thấy URL ảnh chất lượng cao.");
+                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
                             popupSpinner.hide();
+                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
                         }
                     } else {
+                        // Popup bị thu nhỏ: Tải lại ảnh thumbnail
                         const thumbnailUrl = imagePopup.data('thumbnail-url');
                         if (thumbnailUrl) {
                             $thisImage.attr('src', thumbnailUrl);
-                            console.log("Popup ảnh: Đang tải ảnh thumbnail:", thumbnailUrl);
                         } else {
-                            console.warn("Popup ảnh: Không tìm thấy URL ảnh thumbnail.");
-                            popupText.text('Lỗi: Không có URL ảnh thumbnail.').show();
+                            console.warn("Không tìm thấy URL ảnh thumbnail.");
+                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
                             popupSpinner.hide();
+                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
                         }
                     }
-                }
-            });
-            // Re-attach load/error handlers for popupImg
-            popupImg.on('load', function() {
-                const expectedErp = imagePopup.data('current-erp');
-                if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
-                    popupSpinner.hide();
-                    $(this).show();
-                    popupText.hide().text('');
-                    if (imagePopup.is(':hidden')) {
-                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                    }
-                    console.log("Popup ảnh: Ảnh đã tải xong.");
-                }
-            });
-
-            popupImg.on('error', function() {
-                const expectedErp = imagePopup.data('current-erp');
-                const pn = imagePopup.data('current-part-number') || "N/A";
-                if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
-                    popupSpinner.hide();
-                    $(this).hide();
-                    popupText.text(`Ảnh cho Part Number "${pn}" (ERP: ${expectedErp}) không tồn tại.`).show();
-                    if (imagePopup.is(':hidden')) {
-                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                    }
-                    console.warn("Popup ảnh: Lỗi tải ảnh. ERP:", expectedErp);
                 }
             });
             // Kết thúc các sự kiện cho popup ảnh
 
-            // NEW: Event listener for copying Part Number from the main table
-            $(document).on('click', '.copyable-table-part-number', function(e) {
-                e.stopPropagation(); // Prevent the parent <td>'s click event (for image popup)
-                const partNumberToCopy = $(this).data('part-number');
-                console.log("Copy Part Number clicked:", partNumberToCopy);
-
-                navigator.clipboard.writeText(partNumberToCopy).then(() => {
-                    showMessageBox('Đã sao chép: ' + partNumberToCopy);
-                    console.log('Đã sao chép thành công: ' + partNumberToCopy);
-                }).catch(err => {
-                    console.error('Không thể sao chép văn bản:', err);
-                    const textArea = document.createElement("textarea");
-                    textArea.value = partNumberToCopy;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        showMessageBox('Đã sao chép (fallback): ' + partNumberToCopy);
-                        console.log('Đã sao chép thành công (fallback): ' + partNumberToCopy);
-                    } catch (err) {
-                        console.error('Không thể sao chép văn bản bằng fallback:', err);
-                        showMessageBox('Không thể sao chép. Vui lòng chọn và sao chép thủ công: ' + partNumberToCopy);
-                    }
-                    document.body.removeChild(textArea);
-                });
-            });
-
-            // applyFilters(true); // Initial load is now handled after loadAllDataForFilters
-            console.log("Document Ready: Đã hoàn tất khởi tạo.");
+            applyFilters(true); 
         });
 
         function updateFilterValuesForBlock(blockIndex) {
             const columnSelect = $('#filter-column-' + blockIndex);
             const selectedOptionDataType = columnSelect.find('option:selected').data('type');
 
-            console.log(`updateFilterValuesForBlock(${blockIndex}): Đang cập nhật giá trị lọc cho khối ${blockIndex}. allData hiện tại:`, allData);
-
             if (selectedOptionDataType === 'date') {
-                console.log(`updateFilterValuesForBlock(${blockIndex}): Cột là kiểu ngày, bỏ qua cập nhật dropdown.`);
                 return;
             }
             
             if (!allData) {
-                console.warn(`updateFilterValuesForBlock(${blockIndex}): allData chưa sẵn sàng hoặc trống. Đang thử lại sau 100ms.`);
                 setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
                 return;
             }
             let filteredData = allData.slice();
-            console.log(`updateFilterValuesForBlock(${blockIndex}): Dữ liệu ban đầu để lọc:`, filteredData.length, "hàng.");
 
-            // Apply filters from previous blocks (including Project)
             const projectValues = $('#filter-project').val();
             if (projectValues && projectValues.length > 0) {
                 filteredData = filteredData.filter(row => 
                     projectValues.some(s => row['Customer'] && row['Customer'].toString().toLowerCase().includes(s.toLowerCase()))
                 );
-                console.log(`updateFilterValuesForBlock(${blockIndex}): Đã lọc theo Project. Còn lại:`, filteredData.length, "hàng.");
             }
 
             for (let i = 1; i < blockIndex; i++) {
@@ -1727,7 +1001,6 @@
                             }
                             return match;
                         });
-                        console.log(`updateFilterValuesForBlock(${blockIndex}): Đã lọc theo ngày cho khối ${i}. Còn lại:`, filteredData.length, "hàng.");
                     }
                 } else {
                     const valuesPrev = $('#filter-value-' + i).val();
@@ -1735,7 +1008,6 @@
                         filteredData = filteredData.filter(row =>
                             valuesPrev.some(v => row[colPrev] && row[colPrev].toString().toLowerCase().includes(v.toLowerCase()))
                         );
-                        console.log(`updateFilterValuesForBlock(${blockIndex}): Đã lọc theo giá trị cho khối ${i}. Còn lại:`, filteredData.length, "hàng.");
                     }
                 }
             }
@@ -1755,7 +1027,6 @@
 
             let distinctValues = Array.from(new Set(valuesInColumn));
             distinctValues.sort((a, b) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'}));
-            console.log(`updateFilterValuesForBlock(${blockIndex}): Các giá trị độc lập cho cột '${dependentColumn}':`, distinctValues);
 
             const selectElem = $('#filter-value-' + blockIndex);
             const currentValue = selectElem.val();
@@ -1768,22 +1039,17 @@
             if (currentValue) {
                 const validCurrentValues = currentValue.filter(v => distinctValues.includes(v));
                 selectElem.val(validCurrentValues);
-                console.log(`updateFilterValuesForBlock(${blockIndex}): Đã giữ lại các giá trị hiện tại hợp lệ:`, validCurrentValues);
             }
             selectElem.trigger('change.select2');
-            console.log(`updateFilterValuesForBlock(${blockIndex}): Đã hoàn tất cập nhật dropdown.`);
         }
 
         function updateCascade(startBlock) {
-            console.log(`updateCascade: Bắt đầu cập nhật cascading từ khối ${startBlock}.`);
-            for (let i = startBlock; i <= 3; i++) {
-                updateFilterValuesForBlock(i);
-            }
-            console.log(`updateCascade: Đã hoàn tất cập nhật cascading.`);
+          for (let i = startBlock; i <= 3; i++) {
+            updateFilterValuesForBlock(i);
+          }
         }
 
         function applyFilters(reset = true) {
-            console.log(`applyFilters: Đang áp dụng bộ lọc. Reset: ${reset}.`);
             if (reset) {
                 currentOffset = 0;
             }
@@ -1812,21 +1078,12 @@
             }
             
             currentFilters = {...queryParams}; 
-            console.log("applyFilters: Tham số truy vấn gửi đến server:", queryParams);
             
             showSpinner();
             $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
-                console.log("applyFilters: Phản hồi từ server:", response);
                 totalData = response.total;
                 currentOffset = reset ? response.data.length : currentOffset + response.data.length;
                 updateTable(response.data, reset);
-                if (!response.data || response.data.length === 0) {
-                    showMessageBox("Không tìm thấy dữ liệu phù hợp với bộ lọc hiện tại.");
-                    console.warn("applyFilters: Dữ liệu trả về trống.");
-                }
-            }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error("applyFilters: Lỗi khi tải dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
-                showMessageBox("Lỗi mạng hoặc server khi áp dụng bộ lọc. Vui lòng kiểm tra kết nối.");
             }).always(function() {
                 hideSpinner();
             });
@@ -1842,36 +1099,26 @@
             imagePopup.removeData('current-part-number');
             imagePopup.removeData('thumbnail-url');
             imagePopup.removeData('high-quality-url');
-            console.log("closeImagePopup: Popup ảnh đã đóng và reset.");
         }
 
 function updateTable(data, reset) {
-    console.log("updateTable: Đang cập nhật bảng. Reset:", reset, "Dữ liệu nhận được:", data);
     const tbody = $('#results-table tbody');
     if (reset) tbody.empty();
 
-    if (!data || data.length === 0) {
-        console.log("updateTable: Không có dữ liệu để hiển thị.");
-        tbody.append('<tr><td colspan="31" style="text-align:center; padding:20px;">Không có dữ liệu để hiển thị.</td></tr>');
-    }
-
     data.forEach(function(row) {
+        const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
         const tr = $('<tr>');
         const partNumberValue = row['Part Number'] || 'N/A'; 
 
-        // Cột "No." - sẽ được cập nhật lại sau khi sắp xếp
-        tr.append(`<td class="sticky-col-1"></td>`); 
+        tr.append(`<td class="sticky-col-1 py-2 px-3 text-sm text-center">${serial}</td>`);
         
-        // Cột "Part Number" với khả năng sao chép
-        const partNumberCell = $(`<td class="sticky-col-2"><span class="copyable-table-part-number" data-part-number="${partNumberValue}">${partNumberValue}</span></td>`);
-        partNumberCell.css('cursor', 'pointer'); // Giữ nguyên style con trỏ
+        const partNumberCell = $(`<td class="py-2 px-3 text-sm text-center">${partNumberValue}</td>`).addClass('sticky-col-2');
+        partNumberCell.css('cursor', 'pointer');
 
-        // Gắn sự kiện click cho ô Part Number để mở popup ảnh
+        // --- SỬA ĐỔI SỰ KIỆN CLICK CHO partNumberCell ---
         partNumberCell.on('click', function(e) {
-            // e.stopPropagation() is handled by the span click handler if it originates from the span
             const currentErpCode = row['ERP-CODE']?.trim().toUpperCase();
             const currentPartNumberValueFromRow = row['Part Number'] || 'N/A'; // Lấy trực tiếp từ row
-            console.log("Part Number cell clicked. ERP:", currentErpCode, "PN:", currentPartNumberValueFromRow);
 
             // Reset trạng thái popup
             imagePopup.removeClass('zoomed');
@@ -1892,7 +1139,6 @@ function updateTable(data, reset) {
 
                 popupSpinner.show(); // Hiển thị spinner trước khi tải
                 popupImg.attr('src', thumbnailUrl); // Bắt đầu tải ảnh thumbnail
-                console.log("Đang tải ảnh thumbnail:", thumbnailUrl);
 
                 // Gắn lại sự kiện load và error
                 popupImg.on('load', function() {
@@ -1904,7 +1150,6 @@ function updateTable(data, reset) {
                         if (imagePopup.is(':hidden')) {
                             imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                         }
-                        console.log("Ảnh thumbnail đã tải xong.");
                     }
                 });
 
@@ -1914,11 +1159,10 @@ function updateTable(data, reset) {
                     if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
                         popupSpinner.hide(); // Ẩn spinner khi có lỗi
                         $(this).hide();
-                        popupText.text(`Ảnh cho Part Number "${pn}" (ERP: ${expectedErp}) không tồn tại.`).show();
+                        popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
                         if (imagePopup.is(':hidden')) {
                             imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                         }
-                        console.warn("Lỗi tải ảnh. ERP:", expectedErp);
                     }
                 });
                 
@@ -1929,65 +1173,57 @@ function updateTable(data, reset) {
             } else { // Không có ERP-CODE
                 popupSpinner.hide();
                 popupImg.hide();
-                popupText.text(`Không có ảnh cho Part Number "${currentPartNumberValueFromRow}". (Thiếu ERP-CODE)`).show();
+                popupText.text(i18next.t('no_erp_code', { partNumber: currentPartNumberValueFromRow })).show();
                 imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                console.log("Không có ERP-CODE, không thể tải ảnh.");
             }
         });
+        // --- KẾT THÚC SỬA ĐỔI SỰ KIỆN CLICK partNumberCell ---
         
         tr.append(partNumberCell);
 
-        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
-        tr.append(`<td>${row['Approval Status'] || ''}</td>`);
-        tr.append(`<td>${row['Customer'] || ''}</td>`);
-        tr.append(`<td>${row['Commodity'] || ''}</td>`);
-        tr.append(`<td>${row['Production Status'] || ''}</td>`);
-        tr.append(`<td>${row['Part Pictures'] || ''}</td>`);
-        tr.append(`<td>${row['Packaging Pictures'] || ''}</td>`);
+        tr.append(`<td class="sticky-col-3 py-2 px-3 text-sm text-center">${row['REV'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Approval Status'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Customer'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Commodity'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Production Status'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Part Pictures'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Packaging Pictures'] || ''}</td>`);
 
-        tr.append(`<td>${row['Critical'] || ''}</td>`);
-        tr.append(`<td>${row['CE'] || ''}</td>`);
-        tr.append(`<td>${row['PO Number'] || ''}</td>`);
-        tr.append(`<td>${row['Description'] || ''}</td>`);
-        tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); 
-        tr.append(`<td>${row['Note Number'] || ''}</td>`);
-        tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
-        tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
-        tr.append(`<td>${row['Requirements'] || ''}</td>`);
-        tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
-        tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
-        tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
-        tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
-        tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
-        tr.append(`<td>${row['COC'] || ''}</td>`);
-        tr.append(`<td>${row['BOM'] || ''}</td>`);
-        tr.append(`<td>${row['Mill'] || ''}</td>`);
-        tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
-        tr.append(`<td>${row['Remark 1'] || ''}</td>`);
-        tr.append(`<td>${row['Remark 2'] || ''}</td>`);
-        tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
-        tr.append(`<td>${row['Reject comments'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Critical'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['CE'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['PO Number'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Description'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['ERP-CODE'] || ''}</td>`); 
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Note Number'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${formatExcelDate(row['PO received date'])}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${formatExcelDate(row['Customer need date'])}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Requirements'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['FAIR Cover sheet'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Bubble Drawings'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Datasheet form'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['FAIR Data'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['COC'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['BOM'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Mill'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Test reports / evidences'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Remark 1'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Remark 2'] || ''}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${formatExcelDate(row['Submit date'])}</td>`);
+        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Reject comments'] || ''}</td>`);
 
         tbody.append(tr);
     });
 
-    // Re-calculate and update "No." column after all rows are appended/updated
-    tbody.children('tr').each(function(index) {
-        $(this).find('td').eq(0).text(index + 1); // Update the first column (No.)
-    });
-    console.log("updateTable: Đã cập nhật số thứ tự cho các hàng.");
-
     var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
     $('#results-count').text(totalText);
-    console.log("updateTable: Đã cập nhật tổng số dòng:", totalText);
 
     try {
         if ($.fn.colResizable) {
           $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
-          console.log("updateTable: colResizable đã được áp dụng.");
         }
     } catch (e) {
-        console.log("colResizable không khả dụng trong updateTable:", e);
+        console.log("colResizable not available in updateTable:", e);
     }
 }
 
@@ -1996,7 +1232,7 @@ function updateTable(data, reset) {
             const table = document.getElementById('results-table');
             const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
             const rows = Array.from(table.querySelectorAll('tbody tr'));
-            const dateColumns = ['PO received date', 'Customer need date', 'Submit date']; // Not used in this function, but kept for context
+            const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
 
             const data = rows.map(tr => {
                 const cells = Array.from(tr.querySelectorAll('td'));
@@ -2008,13 +1244,11 @@ function updateTable(data, reset) {
                 });
                 return rowObj;
             });
-            console.log("downloadExcel: Dữ liệu để xuất Excel:", data);
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(data);
             XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
             XLSX.writeFile(wb, 'ketqua.xlsx');
-            console.log("downloadExcel: Đã tạo và tải file Excel 'ketqua.xlsx'.");
         }
 
         function getColumnIndex(columnName) {
@@ -2025,17 +1259,12 @@ function updateTable(data, reset) {
               return false;
             }
           });
-          console.log(`getColumnIndex: Cột '${columnName}' có chỉ mục: ${index}`);
           return index;
         }
         function sortTable(column, order) {
-          console.log(`sortTable: Đang sắp xếp cột '${column}' theo thứ tự '${order}'.`);
           let rows = $('#results-table tbody tr').get();
           let colIndex = getColumnIndex(column);
-          if (colIndex === -1) {
-              console.warn(`sortTable: Không tìm thấy chỉ mục cho cột '${column}'.`);
-              return;
-          }
+          if (colIndex === -1) return;
 
           const isDateColumn = ['PO received date', 'Customer need date', 'Submit date'].includes(column);
 
@@ -2052,28 +1281,16 @@ function updateTable(data, reset) {
             }
             return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
           });
-          
-          // Re-append sorted rows and update "No." column
-          const tbody = $('#results-table tbody');
-          tbody.empty(); // Clear existing rows
           $.each(rows, function(index, row) {
-            tbody.append(row);
-            // Update the "No." column for the re-appended row
-            $(row).find('td').eq(0).text(index + 1); 
+            $('#results-table tbody').append(row);
           });
-          console.log("sortTable: Đã sắp xếp và cập nhật số thứ tự.");
         }
         $(document).on('click', '#results-table th', function () {
             const col = $(this).data('column');
-            console.log("Header clicked. Column:", col);
-            if (!col || col === 'No') { // Prevent sorting by "No." column
-                console.log("Không sắp xếp cột 'No' hoặc cột không có data-column.");
-                return; 
-            }
+            if (!col) return;
 
             const currentOrder = $(this).data('order') || 'asc';
             const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-            console.log(`Sắp xếp: Cột '${col}', Thứ tự cũ: '${currentOrder}', Thứ tự mới: '${newOrder}'.`);
 
             $('#results-table th').each(function () {
                 $(this).data('order', null);
@@ -2088,28 +1305,29 @@ function updateTable(data, reset) {
             sortTable(col, newOrder);
         });
     </script>
-    <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999; overflow-y:auto; transition: all 0.3s ease;">
-        <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center; margin-bottom: 10vh;">
-            <h3>📷 Quét Part Number</h3>
-            <div style="position: relative; width: 100%; max-height:240px;">
-                <video id="camera" playsinline autoplay style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
-                <div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div>
-            </div>
-            <div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
-              🔍 Zoom:
-              <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" style="width:80%;"/>
-            </div>
-            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
-                <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">📸 Chụp &amp; Quét</button>
-                <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">✅ Lọc</button>
-                <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%;">❌ Đóng</button>
-            </div>
-            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;"/>
-            <p id="ocrStatus" style="font-size:14px; margin-top:10px; margin-bottom: 20px; display: block;">Đang chờ thao tác...</p>
-        </div>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <script>
+    // Custom message box function
+    function showCustomMessage(message, type = 'info') {
+        const modalId = 'customMessageModal';
+        let modal = document.getElementById(modalId);
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p id="customMessageText" class="text-lg font-semibold mb-4"></p>
+                    <button class="bg-primary hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Đóng</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('button').addEventListener('click', () => modal.style.display = 'none');
+        }
+        modal.querySelector('#customMessageText').textContent = message;
+        modal.style.display = 'flex';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const btnScan = document.getElementById('btnScanCamera');
       const modal = document.getElementById('cameraModal');
@@ -2130,7 +1348,6 @@ function updateTable(data, reset) {
           video.srcObject = null;
         }
         clearInterval(intervalId);
-        console.log("Camera: Đã dừng stream.");
       }
 
       function cropCenterAndOCR(callback) {
@@ -2146,17 +1363,10 @@ function updateTable(data, reset) {
         tempCanvas.width = cropWidth;
         tempCanvas.height = cropHeight;
         tempCanvas.getContext("2d").putImageData(imageData, 0, 0);
-        console.log("Camera: Đã chụp và cắt ảnh để OCR.");
 
         Tesseract.recognize(tempCanvas.toDataURL(), 'eng')
-          .then(({ data: { text } }) => {
-            console.log("OCR: Kết quả nhận diện:", text);
-            callback(text);
-          })
-          .catch((err) => {
-            statusP.textContent = '❌ Lỗi khi nhận diện.';
-            console.error("OCR: Lỗi nhận diện:", err);
-          });
+          .then(({ data: { text } }) => callback(text))
+          .catch(() => statusP.textContent = '❌ Lỗi khi nhận diện.');
       }
 
       btnScan.addEventListener('click', async () => {
@@ -2164,7 +1374,6 @@ function updateTable(data, reset) {
         statusP.textContent = '🔄 Đang khởi động camera...';
         inputOCR.value = '';
         document.getElementById("ocrInput").style.display = 'block';
-        console.log("Camera: Đang yêu cầu truy cập camera.");
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
           video.srcObject = stream;
@@ -2180,73 +1389,50 @@ function updateTable(data, reset) {
             zoomSlider.value = capabilities.zoom.min;
             zoomSlider.addEventListener("input", () => {
               track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
-              console.log("Camera: Đã thay đổi zoom:", zoomSlider.value);
             });
-            console.log("Camera: Chức năng zoom khả dụng.");
           }
           statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét" hoặc giữ chế độ tự động';
-          console.log("Camera: Đã kết nối thành công.");
         } catch (err) {
           statusP.textContent = '❌ Không thể truy cập camera.';
-          console.error("Camera: Lỗi truy cập camera:", err);
         }
       });
 
       btnCapture.addEventListener('click', () => {
         statusP.textContent = '🔍 Đang quét...';
-        console.log("Camera: Nút 'Chụp & Quét' đã được nhấn.");
         cropCenterAndOCR((text) => {
           const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
-          if (lines.length === 0) {
-            statusP.textContent = '❌ Không nhận được dòng nào.';
-            console.warn("OCR: Không nhận diện được văn bản.");
-            return;
-          }
+          if (lines.length === 0) return statusP.textContent = '❌ Không nhận được dòng nào.';
 
           if (lines.length === 1) {
             inputOCR.value = lines[0];
             statusP.textContent = '✅ Đã nhận 1 dòng.';
-            console.log("OCR: Đã nhận diện 1 dòng:", lines[0]);
           } else {
-            const selectorId = 'ocrLineSelector';
-            // Remove existing selector if any
-            document.getElementById(selectorId)?.remove();
-
             const selectHTML = `
-              <select id="${selectorId}" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
+              <select id="ocrLineSelector" class="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-gray-800 mt-3">
                 ${lines.map(l => `<option>${l}</option>`).join('')}
               </select>
             `;
             inputOCR.insertAdjacentHTML('beforebegin', selectHTML);
-            const selector = document.getElementById(selectorId);
+            const selector = document.getElementById('ocrLineSelector');
             selector.addEventListener('change', () => {
               inputOCR.value = selector.value;
-              console.log("OCR: Đã chọn dòng mới:", selector.value);
             });
             inputOCR.value = lines[0];
             statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Đã chọn dòng đầu tiên, có thể chỉnh sửa.`;
-            console.log("OCR: Đã nhận diện nhiều dòng. Dòng đầu tiên:", lines[0]);
           }
         });
       });
 
       btnApply.addEventListener('click', () => {
         const part = inputOCR.value.trim();
-        console.log("Camera: Nút 'Lọc' đã được nhấn. Part Number:", part);
         if (!part) {
-            showMessageBox('Bạn chưa nhập Part Number!'); 
-            console.warn("Camera: Part Number trống, không thể lọc.");
+            showCustomMessage('Bạn chưa nhập Part Number!', 'warning');
             return;
         }
         $('#filter-column-1').val('Part Number').trigger('change'); 
         setTimeout(() => { 
             $('#filter-value-1').val([part]).trigger('change'); 
-            if (typeof applyFilters === 'function') {
-                applyFilters(true);
-                console.log("Camera: Đã gọi applyFilters.");
-            } else {
-                console.warn("Camera: applyFilters function is not defined.");
-            }
+            if (typeof applyFilters === 'function') applyFilters(true);
             statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
             saveSearchHistory(part);
             setTimeout(() => btnClose.click(), 1500);
@@ -2259,7 +1445,6 @@ function updateTable(data, reset) {
         stopStream();
         document.getElementById("ocrLineSelector")?.remove();
         inputOCR.value = '';
-        console.log("Camera: Modal đã đóng.");
       });
     });
     </script>
@@ -2309,16 +1494,13 @@ function updateTable(data, reset) {
     <script>
     function showSpinner() {
       $('#loading-spinner').show();
-      console.log("Spinner: Hiển thị.");
     }
     function hideSpinner() {
       $('#loading-spinner').hide();
-      console.log("Spinner: Ẩn.");
     }
 
     $('#quick-search').on('input', function () {
       const keyword = $(this).val().toLowerCase();
-      console.log("Quick Search: Từ khóa:", keyword);
       $('#results-table tbody tr').each(function () {
         const partNumber = $(this).find('td:nth-child(2)').text().toLowerCase(); 
         $(this).toggle(partNumber.includes(keyword));
@@ -2344,11 +1526,9 @@ function updateTable(data, reset) {
           topContainer.classList.remove('hide-top-container');
           tableContainer.classList.remove('show-table-only');
           quickSearch.style.display = 'none';
-          console.log("Responsive UI: Đã tập trung vào input/select trong top-container. Ẩn quick search.");
         } else if (target === quickSearch) {
           topContainer.classList.add('hide-top-container');
           tableContainer.classList.add('show-table-only');
-          console.log("Responsive UI: Đã tập trung vào quick search. Ẩn top-container.");
         }
       });
 
@@ -2360,12 +1540,10 @@ function updateTable(data, reset) {
             if (wasEditingTop) {
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'none';
-              console.log("Responsive UI: Đã thoát khỏi input/select trong top-container. Giữ quick search ẩn.");
             } else {
               topContainer.classList.remove('full-top-container', 'hide-top-container');
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'block';
-              console.log("Responsive UI: Đã hiển thị lại top-container và quick search.");
             }
           }
         }, 300);
@@ -2376,27 +1554,12 @@ function updateTable(data, reset) {
         topContainer.classList.remove('full-top-container', 'hide-top-container');
         quickSearch.style.display = 'block';
         tableContainer.classList.remove('show-table-only');
-        console.log("Responsive UI: Đã hiển thị lại bảng và quick search.");
       }
 
       applyBtn?.addEventListener('click', revealTableAndSearch);
       clearBtn?.addEventListener('click', revealTableAndSearch);
     });
     </script>
-    <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999;" title="Lịch sử tìm kiếm">🕘</button>
-    <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h4 style="margin: 0;">📜 Lịch sử tìm kiếm</h4>
-            <button onclick="toggleHistoryPopup()" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer;">×</button>
-        </div>
-        <ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
-        <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%;">🗑️ Xóa lịch sử</button>
-    </div>
-
-    <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999;" title="Tìm kiếm bằng giọng nói">
-      🎤
-    </a>
-
     <script>
       function saveSearchHistory(partNumber) {
         if (!partNumber) return;
@@ -2410,7 +1573,6 @@ function updateTable(data, reset) {
         if (history.length > 30) history.pop();
         localStorage.setItem("partSearchHistory", JSON.stringify(history));
         renderSearchHistory();
-        console.log("Lịch sử tìm kiếm: Đã lưu Part Number:", partNumber);
       }
 
       function renderSearchHistory() {
@@ -2418,40 +1580,33 @@ function updateTable(data, reset) {
         const list = document.getElementById("searchHistory");
         if (!list) return;
         list.innerHTML = "";
-        if (history.length === 0) {
-            list.innerHTML = '<li style="text-align: center; color: #aaa;">Chưa có lịch sử tra cứu.</li>';
-        }
         history.forEach(item => {
           const li = document.createElement("li");
-          li.style.marginBottom = "6px";
-          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
+          li.className = "mb-2";
+          li.innerHTML = `
+            <button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" 
+                    title="Click để tra cứu và sao chép" 
+                    class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg w-full text-left whitespace-nowrap overflow-hidden text-ellipsis shadow-sm transition duration-300">
+                ${item.partNumber}
+            </button> 
+            <small class="text-gray-400 text-xs block mt-1">(${item.time.split(',')[0]})</small>
+          `;
           list.appendChild(li);
         });
-        console.log("Lịch sử tìm kiếm: Đã render lại lịch sử.");
       }
 
       function quickSearchFromHistory(partNumber) {
-        console.log("Lịch sử tìm kiếm: Đang tra cứu nhanh từ lịch sử:", partNumber);
         $('#filter-column-1').val('Part Number').trigger('change'); 
         setTimeout(() => {
             $('#filter-value-1').val([partNumber]).trigger('change');
             applyFilters(true);
             toggleHistoryPopup(); 
-            navigator.clipboard.writeText(partNumber).then(() => {
-                showMessageBox('Đã sao chép từ lịch sử: ' + partNumber);
-                console.log('Lịch sử tìm kiếm: Đã sao chép từ lịch sử thành công: ' + partNumber);
-            }).catch(err => {
-                console.error('Lịch sử tìm kiếm: Không thể sao chép từ lịch sử:', err);
-                showMessageBox('Không thể sao chép từ lịch sử. Vui lòng sao chép thủ công: ' + partNumber);
-            });
         }, 50);
       }
 
       function clearSearchHistory() {
         localStorage.removeItem("partSearchHistory");
         renderSearchHistory();
-        showMessageBox('Đã xóa lịch sử tra cứu.'); 
-        console.log("Lịch sử tìm kiếm: Đã xóa toàn bộ lịch sử.");
       }
       
       function toggleHistoryPopup() {
@@ -2462,7 +1617,6 @@ function updateTable(data, reset) {
             if (!isOpen) {
               renderSearchHistory();
             }
-            console.log("Lịch sử tìm kiếm: Đã bật/tắt popup lịch sử. Trạng thái:", popup.style.display);
           }
       }
       window.addEventListener("DOMContentLoaded", renderSearchHistory);
