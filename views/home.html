@@ -13,11 +13,12 @@
                         sans: ['Inter', 'Arial', 'sans-serif'],
                     },
                     colors: {
-                        primary: '#4F46E5', // Indigo
-                        secondary: '#10B981', // Emerald
-                        accent: '#F59E0B', // Amber
-                        dark: '#1F2937', // Gray 800
-                        light: '#F9FAFB', // Gray 50
+                        primary: '#3B82F6', // Blue 500
+                        secondary: '#10B981', // Emerald 500
+                        accent: '#F59E0B', // Amber 500
+                        neutral: '#F3F4F6', // Gray 100
+                        textDark: '#1F2937', // Gray 800
+                        textLight: '#6B7280', // Gray 500
                     }
                 }
             }
@@ -29,31 +30,31 @@
     <style>
         /* Custom CSS for Select2 to match Tailwind aesthetics */
         .select2-container--default .select2-selection--multiple {
-            @apply bg-white border border-gray-300 rounded-md shadow-sm min-h-[38px] text-gray-700;
+            @apply bg-white border border-gray-300 rounded-lg shadow-sm min-h-[42px] text-textDark;
         }
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            @apply bg-indigo-100 text-indigo-800 text-sm font-medium px-2 py-1 rounded-full flex items-center;
+            @apply bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full flex items-center;
         }
         .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-            @apply text-indigo-600 hover:text-indigo-900 ml-1;
+            @apply text-blue-600 hover:text-blue-900 ml-1;
         }
         .select2-container--default .select2-selection--multiple .select2-selection__rendered {
             @apply p-1;
         }
         .select2-container--default .select2-selection--single {
-            @apply bg-white border border-gray-300 rounded-md shadow-sm h-[38px] flex items-center;
+            @apply bg-white border border-gray-300 rounded-lg shadow-sm h-[42px] flex items-center;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            @apply text-gray-700 leading-none px-3;
+            @apply text-textDark leading-none px-3;
         }
         .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
             @apply bg-primary text-white;
         }
         .select2-dropdown {
-            @apply border border-gray-300 rounded-md shadow-lg;
+            @apply border border-gray-300 rounded-lg shadow-lg;
         }
         .select2-search input {
-            @apply border border-gray-300 rounded-md p-2;
+            @apply border border-gray-300 rounded-lg p-2;
         }
         /* Hide Select2 search input for single selects */
         .select2-container--default .select2-selection--single .select2-search__field {
@@ -62,7 +63,7 @@
 
         /* Sticky table headers and columns */
         .table-container table {
-            border-collapse: separate; /* Use separate to allow border-radius on cells */
+            border-collapse: separate;
             border-spacing: 0;
         }
 
@@ -94,7 +95,10 @@
         .table-container td.sticky-col-1,
         .table-container td.sticky-col-2,
         .table-container td.sticky-col-3 {
-            @apply bg-gray-50 text-gray-800 z-10;
+            @apply bg-white text-textDark z-10;
+        }
+        .table-container tbody tr:nth-child(even) td {
+            @apply bg-gray-50;
         }
 
         /* Spinner animation */
@@ -140,20 +144,25 @@
 
         /* Mobile specific adjustments */
         @media (max-width: 767px) {
-            .top-container {
-                max-height: 45vh !important;
-                padding: 8px !important;
-                overflow-y: auto;
+            .top-area {
+                @apply p-4;
             }
-            .action-bar button,
+            .filter-grid, .action-grid {
+                @apply grid-cols-1 gap-3;
+            }
+            .filter-block, .action-block {
+                @apply w-full;
+            }
+            .header h1 { @apply text-2xl; }
+            .header p { @apply text-base; }
+            .language-switcher {
+                @apply static flex justify-center mt-4;
+            }
             .language-switcher button {
-                @apply text-base px-4 py-2;
-            }
-            #quick-search {
-                @apply text-base;
+                @apply text-sm px-3 py-1.5;
             }
             .table-container {
-                max-height: calc(100vh - 320px);
+                max-height: calc(100vh - 300px); /* Adjusted for more space */
             }
             body {
                 padding-bottom: 300px; /* Space for keyboard */
@@ -162,13 +171,13 @@
 
         /* Landscape orientation adjustments */
         @media screen and (orientation: landscape) {
-            .top-container {
-                max-height: 30vh;
+            .top-area {
+                max-height: 40vh;
             }
             .table-container {
                 height: auto;
                 max-height: 90vh;
-                min-height: 70vh;
+                min-height: 60vh;
             }
             table {
                 min-width: 1200px;
@@ -187,32 +196,32 @@
         }
     </style>
 </head>
-<body class="font-sans bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+<body class="font-sans bg-neutral text-textDark flex flex-col min-h-screen">
     <div id="loading-spinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-        <div class="border-6 border-gray-300 border-t-6 border-t-blue-500 rounded-full w-10 h-10"></div>
+        <div class="border-6 border-gray-300 border-t-6 border-t-primary rounded-full w-10 h-10"></div>
     </div>
 
     <div class="page-container flex flex-col flex-grow">
-        <div class="top-container bg-dark p-4 shadow-lg relative overflow-y-auto max-h-[40vh] transition-all duration-300 ease-in-out">
-            <div class="header text-center p-2 relative">
-                <a class="tasks-link absolute top-2 left-2 bg-primary hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300" href="/tasks">Tasks</a>
-                <h1 id="header-title" class="text-3xl font-extrabold text-white mb-1">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
-                <p id="header-subtitle" class="text-lg text-gray-300">Tra cứu tình trạng FAIR</p>
+        <div class="top-area bg-white p-6 shadow-lg relative overflow-y-auto max-h-[50vh] transition-all duration-300 ease-in-out rounded-b-xl">
+            <div class="header text-center p-2 relative mb-4">
+                <a class="tasks-link absolute top-2 left-2 bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300" href="/tasks">Tasks</a>
+                <h1 id="header-title" class="text-4xl font-extrabold text-textDark mb-1">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
+                <p id="header-subtitle" class="text-lg text-textLight">Tra cứu tình trạng FAIR</p>
                 <div class="language-switcher absolute top-2 right-2 flex space-x-2">
-                    <button onclick="changeLanguage('vi')" class="bg-accent hover:bg-amber-600 text-white text-sm font-semibold py-1.5 px-3 rounded-md transition duration-300">Vi</button>
-                    <button onclick="changeLanguage('en')" class="bg-accent hover:bg-amber-600 text-white text-sm font-semibold py-1.5 px-3 rounded-md transition duration-300">En</button>
-                    <button onclick="changeLanguage('ko')" class="bg-accent hover:bg-amber-600 text-white text-sm font-semibold py-1.5 px-3 rounded-md transition duration-300">Ko</button>
+                    <button onclick="changeLanguage('vi')" class="bg-accent hover:bg-amber-600 text-white text-base font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">Vi</button>
+                    <button onclick="changeLanguage('en')" class="bg-accent hover:bg-amber-600 text-white text-base font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">En</button>
+                    <button onclick="changeLanguage('ko')" class="bg-accent hover:bg-amber-600 text-white text-base font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">Ko</button>
                 </div>
             </div>
 
-            <div class="filter-bar flex flex-wrap justify-center p-2 gap-4">
-                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
-                    <label for="filter-project" id="label-filter-project" class="block mb-2 font-semibold">Chọn dự án (Customer)</label>
-                    <select class="value-select w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-project" multiple="multiple"></select>
+            <div class="filter-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
+                    <label for="filter-project" id="label-filter-project" class="block mb-3 font-semibold text-textDark">Chọn dự án (Customer)</label>
+                    <select class="value-select w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-project" multiple="multiple"></select>
                 </div>
-                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
-                    <label for="filter-column-1" id="label-criteria-1" class="block mb-2 font-semibold">Chọn tiêu chí số 1:</label>
-                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-1">
+                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
+                    <label for="filter-column-1" id="label-criteria-1" class="block mb-3 font-semibold text-textDark">Chọn tiêu chí số 1:</label>
+                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-1">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -244,18 +253,18 @@
                         <option value="Submit date" data-type="date">Submit date</option>
                         <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-1" id="label-filter-value-1" class="block mt-3 mb-2 font-semibold">Chọn giá trị</label>
-                    <select class="value-select w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-1" multiple="multiple"></select>
-                    <div class="date-range-inputs hidden mt-2">
-                        <label for="filter-date-start-1" class="block text-xs mb-1">Từ ngày:</label>
-                        <input type="date" class="date-select-start w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-1">
-                        <label for="filter-date-end-1" class="block text-xs mt-2 mb-1">Đến ngày:</label>
-                        <input type="date" class="date-select-end w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-1">
+                    <label for="filter-value-1" id="label-filter-value-1" class="block mt-4 mb-3 font-semibold text-textDark">Chọn giá trị</label>
+                    <select class="value-select w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-1" multiple="multiple"></select>
+                    <div class="date-range-inputs hidden mt-3">
+                        <label for="filter-date-start-1" class="block text-sm mb-1 text-textLight">Từ ngày:</label>
+                        <input type="date" class="date-select-start w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-1">
+                        <label for="filter-date-end-1" class="block text-sm mt-3 mb-1 text-textLight">Đến ngày:</label>
+                        <input type="date" class="date-select-end w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-1">
                     </div>
                 </div>
-                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
-                    <label for="filter-column-2" id="label-criteria-2" class="block mb-2 font-semibold">Chọn tiêu chí số 2 (paste ex):</label>
-                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-2">
+                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
+                    <label for="filter-column-2" id="label-criteria-2" class="block mb-3 font-semibold text-textDark">Chọn tiêu chí số 2 (paste ex):</label>
+                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-2">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -287,18 +296,18 @@
                         <option value="Submit date" data-type="date">Submit date</option>
                         <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-2" id="label-filter-value-2" class="block mt-3 mb-2 font-semibold">Chọn giá trị</label>
-                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-2" multiple="multiple"></select>
-                     <div class="date-range-inputs hidden mt-2">
-                        <label for="filter-date-start-2" class="block text-xs mb-1">Từ ngày:</label>
-                        <input type="date" class="date-select-start w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-2">
-                        <label for="filter-date-end-2" class="block text-xs mt-2 mb-1">Đến ngày:</label>
-                        <input type="date" class="date-select-end w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-2">
+                    <label for="filter-value-2" id="label-filter-value-2" class="block mt-4 mb-3 font-semibold text-textDark">Chọn giá trị</label>
+                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-2" multiple="multiple"></select>
+                     <div class="date-range-inputs hidden mt-3">
+                        <label for="filter-date-start-2" class="block text-sm mb-1 text-textLight">Từ ngày:</label>
+                        <input type="date" class="date-select-start w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-2">
+                        <label for="filter-date-end-2" class="block text-sm mt-3 mb-1 text-textLight">Đến ngày:</label>
+                        <input type="date" class="date-select-end w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-2">
                     </div>
                 </div>
-                <div class="filter-block bg-gray-700 rounded-lg p-4 text-white text-sm shadow-md w-full md:w-60">
-                    <label for="filter-column-3" id="label-criteria-3" class="block mb-2 font-semibold">Chọn tiêu chí số 3:</label>
-                    <select class="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-3">
+                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
+                    <label for="filter-column-3" id="label-criteria-3" class="block mb-3 font-semibold text-textDark">Chọn tiêu chí số 3:</label>
+                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-3">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -330,92 +339,110 @@
                         <option value="Submit date" data-type="date">Submit date</option>
                         <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-3" id="label-filter-value-3" class="block mt-3 mb-2 font-semibold">Chọn giá trị</label>
-                    <select class="value-select w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-3" multiple="multiple"></select>
-                    <div class="date-range-inputs hidden mt-2">
-                        <label for="filter-date-start-3" class="block text-xs mb-1">Từ ngày:</label>
-                        <input type="date" class="date-select-start w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-3">
-                        <label for="filter-date-end-3" class="block text-xs mt-2 mb-1">Đến ngày:</label>
-                        <input type="date" class="date-select-end w-full p-2 rounded-md border border-gray-600 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-3">
+                    <label for="filter-value-3" id="label-filter-value-3" class="block mt-4 mb-3 font-semibold text-textDark">Chọn giá trị</label>
+                    <select class="value-select w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-3" multiple="multiple"></select>
+                    <div class="date-range-inputs hidden mt-3">
+                        <label for="filter-date-start-3" class="block text-sm mb-1 text-textLight">Từ ngày:</label>
+                        <input type="date" class="date-select-start w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-3">
+                        <label for="filter-date-end-3" class="block text-sm mt-3 mb-1 text-textLight">Đến ngày:</label>
+                        <input type="date" class="date-select-end w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-3">
                     </div>
                 </div>
             </div>
 
-            <div class="action-bar flex flex-wrap justify-center p-2 gap-4">
-                <div class="filter-actions bg-gray-700 rounded-lg p-4 text-white text-center shadow-md flex-grow">
-                    <button id="apply-filters" class="bg-gradient-to-r from-accent to-orange-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mr-2">Áp Dụng Lọc</button>
-                    <button id="clear-filters" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Xóa Lọc</button>
+            <div class="action-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <div class="action-block flex flex-col sm:flex-row justify-center gap-3">
+                    <button id="apply-filters" class="flex-1 bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 9.586V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.414L4.293 6.707A1 1 0 014 6V3z" clip-rule="evenodd"></path></svg>
+                        Áp Dụng Lọc
+                    </button>
+                    <button id="clear-filters" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        Xóa Lọc
+                    </button>
                 </div>
-                <div class="download-container bg-gray-700 rounded-lg p-4 text-white text-center shadow-md flex-grow">
-                    <button id="download-excel" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mr-2">Xuất Excel (Đang xem)</button>
-                    <button id="export-all" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Xuất Excel (Tất cả)</button>
+                <div class="action-block flex flex-col sm:flex-row justify-center gap-3">
+                    <button id="download-excel" class="flex-1 bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        Xuất Excel (Đang xem)
+                    </button>
+                    <button id="export-all" class="flex-1 bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        Xuất Excel (Tất cả)
+                    </button>
                 </div>
-                <div class="zoom-controls bg-gray-700 rounded-lg p-4 text-white text-center shadow-md flex-grow">
-                    <button id="zoom-in" class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-700 hover:to-green-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mr-2">Phóng to</button>
-                    <button id="zoom-out" class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-700 hover:to-green-900 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Thu nhỏ</button>
+                <div class="action-block flex flex-col sm:flex-row justify-center gap-3">
+                    <button id="zoom-in" class="flex-1 bg-accent hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                        Phóng to
+                    </button>
+                    <button id="zoom-out" class="flex-1 bg-accent hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                        Thu nhỏ
+                    </button>
                 </div>
             </div>
-            <div class="scan-camera text-center mt-4">
-                <button id="btnScanCamera" class="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-700 hover:to-purple-900 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">
-                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <div class="scan-camera text-center mt-6">
+                <button id="btnScanCamera" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-300">
+                    <svg class="inline-block w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.382 3H8.618a1 1 0 00-.707.293L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
                     </svg>
                     Quét Camera
                 </button>
             </div>
-            <div class="results-count text-center mt-3 text-white text-base font-medium" id="results-count">Total rows: 0</div>
+            <div class="results-count text-center mt-6 text-textDark text-lg font-medium" id="results-count">Total rows: 0</div>
         </div>
 
-        <div class="text-center my-4">
-            <input id="quick-search" placeholder="🔍 Tìm Part Number..." type="text" class="p-3 w-11/12 md:w-3/5 lg:w-2/5 rounded-full border border-gray-300 shadow-md focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-300"/>
+        <div class="text-center my-6">
+            <input id="quick-search" placeholder="🔍 Tìm Part Number..." type="text" class="p-4 w-11/12 md:w-3/5 lg:w-2/5 rounded-full border border-gray-300 shadow-xl focus:outline-none focus:ring-3 focus:ring-primary transition-all duration-300 text-textDark text-lg"/>
         </div>
 
-        <div class="table-container flex-grow mx-auto w-11/12 bg-white rounded-lg shadow-xl overflow-auto max-h-[calc(100vh-260px)] transition-all duration-300 ease-in-out">
+        <div class="table-container flex-grow mx-auto w-11/12 bg-white rounded-xl shadow-xl overflow-auto max-h-[calc(100vh-360px)] transition-all duration-300 ease-in-out mb-6">
             <table id="results-table" class="min-w-full table-auto">
                 <thead>
                     <tr>
-                        <th class="sticky-col-1 py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="No">No</th>
-                        <th class="sticky-col-2 py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Number">Part Number</th>
-                        <th class="sticky-col-3 py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="REV">REV</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Approval Status">Approval Status</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer">Customer</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Commodity">Commodity</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Production Status">Production Status</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Pictures">Part Pictures</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Packaging Pictures">Packaging Pictures</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Critical">Critical</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="CE">CE</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO Number">PO Number</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Description">Description</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="ERP-CODE">ERP-CODE</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Note Number">Note Number</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO received date">PO received date</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer need date">Customer need date</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Requirements">Requirements</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Cover sheet">FAIR Cover sheet</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Bubble Drawings">Bubble Drawings</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Datasheet form">Datasheet form</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="LAIR Data">LAIR Data</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Data">FAIR Data</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="COC">COC</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="BOM">BOM</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Mill">Mill</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Test reports / evidences">Test reports / evidences</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 1">Remark 1</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 2">Remark 2</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Submit date">Submit date</th>
-                        <th class="py-2 px-3 text-xs font-semibold uppercase tracking-wider text-center" data-column="Reject comments">Reject comments</th>
+                        <th class="sticky-col-1 py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="No">No</th>
+                        <th class="sticky-col-2 py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Number">Part Number</th>
+                        <th class="sticky-col-3 py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="REV">REV</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Approval Status">Approval Status</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer">Customer</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Commodity">Commodity</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Production Status">Production Status</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Pictures">Part Pictures</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Packaging Pictures">Packaging Pictures</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Critical">Critical</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="CE">CE</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO Number">PO Number</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Description">Description</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="ERP-CODE">ERP-CODE</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Note Number">Note Number</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO received date">PO received date</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer need date">Customer need date</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Requirements">Requirements</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Cover sheet">FAIR Cover sheet</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Bubble Drawings">Bubble Drawings</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Datasheet form">Datasheet form</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="LAIR Data">LAIR Data</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Data">FAIR Data</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="COC">COC</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="BOM">BOM</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Mill">Mill</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Test reports / evidences">Test reports / evidences</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 1">Remark 1</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 2">Remark 2</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Submit date">Submit date</th>
+                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Reject comments">Reject comments</th>
                     </tr>
                 </thead>
                 <tbody>
                     </tbody>
             </table>
         </div>
-        <div id="load-more-container" class="text-center my-4 flex justify-center gap-4">
-            <button id="load-more" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">Tải thêm</button>
-            <button id="load-all" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">Tải toàn bộ</button>
+        <div id="load-more-container" class="text-center my-6 flex justify-center gap-4">
+            <button id="load-more" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-300">Tải thêm</button>
+            <button id="load-all" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-300">Tải toàn bộ</button>
         </div>
-        <div class="footer text-center py-2 bg-dark text-gray-300 text-sm" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
+        <div class="footer text-center py-4 bg-white text-textLight text-sm shadow-inner" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
     <div id="image-popup" class="rounded-lg">
@@ -425,19 +452,19 @@
         <span class="no-image-text"></span>
     </div>
     
-    <button onclick="toggleHistoryPopup()" class="fixed bottom-5 left-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-lg transition duration-300 z-50" title="Lịch sử tìm kiếm">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+    <button onclick="toggleHistoryPopup()" class="fixed bottom-5 left-5 bg-blue-500 hover:bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center text-3xl shadow-lg transition duration-300 z-50" title="Lịch sử tìm kiếm">
+        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z" clip-rule="evenodd"></path>
         </svg>
     </button>
 
-    <div id="floating-history-popup" class="hidden fixed bottom-20 left-5 bg-gray-800 text-white p-4 rounded-xl w-72 max-h-96 overflow-y-auto shadow-2xl z-50">
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="m-0 text-lg font-semibold">📜 Lịch sử tìm kiếm</h4>
-            <button onclick="toggleHistoryPopup()" class="bg-transparent text-white text-3xl leading-none hover:text-gray-300 transition duration-300">&times;</button>
+    <div id="floating-history-popup" class="hidden fixed bottom-24 left-5 bg-white text-textDark p-5 rounded-xl w-80 max-h-96 overflow-y-auto shadow-2xl z-50 border border-gray-200">
+        <div class="flex justify-between items-center mb-4">
+            <h4 class="m-0 text-xl font-semibold">📜 Lịch sử tìm kiếm</h4>
+            <button onclick="toggleHistoryPopup()" class="bg-transparent text-gray-500 text-3xl leading-none hover:text-gray-700 transition duration-300">&times;</button>
         </div>
-        <ul id="searchHistory" class="list-none p-0 m-0 space-y-2"></ul>
-        <button onclick="clearSearchHistory()" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg w-full shadow-md transition duration-300">
+        <ul id="searchHistory" class="list-none p-0 m-0 space-y-3"></ul>
+        <button onclick="clearSearchHistory()" class="mt-5 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg w-full shadow-md transition duration-300">
             <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
             </svg>
@@ -445,46 +472,46 @@
         </button>
     </div>
 
-    <a href="/voice_search" class="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-lg transition duration-300 z-50" title="Tìm kiếm bằng giọng nói">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+    <a href="/voice_search" class="fixed bottom-5 right-5 bg-green-500 hover:bg-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center text-3xl shadow-lg transition duration-300 z-50" title="Tìm kiếm bằng giọng nói">
+        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0 5 5 0 01-5 5 1 1 0 00-1 1v1a1 1 0 102 0v-1.172a2 2 0 00-.586-1.414L10 10.586V13a1 1 0 001 1.93z" clip-rule="evenodd"></path>
         </svg>
     </a>
 
     <div id="cameraModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999] overflow-y-auto transition-all duration-300 ease">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-md text-center mb-20">
-            <h3 class="text-2xl font-bold mb-4 text-gray-800">📷 Quét Part Number</h3>
+            <h3 class="text-2xl font-bold mb-4 text-textDark">📷 Quét Part Number</h3>
             <div class="relative w-full max-h-60 overflow-hidden rounded-lg bg-gray-200 mb-4">
                 <video id="camera" playsinline autoplay class="w-full h-full object-cover"></video>
                 <div id="ocrGuideBox" class="absolute border-2 border-red-500 top-[35%] left-[10%] w-[80%] h-[20%] box-border pointer-events-none rounded-md"></div>
             </div>
-            <div id="zoomContainer" class="hidden my-4 text-gray-700">
+            <div id="zoomContainer" class="hidden my-4 text-textLight">
               🔍 Zoom:
               <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" class="w-4/5 accent-primary"/>
             </div>
             <canvas id="canvas" width="320" height="240" class="hidden"></canvas>
             <div class="flex flex-wrap justify-center gap-3 mt-4">
-                <button id="btnCapture" class="bg-primary hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
+                <button id="btnCapture" class="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
                     <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.382 3H8.618a1 1 0 00-.707.293L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
                     </svg>
                     Chụp &amp; Quét
                 </button>
-                <button id="btnApplyOcrFilter" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
+                <button id="btnApplyOcrFilter" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
                     <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     Lọc
                 </button>
-                <button id="btnCloseCamera" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
+                <button id="btnCloseCamera" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
                     <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                     </svg>
                     Đóng
                 </button>
             </div>
-            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." class="mt-4 w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-gray-800"/>
-            <p id="ocrStatus" class="text-sm mt-3 mb-5 text-gray-600">Đang chờ thao tác...</p>
+            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." class="mt-4 w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-textDark"/>
+            <p id="ocrStatus" class="text-sm mt-3 mb-5 text-textLight">Đang chờ thao tác...</p>
         </div>
     </div>
 
@@ -1110,9 +1137,9 @@ function updateTable(data, reset) {
         const tr = $('<tr>');
         const partNumberValue = row['Part Number'] || 'N/A'; 
 
-        tr.append(`<td class="sticky-col-1 py-2 px-3 text-sm text-center">${serial}</td>`);
+        tr.append(`<td class="sticky-col-1 py-3 px-4 text-sm text-center">${serial}</td>`);
         
-        const partNumberCell = $(`<td class="py-2 px-3 text-sm text-center">${partNumberValue}</td>`).addClass('sticky-col-2');
+        const partNumberCell = $(`<td class="py-3 px-4 text-sm text-center font-medium cursor-pointer text-blue-700 hover:underline">${part partNumberValue}</td>`).addClass('sticky-col-2');
         partNumberCell.css('cursor', 'pointer');
 
         // --- SỬA ĐỔI SỰ KIỆN CLICK CHO partNumberCell ---
@@ -1181,36 +1208,36 @@ function updateTable(data, reset) {
         
         tr.append(partNumberCell);
 
-        tr.append(`<td class="sticky-col-3 py-2 px-3 text-sm text-center">${row['REV'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Approval Status'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Customer'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Commodity'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Production Status'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Part Pictures'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Packaging Pictures'] || ''}</td>`);
+        tr.append(`<td class="sticky-col-3 py-3 px-4 text-sm text-center">${row['REV'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Approval Status'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Customer'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Commodity'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Production Status'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Part Pictures'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Packaging Pictures'] || ''}</td>`);
 
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Critical'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['CE'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['PO Number'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Description'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['ERP-CODE'] || ''}</td>`); 
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Note Number'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${formatExcelDate(row['PO received date'])}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${formatExcelDate(row['Customer need date'])}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Requirements'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['FAIR Cover sheet'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Bubble Drawings'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Datasheet form'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['FAIR Data'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['COC'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['BOM'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Mill'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Test reports / evidences'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Remark 1'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Remark 2'] || ''}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${formatExcelDate(row['Submit date'])}</td>`);
-        tr.append(`<td class="py-2 px-3 text-sm text-center">${row['Reject comments'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Critical'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['CE'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['PO Number'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Description'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['ERP-CODE'] || ''}</td>`); 
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Note Number'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${formatExcelDate(row['PO received date'])}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${formatExcelDate(row['Customer need date'])}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Requirements'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['FAIR Cover sheet'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Bubble Drawings'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Datasheet form'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['FAIR Data'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['COC'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['BOM'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Mill'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Test reports / evidences'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Remark 1'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Remark 2'] || ''}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${formatExcelDate(row['Submit date'])}</td>`);
+        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Reject comments'] || ''}</td>`);
 
         tbody.append(tr);
     });
@@ -1318,7 +1345,7 @@ function updateTable(data, reset) {
             modal.innerHTML = `
                 <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
                     <p id="customMessageText" class="text-lg font-semibold mb-4"></p>
-                    <button class="bg-primary hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Đóng</button>
+                    <button class="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Đóng</button>
                 </div>
             `;
             document.body.appendChild(modal);
@@ -1408,7 +1435,7 @@ function updateTable(data, reset) {
             statusP.textContent = '✅ Đã nhận 1 dòng.';
           } else {
             const selectHTML = `
-              <select id="ocrLineSelector" class="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-gray-800 mt-3">
+              <select id="ocrLineSelector" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-textDark mt-3">
                 ${lines.map(l => `<option>${l}</option>`).join('')}
               </select>
             `;
@@ -1481,7 +1508,7 @@ function updateTable(data, reset) {
     });
     </script><script>
     document.addEventListener('DOMContentLoaded', function () {
-      const inputs = document.querySelectorAll('.filter-bar input, .filter-bar select');
+      const inputs = document.querySelectorAll('.filter-grid input, .filter-grid select');
       inputs.forEach((input) => {
         input.addEventListener('focus', () => {
           setTimeout(() => {
@@ -1509,7 +1536,7 @@ function updateTable(data, reset) {
     </script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const topContainer = document.querySelector('.top-container');
+      const topArea = document.querySelector('.top-area');
       const tableContainer = document.querySelector('.table-container');
       const quickSearch = document.getElementById('quick-search');
       const applyBtn = document.getElementById('apply-filters');
@@ -1520,14 +1547,14 @@ function updateTable(data, reset) {
       document.addEventListener('focusin', (e) => {
           if (window.innerWidth >= 768) return;
         const target = e.target;
-        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
+        if (topArea.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
           wasEditingTop = true;
-          topContainer.classList.add('full-top-container');
-          topContainer.classList.remove('hide-top-container');
+          topArea.classList.add('full-top-container');
+          topArea.classList.remove('hide-top-container');
           tableContainer.classList.remove('show-table-only');
           quickSearch.style.display = 'none';
         } else if (target === quickSearch) {
-          topContainer.classList.add('hide-top-container');
+          topArea.classList.add('hide-top-container');
           tableContainer.classList.add('show-table-only');
         }
       });
@@ -1541,7 +1568,7 @@ function updateTable(data, reset) {
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'none';
             } else {
-              topContainer.classList.remove('full-top-container', 'hide-top-container');
+              topArea.classList.remove('full-top-container', 'hide-top-container');
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'block';
             }
@@ -1551,7 +1578,7 @@ function updateTable(data, reset) {
 
       function revealTableAndSearch() {
         wasEditingTop = false;
-        topContainer.classList.remove('full-top-container', 'hide-top-container');
+        topArea.classList.remove('full-top-container', 'hide-top-container');
         quickSearch.style.display = 'block';
         tableContainer.classList.remove('show-table-only');
       }
@@ -1582,14 +1609,14 @@ function updateTable(data, reset) {
         list.innerHTML = "";
         history.forEach(item => {
           const li = document.createElement("li");
-          li.className = "mb-2";
+          li.className = "mb-3";
           li.innerHTML = `
             <button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" 
                     title="Click để tra cứu và sao chép" 
-                    class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg w-full text-left whitespace-nowrap overflow-hidden text-ellipsis shadow-sm transition duration-300">
+                    class="bg-gray-100 hover:bg-gray-200 text-textDark py-2.5 px-4 rounded-lg w-full text-left whitespace-nowrap overflow-hidden text-ellipsis shadow-sm transition duration-300 text-base font-medium">
                 ${item.partNumber}
             </button> 
-            <small class="text-gray-400 text-xs block mt-1">(${item.time.split(',')[0]})</small>
+            <small class="text-textLight text-sm block mt-1">(${item.time.split(',')[0]})</small>
           `;
           list.appendChild(li);
         });
