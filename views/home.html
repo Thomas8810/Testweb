@@ -1299,29 +1299,8 @@
                 }
             });
             
-            popupImg.off('load error').on('load', function() {
-                const expectedErp = imagePopup.data('current-erp');
-                if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
-                    popupSpinner.hide(); // Ẩn spinner khi ảnh tải xong
-                    $(this).show();
-                    popupText.hide().text('');
-                    if (imagePopup.is(':hidden')) {
-                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                    }
-                }
-            }).on('error', function() {
-                const expectedErp = imagePopup.data('current-erp');
-                const pn = imagePopup.data('current-part-number') || "N/A";
-                if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
-                    popupSpinner.hide(); // Ẩn spinner khi có lỗi
-                    $(this).hide();
-                    popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
-                    if (imagePopup.is(':hidden')) {
-                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                    }
-                }
-            });
-            // Kết thúc các sự kiện cho popup ảnh
+            // Removed global popupImg.on('load/error') handlers, they are now inside partNumberCell.on('click')
+            // This ensures they are always fresh and tied to the specific image being loaded for that click event.
 
             applyFilters(true); 
         });
@@ -1529,6 +1508,32 @@ function updateTable(data, reset) {
 
                 popupSpinner.show(); // Hiển thị spinner trước khi tải
                 popupImg.attr('src', thumbnailUrl); // Bắt đầu tải ảnh thumbnail
+
+                // Re-attach load and error handlers specifically for this image load
+                popupImg.off('load error').on('load', function() {
+                    const expectedErp = imagePopup.data('current-erp');
+                    // Only process if the loaded image matches the expected ERP code
+                    if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
+                        popupSpinner.hide();
+                        $(this).show();
+                        popupText.hide().text('');
+                        if (imagePopup.is(':hidden')) {
+                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                        }
+                    }
+                }).on('error', function() {
+                    const expectedErp = imagePopup.data('current-erp');
+                    const pn = imagePopup.data('current-part-number') || "N/A";
+                    // Only process if the error is for the expected ERP code or no src was set
+                    if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
+                        popupSpinner.hide();
+                        $(this).hide();
+                        popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
+                        if (imagePopup.is(':hidden')) {
+                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                        }
+                    }
+                });
                 
                 if (imagePopup.is(':hidden')) {
                      imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
