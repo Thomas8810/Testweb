@@ -687,8 +687,10 @@
             touch-action: pan-y; /* Cho phép cuộn dọc bằng cảm ứng */
           }
           table {
-            width: auto;
+            width: auto; /* Cho phép bảng co giãn theo nội dung */
             min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng container */
+            border-collapse: collapse;
+            table-layout: fixed; /* Giúp cột cố định hoạt động tốt hơn */
           }
           td, th {
             word-break: break-word; /* Cho phép ngắt từ nếu cần */
@@ -1069,13 +1071,13 @@
                     <th data-column="LAIR Data">LAIR Data</th>
                     <th data-column="FAIR Data">FAIR Data</th>
                     <th data-column="COC">COC</th>
-                    <th data-column="BOM">BOM</th>
-                    <th data-column="Mill">Mill</th>
-                    <th data-column="Test reports / evidences">Test reports / evidences</th>
-                    <th data-column="Remark 1">Remark 1</th>
-                    <th data-column="Remark 2">Remark 2</th>
-                    <th data-column="Submit date">Submit date</th>
-                    <th data-column="Reject comments">Reject comments</th>
+                    <th data-column="BOM">BOM</th
+                    ><th data-column="Mill">Mill</th
+                    ><th data-column="Test reports / evidences">Test reports / evidences</th
+                    ><th data-column="Remark 1">Remark 1</th
+                    ><th data-column="Remark 2">Remark 2</th
+                    ><th data-column="Submit date">Submit date</th
+                    ><th data-column="Reject comments">Reject comments</th>
                 </tr></thead>
                 <tbody>
                     </tbody>
@@ -1287,25 +1289,44 @@
 
 
         function loadAllData() {
-          $.getJSON('/search?limit=1000000', function(response) { 
+          console.log("loadAllData: Đang tải toàn bộ dữ liệu...");
+          $.getJSON('/search?limit=1000000', function(response) {
+            console.log("loadAllData: Phản hồi từ server:", response);
             allData = response.data;
             totalData = response.total;
+            if (!allData || allData.length === 0) {
+                console.warn("loadAllData: allData trống hoặc null. Kiểm tra server.js và endpoint /search.");
+                showMessageBox("Không tải được dữ liệu ban đầu. Vui lòng kiểm tra kết nối hoặc server.");
+            } else {
+                console.log("loadAllData: allData đã được tải thành công. Số lượng:", allData.length);
+            }
             updateFilterValuesForBlock(1);
-            updateCascade(2); 
+            updateCascade(2);
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+              console.error("loadAllData: Lỗi khi tải dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
+              showMessageBox("Lỗi mạng hoặc server khi tải dữ liệu ban đầu. Vui lòng thử lại.");
           });
         }
 
         function loadDistinctValuesForProject() {
           const selectElem = $('#filter-project');
           selectElem.empty();
+          console.log("loadDistinctValuesForProject: Đang tải giá trị độc lập cho Project...");
           $.getJSON('/filters', function(data) {
+            console.log("loadDistinctValuesForProject: Phản hồi từ /filters:", data);
             if (data['Customer']) {
               data['Customer'].forEach(function(val) {
                 const option = new Option(val, val, false, false);
                 selectElem.append(option);
               });
+              console.log("loadDistinctValuesForProject: Đã điền giá trị cho Project.");
+            } else {
+                console.warn("loadDistinctValuesForProject: Không tìm thấy dữ liệu 'Customer' từ /filters.");
             }
             selectElem.trigger('change');
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+              console.error("loadDistinctValuesForProject: Lỗi khi tải dữ liệu từ /filters:", textStatus, errorThrown, jqXHR);
+              showMessageBox("Lỗi mạng hoặc server khi tải danh sách dự án.");
           });
         }
 
@@ -1317,6 +1338,7 @@
             const labelValue = $(`label[for="filter-value-${blockIndex}"]`);
 
             const selectedOptionDataType = columnSelect.find('option:selected').data('type');
+            console.log(`handleFilterTypeChange(${blockIndex}): Cột được chọn: ${columnSelect.val()}, Kiểu dữ liệu: ${selectedOptionDataType}`);
 
             if (selectedOptionDataType === 'date') {
                 valueSelectContainer.hide();
@@ -1333,6 +1355,7 @@
 
 
         $(document).ready(function() {
+            console.log("Document Ready: Bắt đầu khởi tạo.");
             loadAllData();
             loadDistinctValuesForProject();
 
@@ -1372,35 +1395,43 @@
                 var newValues = currentValues.concat(values);
                 newValues = Array.from(new Set(newValues));
                 $select.val(newValues).trigger('change');
+                console.log("Paste event: Đã dán các giá trị vào filter-value-2:", newValues);
             });
 
             $('#filter-project').on('change', function(){
+                console.log("filter-project changed:", $(this).val());
                 updateFilterValuesForBlock(1);
                 updateCascade(2);
             });
 
             $('#filter-column-1').on('change', function() {
+                console.log("filter-column-1 changed:", $(this).val());
                 handleFilterTypeChange(1);
                 updateFilterValuesForBlock(1);
                 updateCascade(2);
             });
             $('#filter-value-1, #filter-date-start-1, #filter-date-end-1').on('change', function() {
+                console.log("filter-value-1 or date changed.");
                 updateCascade(2);
             });
             $('#filter-column-2').on('change', function() {
+                console.log("filter-column-2 changed:", $(this).val());
                 handleFilterTypeChange(2);
                 updateFilterValuesForBlock(2);
                 updateCascade(3);
             });
             $('#filter-value-2, #filter-date-start-2, #filter-date-end-2').on('change', function() {
+                console.log("filter-value-2 or date changed.");
                 updateCascade(3);
             });
             $('#filter-column-3').on('change', function() {
+                console.log("filter-column-3 changed:", $(this).val());
                 handleFilterTypeChange(3);
                 updateFilterValuesForBlock(3);
             });
 
             $('#apply-filters').on('click', function() {
+                console.log("Apply Filters clicked.");
                 const col1 = $('#filter-column-1').val();
                 const val1 = $('#filter-value-1').val();
                 if (col1 === 'Part Number' && val1 && val1.length > 0) {
@@ -1409,6 +1440,7 @@
                 applyFilters(true);
             });
             $('#clear-filters').on('click', function() {
+                console.log("Clear Filters clicked.");
                 $('.value-select').val(null).trigger('change');
                 $('#filter-value-2').val(null).trigger('change');
                 $('.date-select-start').val(''); 
@@ -1419,22 +1451,28 @@
                 applyFilters(true);
             });
             $('#load-more').on('click', function() {
+                console.log("Load More clicked. Current offset:", currentOffset, "Total data:", totalData);
                 let loadMoreFilters = { ...currentFilters, offset: currentOffset, limit: pageSize };
                 delete loadMoreFilters.limit; 
                 
                 if (currentOffset < totalData) {
                     showSpinner();
                     $.getJSON(`/search?${$.param(loadMoreFilters)}`, function(response) {
+                        console.log("Load More: Phản hồi từ server:", response);
                         currentOffset += response.data.length; 
                         updateTable(response.data, false); 
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error("Load More: Lỗi khi tải thêm dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
+                        showMessageBox("Lỗi mạng hoặc server khi tải thêm dữ liệu.");
                     }).always(function() {
                         hideSpinner();
                     });
                 } else {
-                    showMessageBox("Đã tải hết dữ liệu!"); // Replaced alert
+                    showMessageBox("Đã tải hết dữ liệu!"); 
                 }
             });
             $('#load-all').on('click', function() {
+                console.log("Load All clicked.");
                 let queryParams = {};
                 const sheetValues = $('#filter-project').val();
                 if (sheetValues && sheetValues.length > 0) {
@@ -1461,14 +1499,19 @@
                 queryParams.offset = 0;
                 showSpinner();
                 $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
+                  console.log("Load All: Phản hồi từ server:", response);
                   currentOffset = response.total; 
                   updateTable(response.data, true); 
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Load All: Lỗi khi tải toàn bộ dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
+                    showMessageBox("Lỗi mạng hoặc server khi tải toàn bộ dữ liệu.");
                 }).always(function() {
                     hideSpinner();
                 });
             });
-            $('#download-excel').on('click', function() { downloadExcel(); });
+            $('#download-excel').on('click', function() { console.log("Download Excel clicked."); downloadExcel(); });
             $('#export-all').on('click', function() {
+                console.log("Export All clicked.");
                 let queryParams = {};
                 const sheetValues = $('#filter-project').val();
                 if (sheetValues && sheetValues.length > 0) {
@@ -1495,10 +1538,12 @@
                 window.location.href = `/export?${queryString}`;
             });
             $('#zoom-in').on('click', function() {
+                console.log("Zoom In clicked.");
                 currentZoom += 0.1;
                 $('#results-table').css('zoom', currentZoom);
             });
             $('#zoom-out').on('click', function() {
+                console.log("Zoom Out clicked.");
                 if (currentZoom > 0.5) {
                   currentZoom -= 0.1;
                   $('#results-table').css('zoom', currentZoom);
@@ -1507,69 +1552,98 @@
             try {
                 if (typeof $.fn.colResizable === 'function') {
                   $('#results-table').colResizable({ liveDrag: true });
+                  console.log("colResizable đã được khởi tạo.");
                 }
             } catch(e) {
-                console.log("colResizable not available:", e);
+                console.log("colResizable không khả dụng:", e);
             }
 
             // --- CÁC SỰ KIỆN CHO POPUP ẢNH (GẮN MỘT LẦN) ---
             popupCloseButton.off('click.closepopup').on('click.closepopup', function() {
                 closeImagePopup();
+                console.log("Popup ảnh đã đóng.");
             });
 
             $(document).off('mouseup.imagePopupOutside').on('mouseup.imagePopupOutside', function(e) {
                 if (imagePopup.is(':visible') && !imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
                     closeImagePopup();
+                    console.log("Click bên ngoài popup ảnh, đã đóng.");
                 }
             });
             
-            popupImg.off('click.zoom').on('click.zoom', function() {
+            popupImg.off('load.zoom error.zoom').on('click.zoom', function() { // Added .zoom namespace
                 const $thisImage = $(this);
                 if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
                     imagePopup.toggleClass('zoomed');
+                    console.log("Popup ảnh: Đã chuyển đổi trạng thái zoom.");
                     
-                    popupSpinner.show(); // Hiển thị spinner
-                    $thisImage.hide(); // Ẩn ảnh hiện tại trong khi tải ảnh mới
-                    popupText.hide(); // Ẩn text (nếu có)
+                    popupSpinner.show(); 
+                    $thisImage.hide(); 
+                    popupText.hide(); 
 
                     if (imagePopup.hasClass('zoomed')) {
-                        // Popup được phóng to: Tải ảnh chất lượng cao
                         const highQualityUrl = imagePopup.data('high-quality-url');
                         if (highQualityUrl) {
                             $thisImage.attr('src', highQualityUrl);
+                            console.log("Popup ảnh: Đang tải ảnh chất lượng cao:", highQualityUrl);
                         } else {
-                            console.warn("Không tìm thấy URL ảnh chất lượng cao.");
+                            console.warn("Popup ảnh: Không tìm thấy URL ảnh chất lượng cao.");
                             popupText.text('Lỗi: Không có URL ảnh lớn.').show();
                             popupSpinner.hide();
-                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
                         }
                     } else {
-                        // Popup bị thu nhỏ: Tải lại ảnh thumbnail
                         const thumbnailUrl = imagePopup.data('thumbnail-url');
                         if (thumbnailUrl) {
                             $thisImage.attr('src', thumbnailUrl);
+                            console.log("Popup ảnh: Đang tải ảnh thumbnail:", thumbnailUrl);
                         } else {
-                            console.warn("Không tìm thấy URL ảnh thumbnail.");
+                            console.warn("Popup ảnh: Không tìm thấy URL ảnh thumbnail.");
                             popupText.text('Lỗi: Không có URL ảnh thumbnail.').show();
                             popupSpinner.hide();
-                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
                         }
                     }
+                }
+            });
+            // Re-attach load/error handlers for popupImg
+            popupImg.on('load', function() {
+                const expectedErp = imagePopup.data('current-erp');
+                if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
+                    popupSpinner.hide();
+                    $(this).show();
+                    popupText.hide().text('');
+                    if (imagePopup.is(':hidden')) {
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                    }
+                    console.log("Popup ảnh: Ảnh đã tải xong.");
+                }
+            });
+
+            popupImg.on('error', function() {
+                const expectedErp = imagePopup.data('current-erp');
+                const pn = imagePopup.data('current-part-number') || "N/A";
+                if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
+                    popupSpinner.hide();
+                    $(this).hide();
+                    popupText.text(`Ảnh cho Part Number "${pn}" (ERP: ${expectedErp}) không tồn tại.`).show();
+                    if (imagePopup.is(':hidden')) {
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                    }
+                    console.warn("Popup ảnh: Lỗi tải ảnh. ERP:", expectedErp);
                 }
             });
             // Kết thúc các sự kiện cho popup ảnh
 
             // NEW: Event listener for copying Part Number from the main table
-            // Using event delegation on document for dynamically loaded content
             $(document).on('click', '.copyable-table-part-number', function(e) {
                 e.stopPropagation(); // Prevent the parent <td>'s click event (for image popup)
                 const partNumberToCopy = $(this).data('part-number');
+                console.log("Copy Part Number clicked:", partNumberToCopy);
 
                 navigator.clipboard.writeText(partNumberToCopy).then(() => {
                     showMessageBox('Đã sao chép: ' + partNumberToCopy);
-                    console.log('Đã sao chép: ' + partNumberToCopy);
+                    console.log('Đã sao chép thành công: ' + partNumberToCopy);
                 }).catch(err => {
-                    console.error('Không thể sao chép văn bản: ', err);
+                    console.error('Không thể sao chép văn bản:', err);
                     const textArea = document.createElement("textarea");
                     textArea.value = partNumberToCopy;
                     document.body.appendChild(textArea);
@@ -1577,36 +1651,44 @@
                     try {
                         document.execCommand('copy');
                         showMessageBox('Đã sao chép (fallback): ' + partNumberToCopy);
+                        console.log('Đã sao chép thành công (fallback): ' + partNumberToCopy);
                     } catch (err) {
-                        console.error('Không thể sao chép văn bản bằng fallback: ', err);
+                        console.error('Không thể sao chép văn bản bằng fallback:', err);
                         showMessageBox('Không thể sao chép. Vui lòng chọn và sao chép thủ công: ' + partNumberToCopy);
                     }
                     document.body.removeChild(textArea);
                 });
             });
 
-            applyFilters(true); 
+            applyFilters(true); // Initial load
+            console.log("Document Ready: Đã hoàn tất khởi tạo.");
         });
 
         function updateFilterValuesForBlock(blockIndex) {
             const columnSelect = $('#filter-column-' + blockIndex);
             const selectedOptionDataType = columnSelect.find('option:selected').data('type');
 
+            console.log(`updateFilterValuesForBlock(${blockIndex}): Đang cập nhật giá trị lọc cho khối ${blockIndex}. allData hiện tại:`, allData);
+
             if (selectedOptionDataType === 'date') {
+                console.log(`updateFilterValuesForBlock(${blockIndex}): Cột là kiểu ngày, bỏ qua cập nhật dropdown.`);
                 return;
             }
             
             if (!allData) {
+                console.warn(`updateFilterValuesForBlock(${blockIndex}): allData chưa sẵn sàng hoặc trống. Đang thử lại sau 100ms.`);
                 setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
                 return;
             }
             let filteredData = allData.slice();
+            console.log(`updateFilterValuesForBlock(${blockIndex}): Dữ liệu ban đầu để lọc:`, filteredData.length, "hàng.");
 
             const projectValues = $('#filter-project').val();
             if (projectValues && projectValues.length > 0) {
                 filteredData = filteredData.filter(row => 
                     projectValues.some(s => row['Customer'] && row['Customer'].toString().toLowerCase().includes(s.toLowerCase()))
                 );
+                console.log(`updateFilterValuesForBlock(${blockIndex}): Đã lọc theo Project. Còn lại:`, filteredData.length, "hàng.");
             }
 
             for (let i = 1; i < blockIndex; i++) {
@@ -1631,6 +1713,7 @@
                             }
                             return match;
                         });
+                        console.log(`updateFilterValuesForBlock(${blockIndex}): Đã lọc theo ngày cho khối ${i}. Còn lại:`, filteredData.length, "hàng.");
                     }
                 } else {
                     const valuesPrev = $('#filter-value-' + i).val();
@@ -1638,6 +1721,7 @@
                         filteredData = filteredData.filter(row =>
                             valuesPrev.some(v => row[colPrev] && row[colPrev].toString().toLowerCase().includes(v.toLowerCase()))
                         );
+                        console.log(`updateFilterValuesForBlock(${blockIndex}): Đã lọc theo giá trị cho khối ${i}. Còn lại:`, filteredData.length, "hàng.");
                     }
                 }
             }
@@ -1657,6 +1741,7 @@
 
             let distinctValues = Array.from(new Set(valuesInColumn));
             distinctValues.sort((a, b) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'}));
+            console.log(`updateFilterValuesForBlock(${blockIndex}): Các giá trị độc lập cho cột '${dependentColumn}':`, distinctValues);
 
             const selectElem = $('#filter-value-' + blockIndex);
             const currentValue = selectElem.val();
@@ -1669,17 +1754,22 @@
             if (currentValue) {
                 const validCurrentValues = currentValue.filter(v => distinctValues.includes(v));
                 selectElem.val(validCurrentValues);
+                console.log(`updateFilterValuesForBlock(${blockIndex}): Đã giữ lại các giá trị hiện tại hợp lệ:`, validCurrentValues);
             }
             selectElem.trigger('change.select2');
+            console.log(`updateFilterValuesForBlock(${blockIndex}): Đã hoàn tất cập nhật dropdown.`);
         }
 
         function updateCascade(startBlock) {
-          for (let i = startBlock; i <= 3; i++) {
-            updateFilterValuesForBlock(i);
-          }
+            console.log(`updateCascade: Bắt đầu cập nhật cascading từ khối ${startBlock}.`);
+            for (let i = startBlock; i <= 3; i++) {
+                updateFilterValuesForBlock(i);
+            }
+            console.log(`updateCascade: Đã hoàn tất cập nhật cascading.`);
         }
 
         function applyFilters(reset = true) {
+            console.log(`applyFilters: Đang áp dụng bộ lọc. Reset: ${reset}.`);
             if (reset) {
                 currentOffset = 0;
             }
@@ -1708,12 +1798,21 @@
             }
             
             currentFilters = {...queryParams}; 
+            console.log("applyFilters: Tham số truy vấn gửi đến server:", queryParams);
             
             showSpinner();
             $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
+                console.log("applyFilters: Phản hồi từ server:", response);
                 totalData = response.total;
                 currentOffset = reset ? response.data.length : currentOffset + response.data.length;
                 updateTable(response.data, reset);
+                if (!response.data || response.data.length === 0) {
+                    showMessageBox("Không tìm thấy dữ liệu phù hợp với bộ lọc hiện tại.");
+                    console.warn("applyFilters: Dữ liệu trả về trống.");
+                }
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error("applyFilters: Lỗi khi tải dữ liệu từ /search:", textStatus, errorThrown, jqXHR);
+                showMessageBox("Lỗi mạng hoặc server khi áp dụng bộ lọc. Vui lòng kiểm tra kết nối.");
             }).always(function() {
                 hideSpinner();
             });
@@ -1729,14 +1828,20 @@
             imagePopup.removeData('current-part-number');
             imagePopup.removeData('thumbnail-url');
             imagePopup.removeData('high-quality-url');
+            console.log("closeImagePopup: Popup ảnh đã đóng và reset.");
         }
 
 function updateTable(data, reset) {
+    console.log("updateTable: Đang cập nhật bảng. Reset:", reset, "Dữ liệu nhận được:", data);
     const tbody = $('#results-table tbody');
     if (reset) tbody.empty();
 
+    if (!data || data.length === 0) {
+        console.log("updateTable: Không có dữ liệu để hiển thị.");
+        tbody.append('<tr><td colspan="31" style="text-align:center; padding:20px;">Không có dữ liệu để hiển thị.</td></tr>');
+    }
+
     data.forEach(function(row) {
-        // Serial is now calculated after sorting for correctness
         const tr = $('<tr>');
         const partNumberValue = row['Part Number'] || 'N/A'; 
 
@@ -1752,6 +1857,7 @@ function updateTable(data, reset) {
             // e.stopPropagation() is handled by the span click handler if it originates from the span
             const currentErpCode = row['ERP-CODE']?.trim().toUpperCase();
             const currentPartNumberValueFromRow = row['Part Number'] || 'N/A'; // Lấy trực tiếp từ row
+            console.log("Part Number cell clicked. ERP:", currentErpCode, "PN:", currentPartNumberValueFromRow);
 
             // Reset trạng thái popup
             imagePopup.removeClass('zoomed');
@@ -1772,6 +1878,7 @@ function updateTable(data, reset) {
 
                 popupSpinner.show(); // Hiển thị spinner trước khi tải
                 popupImg.attr('src', thumbnailUrl); // Bắt đầu tải ảnh thumbnail
+                console.log("Đang tải ảnh thumbnail:", thumbnailUrl);
 
                 // Gắn lại sự kiện load và error
                 popupImg.on('load', function() {
@@ -1783,6 +1890,7 @@ function updateTable(data, reset) {
                         if (imagePopup.is(':hidden')) {
                             imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                         }
+                        console.log("Ảnh thumbnail đã tải xong.");
                     }
                 });
 
@@ -1796,6 +1904,7 @@ function updateTable(data, reset) {
                         if (imagePopup.is(':hidden')) {
                             imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                         }
+                        console.warn("Lỗi tải ảnh. ERP:", expectedErp);
                     }
                 });
                 
@@ -1808,6 +1917,7 @@ function updateTable(data, reset) {
                 popupImg.hide();
                 popupText.text(`Không có ảnh cho Part Number "${currentPartNumberValueFromRow}". (Thiếu ERP-CODE)`).show();
                 imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                console.log("Không có ERP-CODE, không thể tải ảnh.");
             }
         });
         
@@ -1851,16 +1961,19 @@ function updateTable(data, reset) {
     tbody.children('tr').each(function(index) {
         $(this).find('td').eq(0).text(index + 1); // Update the first column (No.)
     });
+    console.log("updateTable: Đã cập nhật số thứ tự cho các hàng.");
 
     var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
     $('#results-count').text(totalText);
+    console.log("updateTable: Đã cập nhật tổng số dòng:", totalText);
 
     try {
         if ($.fn.colResizable) {
           $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
+          console.log("updateTable: colResizable đã được áp dụng.");
         }
     } catch (e) {
-        console.log("colResizable not available in updateTable:", e);
+        console.log("colResizable không khả dụng trong updateTable:", e);
     }
 }
 
@@ -1869,7 +1982,7 @@ function updateTable(data, reset) {
             const table = document.getElementById('results-table');
             const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
             const rows = Array.from(table.querySelectorAll('tbody tr'));
-            const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
+            const dateColumns = ['PO received date', 'Customer need date', 'Submit date']; // Not used in this function, but kept for context
 
             const data = rows.map(tr => {
                 const cells = Array.from(tr.querySelectorAll('td'));
@@ -1881,11 +1994,13 @@ function updateTable(data, reset) {
                 });
                 return rowObj;
             });
+            console.log("downloadExcel: Dữ liệu để xuất Excel:", data);
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(data);
             XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
             XLSX.writeFile(wb, 'ketqua.xlsx');
+            console.log("downloadExcel: Đã tạo và tải file Excel 'ketqua.xlsx'.");
         }
 
         function getColumnIndex(columnName) {
@@ -1896,12 +2011,17 @@ function updateTable(data, reset) {
               return false;
             }
           });
+          console.log(`getColumnIndex: Cột '${columnName}' có chỉ mục: ${index}`);
           return index;
         }
         function sortTable(column, order) {
+          console.log(`sortTable: Đang sắp xếp cột '${column}' theo thứ tự '${order}'.`);
           let rows = $('#results-table tbody tr').get();
           let colIndex = getColumnIndex(column);
-          if (colIndex === -1) return;
+          if (colIndex === -1) {
+              console.warn(`sortTable: Không tìm thấy chỉ mục cho cột '${column}'.`);
+              return;
+          }
 
           const isDateColumn = ['PO received date', 'Customer need date', 'Submit date'].includes(column);
 
@@ -1927,13 +2047,19 @@ function updateTable(data, reset) {
             // Update the "No." column for the re-appended row
             $(row).find('td').eq(0).text(index + 1); 
           });
+          console.log("sortTable: Đã sắp xếp và cập nhật số thứ tự.");
         }
         $(document).on('click', '#results-table th', function () {
             const col = $(this).data('column');
-            if (!col || col === 'No') return; // Prevent sorting by "No." column
+            console.log("Header clicked. Column:", col);
+            if (!col || col === 'No') { // Prevent sorting by "No." column
+                console.log("Không sắp xếp cột 'No' hoặc cột không có data-column.");
+                return; 
+            }
 
             const currentOrder = $(this).data('order') || 'asc';
             const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            console.log(`Sắp xếp: Cột '${col}', Thứ tự cũ: '${currentOrder}', Thứ tự mới: '${newOrder}'.`);
 
             $('#results-table th').each(function () {
                 $(this).data('order', null);
@@ -1990,6 +2116,7 @@ function updateTable(data, reset) {
           video.srcObject = null;
         }
         clearInterval(intervalId);
+        console.log("Camera: Đã dừng stream.");
       }
 
       function cropCenterAndOCR(callback) {
@@ -2005,10 +2132,17 @@ function updateTable(data, reset) {
         tempCanvas.width = cropWidth;
         tempCanvas.height = cropHeight;
         tempCanvas.getContext("2d").putImageData(imageData, 0, 0);
+        console.log("Camera: Đã chụp và cắt ảnh để OCR.");
 
         Tesseract.recognize(tempCanvas.toDataURL(), 'eng')
-          .then(({ data: { text } }) => callback(text))
-          .catch(() => statusP.textContent = '❌ Lỗi khi nhận diện.');
+          .then(({ data: { text } }) => {
+            console.log("OCR: Kết quả nhận diện:", text);
+            callback(text);
+          })
+          .catch((err) => {
+            statusP.textContent = '❌ Lỗi khi nhận diện.';
+            console.error("OCR: Lỗi nhận diện:", err);
+          });
       }
 
       btnScan.addEventListener('click', async () => {
@@ -2016,6 +2150,7 @@ function updateTable(data, reset) {
         statusP.textContent = '🔄 Đang khởi động camera...';
         inputOCR.value = '';
         document.getElementById("ocrInput").style.display = 'block';
+        console.log("Camera: Đang yêu cầu truy cập camera.");
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
           video.srcObject = stream;
@@ -2031,50 +2166,73 @@ function updateTable(data, reset) {
             zoomSlider.value = capabilities.zoom.min;
             zoomSlider.addEventListener("input", () => {
               track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
+              console.log("Camera: Đã thay đổi zoom:", zoomSlider.value);
             });
+            console.log("Camera: Chức năng zoom khả dụng.");
           }
           statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét" hoặc giữ chế độ tự động';
+          console.log("Camera: Đã kết nối thành công.");
         } catch (err) {
           statusP.textContent = '❌ Không thể truy cập camera.';
+          console.error("Camera: Lỗi truy cập camera:", err);
         }
       });
 
       btnCapture.addEventListener('click', () => {
         statusP.textContent = '🔍 Đang quét...';
+        console.log("Camera: Nút 'Chụp & Quét' đã được nhấn.");
         cropCenterAndOCR((text) => {
           const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
-          if (lines.length === 0) return statusP.textContent = '❌ Không nhận được dòng nào.';
+          if (lines.length === 0) {
+            statusP.textContent = '❌ Không nhận được dòng nào.';
+            console.warn("OCR: Không nhận diện được văn bản.");
+            return;
+          }
 
           if (lines.length === 1) {
             inputOCR.value = lines[0];
             statusP.textContent = '✅ Đã nhận 1 dòng.';
+            console.log("OCR: Đã nhận diện 1 dòng:", lines[0]);
           } else {
+            const selectorId = 'ocrLineSelector';
+            // Remove existing selector if any
+            document.getElementById(selectorId)?.remove();
+
             const selectHTML = `
-              <select id="ocrLineSelector" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
+              <select id="${selectorId}" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
                 ${lines.map(l => `<option>${l}</option>`).join('')}
               </select>
             `;
             inputOCR.insertAdjacentHTML('beforebegin', selectHTML);
-            const selector = document.getElementById('ocrLineSelector');
+            const selector = document.getElementById(selectorId);
             selector.addEventListener('change', () => {
               inputOCR.value = selector.value;
+              console.log("OCR: Đã chọn dòng mới:", selector.value);
             });
             inputOCR.value = lines[0];
             statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Đã chọn dòng đầu tiên, có thể chỉnh sửa.`;
+            console.log("OCR: Đã nhận diện nhiều dòng. Dòng đầu tiên:", lines[0]);
           }
         });
       });
 
       btnApply.addEventListener('click', () => {
         const part = inputOCR.value.trim();
+        console.log("Camera: Nút 'Lọc' đã được nhấn. Part Number:", part);
         if (!part) {
-            showMessageBox('Bạn chưa nhập Part Number!'); // Replaced alert
+            showMessageBox('Bạn chưa nhập Part Number!'); 
+            console.warn("Camera: Part Number trống, không thể lọc.");
             return;
         }
         $('#filter-column-1').val('Part Number').trigger('change'); 
         setTimeout(() => { 
             $('#filter-value-1').val([part]).trigger('change'); 
-            if (typeof applyFilters === 'function') applyFilters(true);
+            if (typeof applyFilters === 'function') {
+                applyFilters(true);
+                console.log("Camera: Đã gọi applyFilters.");
+            } else {
+                console.warn("Camera: applyFilters function is not defined.");
+            }
             statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
             saveSearchHistory(part);
             setTimeout(() => btnClose.click(), 1500);
@@ -2087,6 +2245,7 @@ function updateTable(data, reset) {
         stopStream();
         document.getElementById("ocrLineSelector")?.remove();
         inputOCR.value = '';
+        console.log("Camera: Modal đã đóng.");
       });
     });
     </script>
@@ -2136,13 +2295,16 @@ function updateTable(data, reset) {
     <script>
     function showSpinner() {
       $('#loading-spinner').show();
+      console.log("Spinner: Hiển thị.");
     }
     function hideSpinner() {
       $('#loading-spinner').hide();
+      console.log("Spinner: Ẩn.");
     }
 
     $('#quick-search').on('input', function () {
       const keyword = $(this).val().toLowerCase();
+      console.log("Quick Search: Từ khóa:", keyword);
       $('#results-table tbody tr').each(function () {
         const partNumber = $(this).find('td:nth-child(2)').text().toLowerCase(); 
         $(this).toggle(partNumber.includes(keyword));
@@ -2168,9 +2330,11 @@ function updateTable(data, reset) {
           topContainer.classList.remove('hide-top-container');
           tableContainer.classList.remove('show-table-only');
           quickSearch.style.display = 'none';
+          console.log("Responsive UI: Đã tập trung vào input/select trong top-container. Ẩn quick search.");
         } else if (target === quickSearch) {
           topContainer.classList.add('hide-top-container');
           tableContainer.classList.add('show-table-only');
+          console.log("Responsive UI: Đã tập trung vào quick search. Ẩn top-container.");
         }
       });
 
@@ -2182,10 +2346,12 @@ function updateTable(data, reset) {
             if (wasEditingTop) {
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'none';
+              console.log("Responsive UI: Đã thoát khỏi input/select trong top-container. Giữ quick search ẩn.");
             } else {
               topContainer.classList.remove('full-top-container', 'hide-top-container');
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'block';
+              console.log("Responsive UI: Đã thoát khỏi quick search. Hiển thị lại top-container và quick search.");
             }
           }
         }, 300);
@@ -2196,6 +2362,7 @@ function updateTable(data, reset) {
         topContainer.classList.remove('full-top-container', 'hide-top-container');
         quickSearch.style.display = 'block';
         tableContainer.classList.remove('show-table-only');
+        console.log("Responsive UI: Đã hiển thị lại bảng và quick search.");
       }
 
       applyBtn?.addEventListener('click', revealTableAndSearch);
@@ -2229,6 +2396,7 @@ function updateTable(data, reset) {
         if (history.length > 30) history.pop();
         localStorage.setItem("partSearchHistory", JSON.stringify(history));
         renderSearchHistory();
+        console.log("Lịch sử tìm kiếm: Đã lưu Part Number:", partNumber);
       }
 
       function renderSearchHistory() {
@@ -2236,26 +2404,30 @@ function updateTable(data, reset) {
         const list = document.getElementById("searchHistory");
         if (!list) return;
         list.innerHTML = "";
+        if (history.length === 0) {
+            list.innerHTML = '<li style="text-align: center; color: #aaa;">Chưa có lịch sử tra cứu.</li>';
+        }
         history.forEach(item => {
           const li = document.createElement("li");
           li.style.marginBottom = "6px";
-          // Changed to use showMessageBox instead of navigator.clipboard.writeText directly here
           li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
           list.appendChild(li);
         });
+        console.log("Lịch sử tìm kiếm: Đã render lại lịch sử.");
       }
 
       function quickSearchFromHistory(partNumber) {
+        console.log("Lịch sử tìm kiếm: Đang tra cứu nhanh từ lịch sử:", partNumber);
         $('#filter-column-1').val('Part Number').trigger('change'); 
         setTimeout(() => {
             $('#filter-value-1').val([partNumber]).trigger('change');
             applyFilters(true);
             toggleHistoryPopup(); 
-            // Also copy to clipboard after quick search from history
             navigator.clipboard.writeText(partNumber).then(() => {
                 showMessageBox('Đã sao chép từ lịch sử: ' + partNumber);
+                console.log('Lịch sử tìm kiếm: Đã sao chép từ lịch sử thành công: ' + partNumber);
             }).catch(err => {
-                console.error('Không thể sao chép từ lịch sử: ', err);
+                console.error('Lịch sử tìm kiếm: Không thể sao chép từ lịch sử:', err);
                 showMessageBox('Không thể sao chép từ lịch sử. Vui lòng sao chép thủ công: ' + partNumber);
             });
         }, 50);
@@ -2264,7 +2436,8 @@ function updateTable(data, reset) {
       function clearSearchHistory() {
         localStorage.removeItem("partSearchHistory");
         renderSearchHistory();
-        showMessageBox('Đã xóa lịch sử tra cứu.'); // Replaced alert
+        showMessageBox('Đã xóa lịch sử tra cứu.'); 
+        console.log("Lịch sử tìm kiếm: Đã xóa toàn bộ lịch sử.");
       }
       
       function toggleHistoryPopup() {
@@ -2275,6 +2448,7 @@ function updateTable(data, reset) {
             if (!isOpen) {
               renderSearchHistory();
             }
+            console.log("Lịch sử tìm kiếm: Đã bật/tắt popup lịch sử. Trạng thái:", popup.style.display);
           }
       }
       window.addEventListener("DOMContentLoaded", renderSearchHistory);
