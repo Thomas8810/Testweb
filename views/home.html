@@ -12,13 +12,12 @@
         @media (min-width: 768px) {
           html, body {
             height: 100vh; /* Đảm bảo body chiếm toàn bộ chiều cao viewport */
-            /* Removed overflow: hidden; from here */
+            overflow: hidden; /* Ngăn cuộn trang chính, các phần tử con sẽ quản lý cuộn riêng */
           }
 
           body {
             display: flex; /* Make body a flex container */
             flex-direction: column; /* Stack children vertically */
-            /* Removed overflow-y: auto; from here as page-container will manage it */
           }
 
           input, select, textarea {
@@ -40,12 +39,12 @@
             flex-grow: 1; /* Allow page-container to grow and fill available space */
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prevent page-container from overflowing, its children will manage scroll */
+            /* Removed overflow: hidden; from here. Let its children handle overflow. */
           }
 
           .top-container {
             flex-shrink: 0; /* Ngăn không cho phần này bị co lại */
-            max-height: 40vh; /* Giới hạn chiều cao của phần lọc */
+            /* max-height: 40vh; <-- Đã bỏ thuộc tính này để giải phóng không gian cho bảng */
             overflow-y: auto; /* Cho phép cuộn bên trong phần lọc nếu nội dung quá dài */
           }
 
@@ -56,10 +55,11 @@
 
           .table-container {
             flex-grow: 1; /* This is key for the table to take remaining space and scroll */
+            height: 0; /* Crucial: Allows flex-grow to work correctly with overflow-y: auto */
+            min-height: 0; /* Đảm bảo phần tử flex có thể co lại đúng cách */
             overflow-y: auto; /* Vertical scrollbar for the table */
             overflow-x: auto; /* Horizontal scrollbar for the table */
             margin: 0 1%; /* Điều chỉnh lề nếu cần */
-            height: auto; /* Let flex-grow determine height */
           }
 
           .bottom-controls-wrapper {
@@ -1392,7 +1392,7 @@
                         const thumbnailUrl = imagePopup.data('thumbnail-url');
                         if (thumbnailUrl) {
                             $thisImage.attr('src', thumbnailUrl);
-                            $thisImage.css('cursor', 'zoom-in');
+                            $this.css('cursor', 'zoom-in');
                         } else {
                             console.warn("Thumbnail image URL not found.");
                             popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
