@@ -5,35 +5,307 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
-    <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
-    <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Đoạn CSS responsive máy tính */
-        @media (min-width: 768px) {
-          html, body {
+        /* Basic CSS setup */
+        html, body {
             height: 100%;
-            overflow: hidden;
-          }
-
-          body {
-            overflow-y: auto;
-          }
-
-          input, select, textarea {
-            touch-action: manipulation;
-            -webkit-user-select: text;
-            user-select: text;
-            caret-color: auto;
-          }
-
-          input:focus,
-          select:focus,
-          textarea:focus {
-            outline: none;
-            box-shadow: none;
-          }
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif; /* Apply Inter font */
+            background-color: #1a1a2e; /* Dark background */
+            color: #e0e0e0; /* Light text color */
         }
-        /* Cài đặt CSS cơ bản */
+
+        /* Responsive CSS for desktop */
+        @media (min-width: 768px) {
+            html, body {
+                overflow: hidden; /* Prevent main scrollbar */
+            }
+
+            body {
+                overflow-y: auto; /* Allow content to scroll if needed */
+            }
+
+            input, select, textarea {
+                touch-action: manipulation;
+                -webkit-user-select: text;
+                user-select: text;
+                caret-color: auto;
+            }
+
+            input:focus,
+            select:focus,
+            textarea:focus {
+                outline: none;
+                box-shadow: none;
+            }
+        }
+
+        /* General styling for containers */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #2a2a4a; /* Slightly lighter dark background for containers */
+            border-radius: 12px; /* Rounded corners */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a5a;
+        }
+
+        /* Form elements styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #c0c0c0;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #4a4a6a;
+            border-radius: 8px;
+            background-color: #3a3a5a;
+            color: #e0e0e0;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input[type="text"]::placeholder {
+            color: #888;
+        }
+
+        /* Button styling */
+        button {
+            background-color: #007bff; /* Primary blue */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+            margin-right: 10px; /* Spacing between buttons */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* DataTables specific styling adjustments (kept for general table look, though DataTables is not used for main table) */
+        .dataTables_wrapper .dataTables_filter input {
+            margin-left: 0.5em;
+            border-radius: 8px;
+            padding: 8px 12px;
+            background-color: #3a3a5a;
+            border: 1px solid #4a4a6a;
+            color: #e0e0e0;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border-radius: 8px;
+            padding: 8px 12px;
+            background-color: #3a3a5a;
+            border: 1px solid #4a4a6a;
+            color: #e0e0e0;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            background-color: #3a3a5a;
+            color: #e0e0e0 !important;
+            border: 1px solid #4a4a6a;
+            border-radius: 8px;
+            margin: 0 5px;
+            padding: 6px 12px;
+            transition: background-color 0.3s ease;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background-color: #007bff;
+            color: white !important;
+            border-color: #007bff;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background-color: #0056b3;
+            color: white !important;
+        }
+
+        table.dataTable thead th,
+        table.dataTable tbody td {
+            color: #e0e0e0;
+            border-bottom: 1px solid #4a4a6a;
+            padding: 12px 15px;
+        }
+
+        table.dataTable thead th {
+            background-color: #3a3a5a;
+            font-weight: 600;
+        }
+
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child:before {
+            background-color: #007bff !important;
+        }
+
+        /* Custom styling for copyable Part Number in history popup (original) */
+        .copyable-part-number {
+            cursor: copy; /* Indicate that it's copyable */
+            text-decoration: underline; /* Visual cue */
+            color: #87ceeb; /* A distinct color */
+            transition: color 0.2s ease;
+        }
+
+        .copyable-part-number:hover {
+            color: #4682b4; /* Darker on hover */
+        }
+
+        /* NEW: Custom styling for copyable Part Number in the main table */
+        .copyable-table-part-number {
+            cursor: copy; /* Indicate that it's copyable */
+            text-decoration: underline; /* Visual cue */
+            color: #87ceeb; /* A distinct color */
+            transition: color 0.2s ease;
+        }
+
+        .copyable-table-part-number:hover {
+            color: #4682b4; /* Darker on hover */
+        }
+
+
+        /* Floating History Popup */
+        #floating-history-popup {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #2a2a4a;
+            border: 1px solid #3a3a5a;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            padding: 25px;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        #floating-history-popup h3 {
+            color: #e0e0e0;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #floating-history-popup ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #floating-history-popup ul li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #floating-history-popup ul li button {
+            background-color: #444;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: calc(100% - 70px);
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: none; /* Remove button shadow */
+            transition: background-color 0.2s ease;
+        }
+        #floating-history-popup ul li button:hover {
+            background-color: #555;
+            transform: none; /* No transform on history buttons */
+        }
+
+        #floating-history-popup ul li small {
+            color: #ccc;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        #floating-history-popup .popup-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        #floating-history-popup .popup-buttons button {
+            flex-grow: 1;
+            margin: 0 5px;
+        }
+
+        /* Custom Message Box Styling (NEW) */
+        #custom-message-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #3a3a5a;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1001; /* Higher than history popup */
+            text-align: center;
+            max-width: 300px;
+            width: 80%;
+        }
+
+        #custom-message-box p {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+        }
+
+        #custom-message-box button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #custom-message-box button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Original CSS from your file */
         html, body { height: 100%; margin: 0; padding: 0; }
         body {
           font-family: Arial, sans-serif;
@@ -416,7 +688,7 @@
           }
           table {
             width: auto;
-            min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng */
+            min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng container */
           }
           td, th {
             word-break: break-word; /* Cho phép ngắt từ nếu cần */
@@ -588,6 +860,11 @@
     </style>
 </head>
 <body>
+    <div id="custom-message-box" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #3a3a5a; color: #e0e0e0; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); z-index: 1001; text-align: center; max-width: 300px; width: 80%;">
+        <p id="message-text"></p>
+        <button onclick="document.getElementById('custom-message-box').style.display = 'none';">OK</button>
+    </div>
+
     <div id="loading-spinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
         <div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
     </div>
@@ -818,8 +1095,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 
     <script>
+        // Custom message box function (NEW)
+        function showMessageBox(message) {
+            const msgBox = document.getElementById('custom-message-box');
+            document.getElementById('message-text').innerText = message;
+            msgBox.style.display = 'block';
+        }
+
         // Khởi tạo i18next
         i18next.use(i18nextBrowserLanguageDetector).init({
           fallbackLng: 'vi',
@@ -1146,7 +1431,7 @@
                         hideSpinner();
                     });
                 } else {
-                    alert("Đã tải hết dữ liệu!");
+                    showMessageBox("Đã tải hết dữ liệu!"); // Replaced alert
                 }
             });
             $('#load-all').on('click', function() {
@@ -1273,6 +1558,32 @@
                 }
             });
             // Kết thúc các sự kiện cho popup ảnh
+
+            // NEW: Event listener for copying Part Number from the main table
+            // Using event delegation on document for dynamically loaded content
+            $(document).on('click', '.copyable-table-part-number', function(e) {
+                e.stopPropagation(); // Prevent the parent <td>'s click event (for image popup)
+                const partNumberToCopy = $(this).data('part-number');
+
+                navigator.clipboard.writeText(partNumberToCopy).then(() => {
+                    showMessageBox('Đã sao chép: ' + partNumberToCopy);
+                    console.log('Đã sao chép: ' + partNumberToCopy);
+                }).catch(err => {
+                    console.error('Không thể sao chép văn bản: ', err);
+                    const textArea = document.createElement("textarea");
+                    textArea.value = partNumberToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showMessageBox('Đã sao chép (fallback): ' + partNumberToCopy);
+                    } catch (err) {
+                        console.error('Không thể sao chép văn bản bằng fallback: ', err);
+                        showMessageBox('Không thể sao chép. Vui lòng chọn và sao chép thủ công: ' + partNumberToCopy);
+                    }
+                    document.body.removeChild(textArea);
+                });
+            });
 
             applyFilters(true); 
         });
@@ -1425,17 +1736,20 @@ function updateTable(data, reset) {
     if (reset) tbody.empty();
 
     data.forEach(function(row) {
-        const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
+        // Serial is now calculated after sorting for correctness
         const tr = $('<tr>');
         const partNumberValue = row['Part Number'] || 'N/A'; 
 
-        tr.append(`<td class="sticky-col-1">${serial}</td>`);
+        // Cột "No." - sẽ được cập nhật lại sau khi sắp xếp
+        tr.append(`<td class="sticky-col-1"></td>`); 
         
-        const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
-        partNumberCell.css('cursor', 'pointer');
+        // Cột "Part Number" với khả năng sao chép
+        const partNumberCell = $(`<td class="sticky-col-2"><span class="copyable-table-part-number" data-part-number="${partNumberValue}">${partNumberValue}</span></td>`);
+        partNumberCell.css('cursor', 'pointer'); // Giữ nguyên style con trỏ
 
-        // --- SỬA ĐỔI SỰ KIỆN CLICK CHO partNumberCell ---
+        // Gắn sự kiện click cho ô Part Number để mở popup ảnh
         partNumberCell.on('click', function(e) {
+            // e.stopPropagation() is handled by the span click handler if it originates from the span
             const currentErpCode = row['ERP-CODE']?.trim().toUpperCase();
             const currentPartNumberValueFromRow = row['Part Number'] || 'N/A'; // Lấy trực tiếp từ row
 
@@ -1496,7 +1810,6 @@ function updateTable(data, reset) {
                 imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
             }
         });
-        // --- KẾT THÚC SỬA ĐỔI SỰ KIỆN CLICK partNumberCell ---
         
         tr.append(partNumberCell);
 
@@ -1505,28 +1818,8 @@ function updateTable(data, reset) {
         tr.append(`<td>${row['Customer'] || ''}</td>`);
         tr.append(`<td>${row['Commodity'] || ''}</td>`);
         tr.append(`<td>${row['Production Status'] || ''}</td>`);
-        
-        let partPicValue = row['Part Pictures'] || '';
-        let partPicContent = partPicValue; 
-        if (typeof partPicValue === 'string') {
-            if (partPicValue.toLowerCase().startsWith('http')) {
-                partPicContent = `<a href="${partPicValue}" target="_blank">Link</a>`;
-            } else if (partPicValue.trim().toUpperCase() === 'OK' || partPicValue.trim() === '') {
-                partPicContent = partNumberValue; 
-            }
-        }
-        tr.append(`<td>${partPicContent}</td>`);
-
-        let pkgPicValue = row['Packaging Pictures'] || '';
-        let pkgPicContent = pkgPicValue; 
-        if (typeof pkgPicValue === 'string') {
-            if (pkgPicValue.toLowerCase().startsWith('http')) {
-                pkgPicContent = `<a href="${pkgPicValue}" target="_blank">Link</a>`;
-            } else if (pkgPicValue.trim().toUpperCase() === 'OK' || pkgPicValue.trim() === '') {
-                pkgPicContent = partNumberValue; 
-            }
-        }
-        tr.append(`<td>${pkgPicContent}</td>`);
+        tr.append(`<td>${row['Part Pictures'] || ''}</td>`);
+        tr.append(`<td>${row['Packaging Pictures'] || ''}</td>`);
 
         tr.append(`<td>${row['Critical'] || ''}</td>`);
         tr.append(`<td>${row['CE'] || ''}</td>`);
@@ -1552,6 +1845,11 @@ function updateTable(data, reset) {
         tr.append(`<td>${row['Reject comments'] || ''}</td>`);
 
         tbody.append(tr);
+    });
+
+    // Re-calculate and update "No." column after all rows are appended/updated
+    tbody.children('tr').each(function(index) {
+        $(this).find('td').eq(0).text(index + 1); // Update the first column (No.)
     });
 
     var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
@@ -1620,13 +1918,19 @@ function updateTable(data, reset) {
             }
             return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
           });
+          
+          // Re-append sorted rows and update "No." column
+          const tbody = $('#results-table tbody');
+          tbody.empty(); // Clear existing rows
           $.each(rows, function(index, row) {
-            $('#results-table tbody').append(row);
+            tbody.append(row);
+            // Update the "No." column for the re-appended row
+            $(row).find('td').eq(0).text(index + 1); 
           });
         }
         $(document).on('click', '#results-table th', function () {
             const col = $(this).data('column');
-            if (!col) return;
+            if (!col || col === 'No') return; // Prevent sorting by "No." column
 
             const currentOrder = $(this).data('order') || 'asc';
             const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
@@ -1665,7 +1969,6 @@ function updateTable(data, reset) {
             <p id="ocrStatus" style="font-size:14px; margin-top:10px; margin-bottom: 20px; display: block;">Đang chờ thao tác...</p>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
       const btnScan = document.getElementById('btnScanCamera');
@@ -1764,7 +2067,10 @@ function updateTable(data, reset) {
 
       btnApply.addEventListener('click', () => {
         const part = inputOCR.value.trim();
-        if (!part) return alert('Bạn chưa nhập Part Number!');
+        if (!part) {
+            showMessageBox('Bạn chưa nhập Part Number!'); // Replaced alert
+            return;
+        }
         $('#filter-column-1').val('Part Number').trigger('change'); 
         setTimeout(() => { 
             $('#filter-value-1').val([part]).trigger('change'); 
@@ -1785,7 +2091,7 @@ function updateTable(data, reset) {
     });
     </script>
     <script>
-    window.addEventListener('resize', () => {
+    document.addEventListener('DOMContentLoaded', () => {
       const activeEl = document.activeElement;
       if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
         setTimeout(() => {
@@ -1933,7 +2239,8 @@ function updateTable(data, reset) {
         history.forEach(item => {
           const li = document.createElement("li");
           li.style.marginBottom = "6px";
-          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
+          // Changed to use showMessageBox instead of navigator.clipboard.writeText directly here
+          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
           list.appendChild(li);
         });
       }
@@ -1944,12 +2251,20 @@ function updateTable(data, reset) {
             $('#filter-value-1').val([partNumber]).trigger('change');
             applyFilters(true);
             toggleHistoryPopup(); 
+            // Also copy to clipboard after quick search from history
+            navigator.clipboard.writeText(partNumber).then(() => {
+                showMessageBox('Đã sao chép từ lịch sử: ' + partNumber);
+            }).catch(err => {
+                console.error('Không thể sao chép từ lịch sử: ', err);
+                showMessageBox('Không thể sao chép từ lịch sử. Vui lòng sao chép thủ công: ' + partNumber);
+            });
         }, 50);
       }
 
       function clearSearchHistory() {
         localStorage.removeItem("partSearchHistory");
         renderSearchHistory();
+        showMessageBox('Đã xóa lịch sử tra cứu.'); // Replaced alert
       }
       
       function toggleHistoryPopup() {
