@@ -1392,7 +1392,7 @@
                         const thumbnailUrl = imagePopup.data('thumbnail-url');
                         if (thumbnailUrl) {
                             $thisImage.attr('src', thumbnailUrl);
-                            $this.css('cursor', 'zoom-in');
+                            $thisImage.css('cursor', 'zoom-in');
                         } else {
                             console.warn("Thumbnail image URL not found.");
                             popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
@@ -1977,6 +1977,7 @@ function updateTable(data, reset) {
     });
     </script>
     <script>
+    // PHẦN SCRIPT CẦN THAY THẾ BẮT ĐẦU TỪ ĐÂY
     document.addEventListener('DOMContentLoaded', () => {
       const topContainer = document.querySelector('.top-container');
       const quickSearchWrapper = document.querySelector('.quick-search-wrapper');
@@ -1985,55 +1986,72 @@ function updateTable(data, reset) {
       const applyBtn = document.getElementById('apply-filters');
       const clearBtn = document.getElementById('clear-filters');
 
-      let wasEditingTop = false;
+      let wasEditingTop = false; // Biến này không còn cần thiết với logic mới nhưng giữ lại nếu có reference khác
 
-      document.addEventListener('focusin', (e) => {
-          if (window.innerWidth >= 768) return;
-        const target = e.target;
-        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
-          wasEditingTop = true;
-          topContainer.classList.add('full-top-container');
-          topContainer.classList.remove('hide-top-container');
-          tableContainer.style.display = 'none';
-          quickSearchWrapper.style.display = 'none';
-          bottomControlsWrapper.style.display = 'none';
-        } else if (quickSearchWrapper.contains(target)) {
-          topContainer.classList.add('hide-top-container');
-          tableContainer.style.display = 'block';
-          bottomControlsWrapper.style.display = 'none';
-        }
-      });
-
-      document.addEventListener('focusout', () => {
-            if (window.innerWidth >= 768) return;
-        setTimeout(() => {
-          const active = document.activeElement;
-          if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
-            if (wasEditingTop) {
-              tableContainer.style.display = 'block';
-              quickSearchWrapper.style.display = 'block';
-              bottomControlsWrapper.style.display = 'block';
-            } else {
-              topContainer.classList.remove('full-top-container', 'hide-top-container');
-              tableContainer.style.display = 'block';
-              quickSearchWrapper.style.display = 'block';
-              bottomControlsWrapper.style.display = 'block';
-            }
-          }
-        }, 300);
-      });
-
+      // Hàm helper để khôi phục giao diện mặc định
       function revealTableAndSearch() {
-        wasEditingTop = false;
+        wasEditingTop = false; // Đặt lại trạng thái
         topContainer.classList.remove('full-top-container', 'hide-top-container');
         quickSearchWrapper.style.display = 'block';
         tableContainer.style.display = 'block';
         bottomControlsWrapper.style.display = 'block';
       }
 
-      applyBtn?.addEventListener('click', revealTableAndSearch);
-      clearBtn?.addEventListener('click', revealTableAndSearch);
+      document.addEventListener('focusin', (e) => {
+        if (window.innerWidth >= 768) return; // Chỉ áp dụng cho màn hình nhỏ
+        const target = e.target;
+
+        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
+          // Người dùng focus vào một trường trong top-container (bộ lọc)
+          wasEditingTop = true;
+          topContainer.classList.add('full-top-container');
+          topContainer.classList.remove('hide-top-container');
+          
+          quickSearchWrapper.style.display = 'none';
+          tableContainer.style.display = 'none';
+          bottomControlsWrapper.style.display = 'none';
+        } else if (quickSearchWrapper.contains(target) && target.tagName === 'INPUT') {
+          // Người dùng focus vào trường quick-search
+          wasEditingTop = false;
+          topContainer.classList.add('hide-top-container');
+          topContainer.classList.remove('full-top-container');
+
+          quickSearchWrapper.style.display = 'block';
+          tableContainer.style.display = 'block';
+          bottomControlsWrapper.style.display = 'block'; // Đảm bảo bottom controls hiển thị
+        }
+      });
+
+      document.addEventListener('focusout', (e) => {
+        if (window.innerWidth >= 768) return; // Chỉ áp dụng cho màn hình nhỏ
+
+        // Sử dụng timeout ngắn để cho phép focus chuyển sang một phần tử mới
+        setTimeout(() => {
+          const activeElement = document.activeElement;
+          
+          // Kiểm tra xem focus có còn nằm trong các vùng nhập liệu chính không
+          const isFocusStillInTopFilters = topContainer.contains(activeElement) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(activeElement.tagName);
+          const isFocusStillInQuickSearch = quickSearchWrapper.contains(activeElement) && activeElement.tagName === 'INPUT';
+
+          if (!isFocusStillInTopFilters && !isFocusStillInQuickSearch) {
+            // Nếu focus đã thoát ra khỏi các vùng nhập liệu chính (ví dụ: click vào body, table,...)
+            // thì khôi phục lại giao diện mặc định.
+            revealTableAndSearch();
+          }
+          // Nếu focus chuyển giữa các input trong cùng một nhóm (ví dụ từ filter A sang filter B),
+          // sự kiện focusin của input mới sẽ xử lý lại giao diện.
+        }, 150); // Timeout 150ms
+      });
+
+      // Gắn sự kiện click cho các nút filter để khôi phục giao diện
+      if(applyBtn) {
+        applyBtn.addEventListener('click', revealTableAndSearch);
+      }
+      if(clearBtn) {
+        clearBtn.addEventListener('click', revealTableAndSearch);
+      }
     });
+    // PHẦN SCRIPT CẦN THAY THẾ KẾT THÚC TẠI ĐÂY
     </script>
     <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999; transition: all 0.3s ease-out;" title="Lịch sử tìm kiếm">🕘</button>
     <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
