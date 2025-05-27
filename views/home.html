@@ -4,224 +4,629 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Arial', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: '#3B82F6', // Blue 500
-                        secondary: '#10B981', // Emerald 500
-                        accent: '#F59E0B', // Amber 500
-                        neutral: '#F3F4F6', // Gray 100
-                        textDark: '#1F2937', // Gray 800
-                        textLight: '#6B7280', // Gray 500
-                    }
-                }
-            }
-        }
-    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
     <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
     <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
     <style>
-        /* Custom CSS for Select2 to match Tailwind aesthetics */
-        .select2-container--default .select2-selection--multiple {
-            @apply bg-white border border-gray-300 rounded-lg shadow-sm min-h-[42px] text-textDark;
+        /* Đoạn CSS responsive máy tính */
+        @media (min-width: 768px) {
+          html, body {
+            height: 100%;
+            overflow: hidden;
+          }
+
+          body {
+            overflow-y: auto;
+          }
+
+          input, select, textarea {
+            touch-action: manipulation;
+            -webkit-user-select: text;
+            user-select: text;
+            caret-color: auto;
+          }
+
+          input:focus,
+          select:focus,
+          textarea:focus {
+            outline: none;
+            box-shadow: none;
+          }
         }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            @apply bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full flex items-center;
+        /* Cài đặt CSS cơ bản */
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body {
+          font-family: Arial, sans-serif;
+          background: url('background.jpg') no-repeat center center/cover;
+          color: #333;
+          display: flex;
+          flex-direction: column;
         }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-            @apply text-blue-600 hover:text-blue-900 ml-1;
+        .page-container {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
-        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-            @apply p-1;
+        .top-container {
+          flex: 0 0 auto;
+          background: rgba(0, 0, 0, 0.85);
+          padding: 15px;
+          max-height: 40vh;
+          overflow-y: auto;
+          position: relative;
         }
-        .select2-container--default .select2-selection--single {
-            @apply bg-white border border-gray-300 rounded-lg shadow-sm h-[42px] flex items-center;
+        .header {
+          text-align: center;
+          padding: 10px;
+          position: relative;
         }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            @apply text-textDark leading-none px-3;
+        .tasks-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            background: #007bff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.4s ease-in-out, transform 0.4s ease-in-out; /* Mượt hơn */
         }
-        .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
-            @apply bg-primary text-white;
+        .tasks-link:hover {
+            background: #0056b3;
+            transform: scale(1.02); /* Thêm hiệu ứng hover */
         }
-        .select2-dropdown {
-            @apply border border-gray-300 rounded-lg shadow-lg;
+        .tasks-link:active {
+            transform: scale(0.98); /* Thêm hiệu ứng active */
         }
-        .select2-search input {
-            @apply border border-gray-300 rounded-lg p-2;
+        .header h1 { margin: 0; font-size: 28px; color: white; }
+        .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
+        /* Language switcher ở góc trên bên phải */
+        .language-switcher {
+          position: absolute;
+          top: 10px;
+          right: 10px;
         }
-        /* Hide Select2 search input for single selects */
-        .select2-container--default .select2-selection--single .select2-search__field {
-            display: none;
+        .language-switcher button {
+          padding: 4px 8px;
+          margin-left: 5px;
+          font-size: 12px;
+          cursor: pointer;
+          border: none;
+          border-radius: 3px;
+          background: #ff8c00;
+          color: white;
+          transition: background 0.4s ease-in-out, transform 0.4s ease-in-out; /* Mượt hơn */
+        }
+        .language-switcher button:hover {
+          background: #ff6500;
+          transform: scale(1.02); /* Thêm hiệu ứng hover */
+        }
+        .language-switcher button:active {
+            transform: scale(0.98); /* Thêm hiệu ứng active */
+        }
+        /* Khối chứa các tiêu chí lọc */
+        .filter-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 5px;
+        }
+        .filter-block {
+          background: #444;
+          border-radius: 5px;
+          padding: 5px;
+          margin: 5px;
+          width: 220px; /* Tăng chiều rộng để chứa 2 date input */
+          font-size: 12px;
+          color: white;
+          box-sizing: border-box;
+        }
+        .filter-block label {
+          display: block;
+          margin-bottom: 3px;
+          font-weight: bold;
+        }
+        .filter-block select, .filter-block input[type="date"] {
+          width: 100%;
+          padding: 3px;
+          margin-bottom: 3px;
+          font-size: 12px;
+          box-sizing: border-box;
+          border-radius: 3px;
+          border: 1px solid #666;
+        }
+        .filter-block input[type="date"] {
+            background-color: #fff;
+            color: #333;
+        }
+        .date-range-inputs {
+            display: none; /* Ẩn ban đầu */
+        }
+        .date-range-inputs label {
+            font-size: 10px;
+            margin-top: 5px;
+            margin-bottom: 1px;
         }
 
-        /* Sticky table headers and columns */
-        .table-container table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
 
-        .table-container th,
-        .table-container td {
-            @apply border border-gray-200;
+        /* Khối chứa các nút chức năng */
+        .action-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 5px;
         }
-
-        .table-container th {
-            @apply bg-primary text-white sticky top-0 z-20;
+        .action-bar > div {
+          background: #444;
+          border-radius: 5px;
+          padding: 5px;
+          margin: 5px;
+          font-size: 12px;
+          color: white;
+          text-align: center;
         }
-
+        .action-bar button {
+          padding: 6px 12px;
+          font-size: 12px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background 0.4s ease-in-out, transform 0.4s ease-in-out; /* Mượt hơn */
+          margin: 3px;
+        }
+        .action-bar button:hover {
+            transform: scale(1.02); /* Thêm hiệu ứng hover */
+        }
+        .action-bar button:active {
+            transform: scale(0.98); /* Thêm hiệu ứng active */
+        }
+        .filter-actions button {
+          background: linear-gradient(45deg, #ff8c00, #ff4500);
+          color: white;
+        }
+        .filter-actions button:hover {
+          background: linear-gradient(45deg, #ff6500, #ff0000);
+        }
+        .download-container button {
+          background: linear-gradient(45deg, #007bff, #0056b3);
+          color: white;
+        }
+        .download-container button:hover {
+          background: linear-gradient(45deg, #3399ff, #007bff);
+        }
+        .zoom-controls button {
+          background: linear-gradient(45deg, #28a745, #218838);
+          color: white;
+        }
+        .zoom-controls button:hover {
+          background: linear-gradient(45deg, #34d058, #28a745);
+        }
+        /* Phần hiển thị tổng số dòng */
+        .results-count {
+          text-align: center;
+          margin: 5px;
+          font-size: 14px;
+          color: white;
+        }
+        /* Bảng dữ liệu */
+        .table-container {
+          flex: 1 1 auto;
+          margin: 5px auto;
+          width: 98%;
+          max-height: calc(100vh - 260px); /* Điều chỉnh nếu top-container thay đổi chiều cao */
+          overflow-y: auto;
+          overflow-x: auto;
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 5px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        table {
+          width: auto; /* Cho phép bảng co giãn theo nội dung */
+          min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng container */
+          border-collapse: collapse;
+          table-layout: fixed; /* Giúp cột cố định hoạt động tốt hơn */
+        }
+        th, td {
+          padding: 6px 8px;
+          border: 1px solid #ccc;
+          font-size: 12px;
+          text-align: center;
+          white-space: nowrap;
+        }
+        th {
+          background: #4a76a8;
+          color: white;
+          position: sticky;
+          top: 0;
+          z-index: 2;
+        }
         .sticky-col-1 {
-            position: sticky;
-            left: 0;
-            @apply bg-primary z-30;
+          position: sticky;
+          left: 0;
+          width: 40px; /* Cố định chiều rộng cho cột No */
+          min-width: 40px;
+          background: #4a76a8; /* Màu nền giống th */
+          z-index: 3; /* Cao hơn th thường và td thường */
         }
         .sticky-col-2 {
-            position: sticky;
-            left: 40px; /* Width of sticky-col-1 */
-            @apply bg-primary z-30;
+          position: sticky;
+          left: 40px; /* No (40px) */
+          width: 100px; /* Cố định chiều rộng cho Part Number */
+          min-width: 100px;
+          background: #4a76a8;
+          z-index: 3;
         }
         .sticky-col-3 {
-            position: sticky;
-            left: 140px; /* Width of sticky-col-1 + sticky-col-2 */
-            @apply bg-primary z-30;
+          position: sticky;
+          left: 140px; /* No (40px) + Part Number (100px) */
+          width: 50px; /* Cố định chiều rộng cho REV */
+          min-width: 50px;
+          background: #4a76a8;
+          z-index: 3;
+        }
+        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+          background: #e6e6e6; /* Màu nền khác cho td cố định để phân biệt */
+          color: #333;
+          z-index: 1; /* Cao hơn td thường nhưng thấp hơn th cố định */
+        }
+        tr.selected { background-color: #ffeb99 !important; }
+        .footer {
+          flex: 0 0 auto;
+          text-align: center;
+          padding: 5px;
+          font-size: 14px;
+          background: #333;
+          color: white;
         }
 
-        .table-container td.sticky-col-1,
-        .table-container td.sticky-col-2,
-        .table-container td.sticky-col-3 {
-            @apply bg-white text-textDark z-10;
+        /* CSS cho popup ảnh */
+        #image-popup {
+            display: none;
+            position: fixed;
+            border: 1px solid #ccc;
+            background: white;
+            padding: 5px;
+            z-index: 10000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            max-width: 250px; /* Giới hạn kích thước popup ban đầu */
+            max-height: 250px;
+            cursor: default;
+            transition: all 0.3s ease-in-out;
+            overflow: auto; /* Cho phép cuộn khi ảnh lớn hơn popup đã zoom */
         }
-        .table-container tbody tr:nth-child(even) td {
-            @apply bg-gray-50;
+        #image-popup img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block; /* Loại bỏ khoảng trắng thừa dưới ảnh */
+            cursor: zoom-in; /* Con trỏ ban đầu */
+            object-fit: contain; /* Đảm bảo ảnh luôn vừa vặn */
+            width: 100%; 
+            height: 100%;
+        }
+        
+        #image-popup .no-image-text {
+            padding: 10px;
+            text-align: center;
+            color: #555;
         }
 
-        /* Spinner animation */
+        /* Class cho trạng thái phóng to */
+        #image-popup.zoomed {
+            max-width: 90vw; /* Chiếm 90% chiều rộng viewport */
+            max-height: 90vh; /* Chiếm 90% chiều cao viewport */
+            width: auto;  /* Tự động điều chỉnh chiều rộng theo nội dung ảnh */
+            height: auto; /* Tự động điều chỉnh chiều cao theo nội dung ảnh */
+            padding: 15px; /* Tăng padding khi zoom */
+        }
+
+        #image-popup.zoomed img {
+            cursor: zoom-out; /* Đổi cursor khi ảnh đã được phóng to */
+        }
+
+        /* Nút đóng (X) */
+        .image-popup-close {
+            position: absolute;
+            top: 0px; 
+            right: 8px;
+            font-size: 24px; 
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            z-index: 10001; 
+            padding: 2px 5px;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            line-height: 1;
+        }
+        .image-popup-close:hover {
+            color: #000;
+            background-color: rgba(255,255,255,0.9);
+        }
+
+        /* CSS cho spinner tải ảnh trong popup */
+        .image-popup-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none; /* Ẩn ban đầu */
+            z-index: 10002; /* Trên ảnh */
+        }
+
+        @media (max-width: 768px) {
+          .language-switcher {
+            position: static;
+            margin-top: 10px;
+            text-align: center;
+          }
+          .language-switcher button {
+            padding: 3px 6px;
+            margin: 0 3px;
+            font-size: 10px;
+          }
+          .filter-bar, .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .filter-block, .action-bar > div {
+            width: 90%; /* Tăng chiều rộng cho dễ thao tác */
+            margin: 5px auto;
+          }
+          .header h1 { font-size: 24px; }
+          .header p { font-size: 14px; }
+          table, th, td { font-size: 10px; }
+          .table-container {
+            max-height: calc(100vh - 320px); /* Điều chỉnh nếu cần */
+          }
+           .top-container {
+                max-height: 45vh !important; /* Tăng chiều cao tối đa cho vùng filter */
+                padding: 8px !important;
+                overflow-y: auto;
+            }
+            .action-bar button,
+            .language-switcher button {
+                font-size: 16px; /* Tăng kích thước chữ cho nút */
+                padding: 10px 16px; /* Tăng padding cho nút */
+            }
+             #quick-search {
+                font-size: 13px !important; /* Đảm bảo quick search dễ thấy */
+            }
+        }
+        @media (max-width: 480px) {
+          .tasks-link {
+            position: relative;
+            top: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 16px;
+          }
+          .header h1 { font-size: 20px; }
+          .header p { font-size: 12px; }
+          table, th, td { font-size: 9px; }
+        }
+
+        @media (max-width: 768px) {
+          body {
+            padding-bottom: 300px; /* chừa chỗ cho bàn phím */
+          }
+        }
+
+        @media screen and (orientation: landscape), (orientation: portrait) {
+          .table-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            overflow-x: auto;
+            touch-action: pan-y; /* Cho phép cuộn dọc bằng cảm ứng */
+          }
+          table {
+            width: auto;
+            min-width: 100%; /* Đảm bảo bảng chiếm ít nhất toàn bộ chiều rộng */
+          }
+          td, th {
+            word-break: break-word; /* Cho phép ngắt từ nếu cần */
+          }
+        }
+
+        /* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
+        .table-container {
+          width: 100vw; /* Chiếm toàn bộ chiều rộng viewport */
+          max-height: 50vh; /* Chiều cao tối đa */
+          overflow-x: auto;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
+          scroll-behavior: smooth;
+          touch-action: auto; /* Cho phép cả cuộn ngang và dọc */
+        }
+
+        @media screen and (orientation: landscape) {
+          .table-container {
+            max-height: 60vh;
+          }
+        }
+
+        @media screen and (orientation: portrait) {
+          .table-container {
+            max-height: 50vh;
+          }
+        }
+
+        table {
+          min-width: 800px; /* Chiều rộng tối thiểu của bảng, điều chỉnh nếu cần */
+        }
+
+        th, td {
+          word-break: break-word;
+          white-space: nowrap;
+        }
+
+        .table-container {
+            width: 100%; /* Đảm bảo container chiếm toàn bộ chiều rộng cha */
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 60vh; /* Hoặc giá trị phù hợp */
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 1000px; /* Hoặc giá trị phù hợp với số cột */
+        }
+        th, td {
+            white-space: nowrap; /* Giữ nội dung trên một dòng */
+            padding: 6px; /* Điều chỉnh padding nếu cần */
+            font-size: 12px;
+        }
+        .sticky-col-1 {
+            position: sticky; left: 0; background: #4a76a8; z-index: 3;
+        }
+        .sticky-col-2 {
+            position: sticky; left: 40px; background: #4a76a8; z-index: 3;
+        }
+        .sticky-col-3 {
+            position: sticky; left: 140px; background: #4a76a8; z-index: 3;
+        }
+        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+            background: #f3f3f3; /* Màu nền sáng hơn cho td cố định */
+        }
+
+        /* --- Cải tiến cho input khi focus --- */
+        input:focus, select:focus {
+          outline: 2px solid #ff8c00; /* Viền cam nổi bật khi focus */
+          background-color: #fffce6; /* Nền vàng nhạt khi focus */
+        }
+
+        /* Tăng font input trên điện thoại để dễ nhập */
+        @media (max-width: 768px) {
+          input, select {
+            font-size: 16px; /* Kích thước chữ lớn hơn cho input trên mobile */
+          }
+        }
+
+        /* Cải thiện bảng khi xoay ngang */
+        @media screen and (orientation: landscape) {
+            .top-container {
+                max-height: 30vh; /* Giảm chiều cao vùng filter khi xoay ngang */
+                overflow-y: auto;
+            }
+            .table-container {
+                height: auto; /* Cho phép bảng tự điều chỉnh chiều cao */
+                max-height: 90vh; /* Tăng chiều cao tối đa cho bảng */
+                min-height: 70vh; /* Chiều cao tối thiểu cho bảng */
+                overflow-x: auto;
+                overflow-y: auto;
+            }
+            table {
+                min-width: 1200px; /* Tăng chiều rộng tối thiểu của bảng khi xoay ngang */
+            }
+        }
+
+
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        #loading-spinner > div {
-          animation: spin 1s linear infinite;
+        #results-table td, #results-table th {
+          user-select: text; /* Cho phép chọn văn bản trong bảng */
         }
 
-        /* Image popup styling */
-        #image-popup {
-            @apply hidden fixed border border-gray-300 bg-white p-2 shadow-xl cursor-default transition-all duration-300 ease-in-out overflow-auto;
-            z-index: 10000;
-            max-width: 250px;
-            max-height: 250px;
-        }
-        #image-popup img {
-            @apply max-w-full max-h-full block object-contain w-full h-full cursor-zoom-in;
-        }
-        #image-popup.zoomed {
-            @apply max-w-[90vw] max-h-[90vh] w-auto h-auto p-4;
-        }
-        #image-popup.zoomed img {
-            @apply cursor-zoom-out;
-        }
-        .image-popup-close {
-            @apply absolute top-0 right-2 text-2xl font-bold cursor-pointer text-gray-700 bg-white rounded-full leading-none px-1 py-0.5;
-            z-index: 10001;
-        }
-        .image-popup-close:hover {
-            @apply text-gray-900 bg-gray-100;
-        }
-        .image-popup-spinner {
-            @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-4 border-gray-200 border-t-4 border-t-blue-500 rounded-full w-8 h-8 hidden;
-            animation: spin 1s linear infinite;
-            z-index: 10002;
-        }
-        .no-image-text {
-            @apply p-4 text-center text-gray-600;
-        }
 
-        /* Mobile specific adjustments */
-        @media (max-width: 767px) {
-            .top-area {
-                @apply p-4;
+        @media (max-width: 768px) {
+            .top-container {
+                max-height: 40vh !important; /* Quan trọng: Đảm bảo ghi đè các style khác */
+                padding: 8px !important;
+                overflow-y: auto;
             }
-            .filter-grid, .action-grid {
-                @apply grid-cols-1 gap-3;
+
+            .header h1 { font-size: 20px; }
+            .header p { font-size: 12px; }
+
+            .filter-block,
+            .action-bar > div {
+                padding: 4px;
+                margin: 3px;
+                font-size: 11px;
             }
-            .filter-block, .action-block {
-                @apply w-full;
-            }
-            .header h1 { @apply text-2xl; }
-            .header p { @apply text-base; }
-            .language-switcher {
-                @apply static flex justify-center mt-4;
-            }
+
+            .action-bar button,
             .language-switcher button {
-                @apply text-sm px-3 py-1.5;
+                font-size: 16px; /* Tăng kích thước chữ cho nút */
+                padding: 10px 16px; /* Tăng padding cho nút */
             }
-            .table-container {
-                max-height: calc(100vh - 300px); /* Adjusted for more space */
+
+            .filter-block select {
+                font-size: 12px;
             }
-            body {
-                padding-bottom: 300px; /* Space for keyboard */
+
+            .results-count {
+                font-size: 12px;
+            }
+
+            #quick-search {
+                font-size: 13px !important; /* Đảm bảo quick search dễ thấy */
             }
         }
 
-        /* Landscape orientation adjustments */
-        @media screen and (orientation: landscape) {
-            .top-area {
-                max-height: 40vh;
-            }
-            .table-container {
-                height: auto;
-                max-height: 90vh;
-                min-height: 60vh;
-            }
-            table {
-                min-width: 1200px;
-            }
-        }
 
-        /* Dynamic container classes */
+        /* Hiệu ứng mượt cho vùng động */
+        .top-container,
+        .table-container,
+        #quick-search {
+          transition: all 0.3s ease-in-out;
+        }
         .full-top-container {
-            @apply h-screen max-h-screen overflow-y-auto;
+          height: 100vh !important;
+          max-height: 100vh !important;
+          overflow-y: auto;
         }
         .hide-top-container {
-            @apply h-0 max-h-0 overflow-hidden p-0 opacity-0 pointer-events-none;
+          height: 0 !important;
+          max-height: 0 !important;
+          overflow: hidden;
+          padding: 0 !important;
+          opacity: 0;
+          pointer-events: none;
         }
         .show-table-only {
-            @apply h-[calc(100vh-60px)]; /* Adjust based on quick search and footer height */
+          height: calc(100vh - 60px); /* 60px là chiều cao của quick search và footer */
         }
+
     </style>
 </head>
-<body class="font-sans bg-neutral text-textDark flex flex-col min-h-screen">
-    <div id="loading-spinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-        <div class="border-6 border-gray-300 border-t-6 border-t-primary rounded-full w-10 h-10"></div>
+<body>
+    <div id="loading-spinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+        <div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
     </div>
 
-    <div class="page-container flex flex-col flex-grow">
-        <div class="top-area bg-white p-6 shadow-lg relative overflow-y-auto max-h-[50vh] transition-all duration-300 ease-in-out rounded-b-xl">
-            <div class="header text-center p-2 relative mb-4">
-                <a class="tasks-link absolute top-2 left-2 bg-secondary hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300" href="/tasks">Tasks</a>
-                <h1 id="header-title" class="text-4xl font-extrabold text-textDark mb-1">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
-                <p id="header-subtitle" class="text-lg text-textLight">Tra cứu tình trạng FAIR</p>
-                <div class="language-switcher absolute top-2 right-2 flex space-x-2">
-                    <button onclick="changeLanguage('vi')" class="bg-accent hover:bg-amber-600 text-white text-base font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">Vi</button>
-                    <button onclick="changeLanguage('en')" class="bg-accent hover:bg-amber-600 text-white text-base font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">En</button>
-                    <button onclick="changeLanguage('ko')" class="bg-accent hover:bg-amber-600 text-white text-base font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">Ko</button>
+    <div class="page-container">
+        <div class="top-container">
+            <div class="header">
+                <a class="tasks-link" href="/tasks">Tasks</a>
+                <h1 id="header-title">FAIR TEAM - Tra cứu tình trạng FAIR</h1>
+                <p id="header-subtitle">Tra cứu tình trạng FAIR</p>
+                <div class="language-switcher">
+                    <button onclick="changeLanguage('vi')">Vi</button>
+                    <button onclick="changeLanguage('en')">En</button>
+                    <button onclick="changeLanguage('ko')">Ko</button>
                 </div>
             </div>
 
-            <div class="filter-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
-                    <label for="filter-project" id="label-filter-project" class="block mb-3 font-semibold text-textDark">Chọn dự án (Customer)</label>
-                    <select class="value-select w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-project" multiple="multiple"></select>
+            <div class="filter-bar">
+                <div class="filter-block" id="filter-block-project">
+                    <label for="filter-project" id="label-filter-project">Chọn dự án (Customer)</label>
+                    <select class="value-select" id="filter-project" multiple="multiple"></select>
                 </div>
-                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
-                    <label for="filter-column-1" id="label-criteria-1" class="block mb-3 font-semibold text-textDark">Chọn tiêu chí số 1:</label>
-                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-1">
+                <div class="filter-block" id="filter-block-1">
+                    <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
+                    <select id="filter-column-1">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -253,18 +658,18 @@
                         <option value="Submit date" data-type="date">Submit date</option>
                         <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-1" id="label-filter-value-1" class="block mt-4 mb-3 font-semibold text-textDark">Chọn giá trị</label>
-                    <select class="value-select w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-1" multiple="multiple"></select>
-                    <div class="date-range-inputs hidden mt-3">
-                        <label for="filter-date-start-1" class="block text-sm mb-1 text-textLight">Từ ngày:</label>
-                        <input type="date" class="date-select-start w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-1">
-                        <label for="filter-date-end-1" class="block text-sm mt-3 mb-1 text-textLight">Đến ngày:</label>
-                        <input type="date" class="date-select-end w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-1">
+                    <label for="filter-value-1" id="label-filter-value-1">Chọn giá trị</label>
+                    <select class="value-select" id="filter-value-1" multiple="multiple"></select>
+                    <div class="date-range-inputs" id="date-range-1">
+                        <label for="filter-date-start-1">Từ ngày:</label>
+                        <input type="date" class="date-select-start" id="filter-date-start-1">
+                        <label for="filter-date-end-1">Đến ngày:</label>
+                        <input type="date" class="date-select-end" id="filter-date-end-1">
                     </div>
                 </div>
-                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
-                    <label for="filter-column-2" id="label-criteria-2" class="block mb-3 font-semibold text-textDark">Chọn tiêu chí số 2 (paste ex):</label>
-                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-2">
+                <div class="filter-block" id="filter-block-2">
+                    <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
+                    <select id="filter-column-2">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -296,18 +701,18 @@
                         <option value="Submit date" data-type="date">Submit date</option>
                         <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-2" id="label-filter-value-2" class="block mt-4 mb-3 font-semibold text-textDark">Chọn giá trị</label>
-                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-2" multiple="multiple"></select>
-                     <div class="date-range-inputs hidden mt-3">
-                        <label for="filter-date-start-2" class="block text-sm mb-1 text-textLight">Từ ngày:</label>
-                        <input type="date" class="date-select-start w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-2">
-                        <label for="filter-date-end-2" class="block text-sm mt-3 mb-1 text-textLight">Đến ngày:</label>
-                        <input type="date" class="date-select-end w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-2">
+                    <label for="filter-value-2" id="label-filter-value-2">Chọn giá trị</label>
+                    <select id="filter-value-2" multiple="multiple"></select>
+                     <div class="date-range-inputs" id="date-range-2">
+                        <label for="filter-date-start-2">Từ ngày:</label>
+                        <input type="date" class="date-select-start" id="filter-date-start-2">
+                        <label for="filter-date-end-2">Đến ngày:</label>
+                        <input type="date" class="date-select-end" id="filter-date-end-2">
                     </div>
                 </div>
-                <div class="filter-block bg-neutral p-5 rounded-xl shadow-inner">
-                    <label for="filter-column-3" id="label-criteria-3" class="block mb-3 font-semibold text-textDark">Chọn tiêu chí số 3:</label>
-                    <select class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-column-3">
+                <div class="filter-block" id="filter-block-3">
+                    <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
+                    <select id="filter-column-3">
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -339,182 +744,90 @@
                         <option value="Submit date" data-type="date">Submit date</option>
                         <option value="Reject comments">Reject comments</option>
                     </select>
-                    <label for="filter-value-3" id="label-filter-value-3" class="block mt-4 mb-3 font-semibold text-textDark">Chọn giá trị</label>
-                    <select class="value-select w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-value-3" multiple="multiple"></select>
-                    <div class="date-range-inputs hidden mt-3">
-                        <label for="filter-date-start-3" class="block text-sm mb-1 text-textLight">Từ ngày:</label>
-                        <input type="date" class="date-select-start w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-start-3">
-                        <label for="filter-date-end-3" class="block text-sm mt-3 mb-1 text-textLight">Đến ngày:</label>
-                        <input type="date" class="date-select-end w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" id="filter-date-end-3">
+                    <label for="filter-value-3" id="label-filter-value-3">Chọn giá trị</label>
+                    <select class="value-select" id="filter-value-3" multiple="multiple"></select>
+                    <div class="date-range-inputs" id="date-range-3">
+                        <label for="filter-date-start-3">Từ ngày:</label>
+                        <input type="date" class="date-select-start" id="filter-date-start-3">
+                        <label for="filter-date-end-3">Đến ngày:</label>
+                        <input type="date" class="date-select-end" id="filter-date-end-3">
                     </div>
                 </div>
             </div>
 
-            <div class="action-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <div class="action-block flex flex-col sm:flex-row justify-center gap-3">
-                    <button id="apply-filters" class="flex-1 bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
-                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 9.586V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.414L4.293 6.707A1 1 0 014 6V3z" clip-rule="evenodd"></path></svg>
-                        Áp Dụng Lọc
-                    </button>
-                    <button id="clear-filters" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
-                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                        Xóa Lọc
-                    </button>
+            <div class="action-bar">
+                <div class="filter-actions">
+                    <button id="apply-filters">Áp Dụng Lọc</button>
+                    <button id="clear-filters">Xóa Lọc</button>
                 </div>
-                <div class="action-block flex flex-col sm:flex-row justify-center gap-3">
-                    <button id="download-excel" class="flex-1 bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
-                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                        Xuất Excel (Đang xem)
-                    </button>
-                    <button id="export-all" class="flex-1 bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
-                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                        Xuất Excel (Tất cả)
-                    </button>
+                <div class="download-container">
+                    <button id="download-excel">Xuất Excel (Đang xem)</button>
+                    <button id="export-all">Xuất Excel (Tất cả)</button>
                 </div>
-                <div class="action-block flex flex-col sm:flex-row justify-center gap-3">
-                    <button id="zoom-in" class="flex-1 bg-accent hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
-                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
-                        Phóng to
-                    </button>
-                    <button id="zoom-out" class="flex-1 bg-accent hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
-                        <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
-                        Thu nhỏ
-                    </button>
+                <div class="zoom-controls">
+                    <button id="zoom-in">Phóng to</button>
+                    <button id="zoom-out">Thu nhỏ</button>
                 </div>
             </div>
-            <div class="scan-camera text-center mt-6">
-                <button id="btnScanCamera" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-300">
-                    <svg class="inline-block w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.382 3H8.618a1 1 0 00-.707.293L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
-                    </svg>
-                    Quét Camera
-                </button>
+            <div class="scan-camera" style="text-align:center; margin-top:10px;">
+                <button id="btnScanCamera">📷 Quét Camera</button>
             </div>
-            <div class="results-count text-center mt-6 text-textDark text-lg font-medium" id="results-count">Total rows: 0</div>
+            <div class="results-count" id="results-count">Total rows: 0</div>
         </div>
 
-        <div class="text-center my-6">
-            <input id="quick-search" placeholder="🔍 Tìm Part Number..." type="text" class="p-4 w-11/12 md:w-3/5 lg:w-2/5 rounded-full border border-gray-300 shadow-xl focus:outline-none focus:ring-3 focus:ring-primary transition-all duration-300 text-textDark text-lg"/>
+        <div style="text-align:center; margin: 10px;">
+            <input id="quick-search" placeholder="🔍 Tìm Part Number..." style="padding:5px; width: 60%; font-size:14px;" type="text"/>
         </div>
 
-        <div class="table-container flex-grow mx-auto w-11/12 bg-white rounded-xl shadow-xl overflow-auto max-h-[calc(100vh-360px)] transition-all duration-300 ease-in-out mb-6">
-            <table id="results-table" class="min-w-full table-auto">
-                <thead>
-                    <tr>
-                        <th class="sticky-col-1 py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="No">No</th>
-                        <th class="sticky-col-2 py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Number">Part Number</th>
-                        <th class="sticky-col-3 py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="REV">REV</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Approval Status">Approval Status</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer">Customer</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Commodity">Commodity</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Production Status">Production Status</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Part Pictures">Part Pictures</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Packaging Pictures">Packaging Pictures</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Critical">Critical</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="CE">CE</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO Number">PO Number</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Description">Description</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="ERP-CODE">ERP-CODE</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Note Number">Note Number</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="PO received date">PO received date</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Customer need date">Customer need date</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Requirements">Requirements</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Cover sheet">FAIR Cover sheet</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Bubble Drawings">Bubble Drawings</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Datasheet form">Datasheet form</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="LAIR Data">LAIR Data</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="FAIR Data">FAIR Data</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="COC">COC</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="BOM">BOM</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Mill">Mill</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Test reports / evidences">Test reports / evidences</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 1">Remark 1</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Remark 2">Remark 2</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Submit date">Submit date</th>
-                        <th class="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-center" data-column="Reject comments">Reject comments</th>
-                    </tr>
-                </thead>
+        <div class="table-container">
+            <table id="results-table">
+                <thead><tr>
+                    <th class="sticky-col-1" data-column="No">No</th>
+                    <th class="sticky-col-2" data-column="Part Number">Part Number</th>
+                    <th class="sticky-col-3" data-column="REV">REV</th>
+                    <th data-column="Approval Status">Approval Status</th>
+                    <th data-column="Customer">Customer</th>
+                    <th data-column="Commodity">Commodity</th>
+                    <th data-column="Production Status">Production Status</th>
+                    <th data-column="Part Pictures">Part Pictures</th>
+                    <th data-column="Packaging Pictures">Packaging Pictures</th>
+                    <th data-column="Critical">Critical</th>
+                    <th data-column="CE">CE</th>
+                    <th data-column="PO Number">PO Number</th>
+                    <th data-column="Description">Description</th>
+                    <th data-column="ERP-CODE">ERP-CODE</th>
+                    <th data-column="Note Number">Note Number</th>
+                    <th data-column="PO received date">PO received date</th>
+                    <th data-column="Customer need date">Customer need date</th>
+                    <th data-column="Requirements">Requirements</th>
+                    <th data-column="FAIR Cover sheet">FAIR Cover sheet</th>
+                    <th data-column="Bubble Drawings">Bubble Drawings</th>
+                    <th data-column="Datasheet form">Datasheet form</th>
+                    <th data-column="LAIR Data">LAIR Data</th>
+                    <th data-column="FAIR Data">FAIR Data</th>
+                    <th data-column="COC">COC</th>
+                    <th data-column="BOM">BOM</th>
+                    <th data-column="Mill">Mill</th>
+                    <th data-column="Test reports / evidences">Test reports / evidences</th>
+                    <th data-column="Remark 1">Remark 1</th>
+                    <th data-column="Remark 2">Remark 2</th>
+                    <th data-column="Submit date">Submit date</th>
+                    <th data-column="Reject comments">Reject comments</th>
+                </tr></thead>
                 <tbody>
                     </tbody>
             </table>
         </div>
-        <div id="load-more-container" class="text-center my-6 flex justify-center gap-4">
-            <button id="load-more" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-300">Tải thêm</button>
-            <button id="load-all" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-300">Tải toàn bộ</button>
+        <div id="load-more-container" style="text-align:center; margin:10px;">
+            <button id="load-more">Load More</button>
+            <button id="load-all">Load All</button>
         </div>
-        <div class="footer text-center py-4 bg-white text-textLight text-sm shadow-inner" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
+        <div class="footer" id="footer-text">Người phát triển: Nguyễn Văn Đạo</div>
     </div>
 
-    <div id="image-popup" class="rounded-lg">
-        <span class="image-popup-close">&times;</span>
-        <div class="image-popup-spinner"></div>
-        <img src="" alt="Part Image" class="rounded-md">
-        <span class="no-image-text"></span>
+    <div id="image-popup"> <span class="image-popup-close">&times;</span> <div class="image-popup-spinner"></div> <img src="" alt="Part Image" style="display:none;"> <span class="no-image-text" style="display:none;"></span>
     </div>
     
-    <button onclick="toggleHistoryPopup()" class="fixed bottom-5 left-5 bg-blue-500 hover:bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center text-3xl shadow-lg transition duration-300 z-50" title="Lịch sử tìm kiếm">
-        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z" clip-rule="evenodd"></path>
-        </svg>
-    </button>
-
-    <div id="floating-history-popup" class="hidden fixed bottom-24 left-5 bg-white text-textDark p-5 rounded-xl w-80 max-h-96 overflow-y-auto shadow-2xl z-50 border border-gray-200">
-        <div class="flex justify-between items-center mb-4">
-            <h4 class="m-0 text-xl font-semibold">📜 Lịch sử tìm kiếm</h4>
-            <button onclick="toggleHistoryPopup()" class="bg-transparent text-gray-500 text-3xl leading-none hover:text-gray-700 transition duration-300">&times;</button>
-        </div>
-        <ul id="searchHistory" class="list-none p-0 m-0 space-y-3"></ul>
-        <button onclick="clearSearchHistory()" class="mt-5 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg w-full shadow-md transition duration-300">
-            <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-            </svg>
-            Xóa lịch sử
-        </button>
-    </div>
-
-    <a href="/voice_search" class="fixed bottom-5 right-5 bg-green-500 hover:bg-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center text-3xl shadow-lg transition duration-300 z-50" title="Tìm kiếm bằng giọng nói">
-        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0 5 5 0 01-5 5 1 1 0 00-1 1v1a1 1 0 102 0v-1.172a2 2 0 00-.586-1.414L10 10.586V13a1 1 0 001 1.93z" clip-rule="evenodd"></path>
-        </svg>
-    </a>
-
-    <div id="cameraModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999] overflow-y-auto transition-all duration-300 ease">
-        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-md text-center mb-20">
-            <h3 class="text-2xl font-bold mb-4 text-textDark">📷 Quét Part Number</h3>
-            <div class="relative w-full max-h-60 overflow-hidden rounded-lg bg-gray-200 mb-4">
-                <video id="camera" playsinline autoplay class="w-full h-full object-cover"></video>
-                <div id="ocrGuideBox" class="absolute border-2 border-red-500 top-[35%] left-[10%] w-[80%] h-[20%] box-border pointer-events-none rounded-md"></div>
-            </div>
-            <div id="zoomContainer" class="hidden my-4 text-textLight">
-              🔍 Zoom:
-              <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" class="w-4/5 accent-primary"/>
-            </div>
-            <canvas id="canvas" width="320" height="240" class="hidden"></canvas>
-            <div class="flex flex-wrap justify-center gap-3 mt-4">
-                <button id="btnCapture" class="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
-                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A1 1 0 0011.382 3H8.618a1 1 0 00-.707.293L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
-                    </svg>
-                    Chụp &amp; Quét
-                </button>
-                <button id="btnApplyOcrFilter" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
-                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                    </svg>
-                    Lọc
-                </button>
-                <button id="btnCloseCamera" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex-1 min-w-[120px]">
-                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                    </svg>
-                    Đóng
-                </button>
-            </div>
-            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." class="mt-4 w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-textDark"/>
-            <p id="ocrStatus" class="text-sm mt-3 mb-5 text-textLight">Đang chờ thao tác...</p>
-        </div>
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -569,7 +882,7 @@
                 "load_more": "더 불러오기",
                 "load_all": "전체 불러오기",
                 "total_rows": "총 행: {{count}} / {{total}}",
-                "developer": "개발자: Nguyễn Văn Văn",
+                "developer": "개발자: Nguyễn Văn Đạo",
                 "date_from": "시작 날짜:",
                 "date_to": "종료 날짜:",
                 "no_image_found": "부품 번호 \"{{partNumber}}\" (ERP: {{erpCode}})에 대한 이미지를 찾을 수 없습니다.",
@@ -676,18 +989,18 @@
             if (typeof val === 'number') {
                 let date = new Date(Date.UTC(1899, 11, 30 + val)); 
                 if (!isNaN(date)) {
-                    const yyyy = date.getUTCFullYear();
-                    const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
-                    const dd = String(date.getUTCDate()).padStart(2, '0');
-                    return `${yyyy}-${mm}-${dd}`;
+                    const year = date.getUTCFullYear();
+                    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                    const day = String(date.getUTCDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
                 }
             } else if (typeof val === 'string') {
                 const parsed = new Date(val);
                 if (!isNaN(parsed)) {
-                    const yyyy = parsed.getFullYear(); 
-                    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-                    const dd = String(parsed.getDate()).padStart(2, '0');
-                    return `${yyyy}-${mm}-${dd}`;
+                    const year = parsed.getFullYear(); 
+                    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+                    const day = String(parsed.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
                 }
             }
             return val; 
@@ -853,8 +1166,7 @@
                         hideSpinner();
                     });
                 } else {
-                    // Using custom modal instead of alert
-                    showCustomMessage("Đã tải hết dữ liệu!", "info");
+                    alert("Đã tải hết dữ liệu!");
                 }
             });
             $('#load-all').on('click', function() {
@@ -1137,9 +1449,9 @@ function updateTable(data, reset) {
         const tr = $('<tr>');
         const partNumberValue = row['Part Number'] || 'N/A'; 
 
-        tr.append(`<td class="sticky-col-1 py-3 px-4 text-sm text-center">${serial}</td>`);
+        tr.append(`<td class="sticky-col-1">${serial}</td>`);
         
-        const partNumberCell = $(`<td class="py-3 px-4 text-sm text-center font-medium cursor-pointer text-blue-700 hover:underline">${part partNumberValue}</td>`).addClass('sticky-col-2');
+        const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
         partNumberCell.css('cursor', 'pointer');
 
         // --- SỬA ĐỔI SỰ KIỆN CLICK CHO partNumberCell ---
@@ -1208,36 +1520,36 @@ function updateTable(data, reset) {
         
         tr.append(partNumberCell);
 
-        tr.append(`<td class="sticky-col-3 py-3 px-4 text-sm text-center">${row['REV'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Approval Status'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Customer'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Commodity'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Production Status'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Part Pictures'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Packaging Pictures'] || ''}</td>`);
+        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
+        tr.append(`<td>${row['Approval Status'] || ''}</td>`);
+        tr.append(`<td>${row['Customer'] || ''}</td>`);
+        tr.append(`<td>${row['Commodity'] || ''}</td>`);
+        tr.append(`<td>${row['Production Status'] || ''}</td>`);
+        tr.append(`<td>${row['Part Pictures'] || ''}</td>`);
+        tr.append(`<td>${row['Packaging Pictures'] || ''}</td>`);
 
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Critical'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['CE'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['PO Number'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Description'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['ERP-CODE'] || ''}</td>`); 
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Note Number'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${formatExcelDate(row['PO received date'])}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${formatExcelDate(row['Customer need date'])}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Requirements'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['FAIR Cover sheet'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Bubble Drawings'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Datasheet form'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['FAIR Data'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['COC'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['BOM'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Mill'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Test reports / evidences'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Remark 1'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Remark 2'] || ''}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${formatExcelDate(row['Submit date'])}</td>`);
-        tr.append(`<td class="py-3 px-4 text-sm text-center">${row['Reject comments'] || ''}</td>`);
+        tr.append(`<td>${row['Critical'] || ''}</td>`);
+        tr.append(`<td>${row['CE'] || ''}</td>`);
+        tr.append(`<td>${row['PO Number'] || ''}</td>`);
+        tr.append(`<td>${row['Description'] || ''}</td>`);
+        tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); 
+        tr.append(`<td>${row['Note Number'] || ''}</td>`);
+        tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
+        tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
+        tr.append(`<td>${row['Requirements'] || ''}</td>`);
+        tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
+        tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
+        tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
+        tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
+        tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
+        tr.append(`<td>${row['COC'] || ''}</td>`);
+        tr.append(`<td>${row['BOM'] || ''}</td>`);
+        tr.append(`<td>${row['Mill'] || ''}</td>`);
+        tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
+        tr.append(`<td>${row['Remark 1'] || ''}</td>`);
+        tr.append(`<td>${row['Remark 2'] || ''}</td>`);
+        tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
+        tr.append(`<td>${row['Reject comments'] || ''}</td>`);
 
         tbody.append(tr);
     });
@@ -1311,18 +1623,25 @@ function updateTable(data, reset) {
           $.each(rows, function(index, row) {
             $('#results-table tbody').append(row);
           });
+
+          // Cập nhật lại cột "No" sau khi sắp xếp
+          $('#results-table tbody tr').each(function(index) {
+            $(this).find('td:first-child').text(index + 1);
+          });
         }
         $(document).on('click', '#results-table th', function () {
             const col = $(this).data('column');
-            if (!col) return;
+            if (!col || col === "No") return; // Bỏ qua cột "No" khi sắp xếp
 
             const currentOrder = $(this).data('order') || 'asc';
             const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
 
             $('#results-table th').each(function () {
-                $(this).data('order', null);
-                const text = $(this).text().replace(/[▲▼]/g, '').trim();
-                $(this).text(text);
+                if ($(this).data('column') !== "No") { // Chỉ reset mũi tên cho các cột khác "No"
+                    $(this).data('order', null);
+                    const text = $(this).text().replace(/[▲▼]/g, '').trim();
+                    $(this).text(text);
+                }
             });
 
             const arrow = newOrder === 'asc' ? ' ▲' : ' ▼';
@@ -1332,29 +1651,29 @@ function updateTable(data, reset) {
             sortTable(col, newOrder);
         });
     </script>
+    <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999; overflow-y:auto; transition: all 0.3s ease;">
+        <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center; margin-bottom: 10vh;">
+            <h3>📷 Quét Part Number</h3>
+            <div style="position: relative; width: 100%; max-height:240px;">
+                <video id="camera" playsinline autoplay style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
+                <div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div>
+            </div>
+            <div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
+              🔍 Zoom:
+              <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" style="width:80%;"/>
+            </div>
+            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
+                <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">📸 Chụp &amp; Quét</button>
+                <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">✅ Lọc</button>
+                <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">❌ Đóng</button>
+            </div>
+            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;"/>
+            <p id="ocrStatus" style="font-size:14px; margin-top:10px; margin-bottom: 20px; display: block;">Đang chờ thao tác...</p>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <script>
-    // Custom message box function
-    function showCustomMessage(message, type = 'info') {
-        const modalId = 'customMessageModal';
-        let modal = document.getElementById(modalId);
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = modalId;
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]';
-            modal.innerHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
-                    <p id="customMessageText" class="text-lg font-semibold mb-4"></p>
-                    <button class="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Đóng</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.querySelector('button').addEventListener('click', () => modal.style.display = 'none');
-        }
-        modal.querySelector('#customMessageText').textContent = message;
-        modal.style.display = 'flex';
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
       const btnScan = document.getElementById('btnScanCamera');
       const modal = document.getElementById('cameraModal');
@@ -1435,7 +1754,7 @@ function updateTable(data, reset) {
             statusP.textContent = '✅ Đã nhận 1 dòng.';
           } else {
             const selectHTML = `
-              <select id="ocrLineSelector" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-textDark mt-3">
+              <select id="ocrLineSelector" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
                 ${lines.map(l => `<option>${l}</option>`).join('')}
               </select>
             `;
@@ -1452,10 +1771,7 @@ function updateTable(data, reset) {
 
       btnApply.addEventListener('click', () => {
         const part = inputOCR.value.trim();
-        if (!part) {
-            showCustomMessage('Bạn chưa nhập Part Number!', 'warning');
-            return;
-        }
+        if (!part) return alert('Bạn chưa nhập Part Number!');
         $('#filter-column-1').val('Part Number').trigger('change'); 
         setTimeout(() => { 
             $('#filter-value-1').val([part]).trigger('change'); 
@@ -1476,7 +1792,7 @@ function updateTable(data, reset) {
     });
     </script>
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('resize', () => {
       const activeEl = document.activeElement;
       if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
         setTimeout(() => {
@@ -1508,7 +1824,7 @@ function updateTable(data, reset) {
     });
     </script><script>
     document.addEventListener('DOMContentLoaded', function () {
-      const inputs = document.querySelectorAll('.filter-grid input, .filter-grid select');
+      const inputs = document.querySelectorAll('.filter-bar input, .filter-bar select');
       inputs.forEach((input) => {
         input.addEventListener('focus', () => {
           setTimeout(() => {
@@ -1536,7 +1852,7 @@ function updateTable(data, reset) {
     </script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const topArea = document.querySelector('.top-area');
+      const topContainer = document.querySelector('.top-container');
       const tableContainer = document.querySelector('.table-container');
       const quickSearch = document.getElementById('quick-search');
       const applyBtn = document.getElementById('apply-filters');
@@ -1547,14 +1863,14 @@ function updateTable(data, reset) {
       document.addEventListener('focusin', (e) => {
           if (window.innerWidth >= 768) return;
         const target = e.target;
-        if (topArea.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
+        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
           wasEditingTop = true;
-          topArea.classList.add('full-top-container');
-          topArea.classList.remove('hide-top-container');
+          topContainer.classList.add('full-top-container');
+          topContainer.classList.remove('hide-top-container');
           tableContainer.classList.remove('show-table-only');
           quickSearch.style.display = 'none';
         } else if (target === quickSearch) {
-          topArea.classList.add('hide-top-container');
+          topContainer.classList.add('hide-top-container');
           tableContainer.classList.add('show-table-only');
         }
       });
@@ -1568,7 +1884,7 @@ function updateTable(data, reset) {
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'none';
             } else {
-              topArea.classList.remove('full-top-container', 'hide-top-container');
+              topContainer.classList.remove('full-top-container', 'hide-top-container');
               tableContainer.classList.remove('show-table-only');
               quickSearch.style.display = 'block';
             }
@@ -1578,7 +1894,7 @@ function updateTable(data, reset) {
 
       function revealTableAndSearch() {
         wasEditingTop = false;
-        topArea.classList.remove('full-top-container', 'hide-top-container');
+        topContainer.classList.remove('full-top-container', 'hide-top-container');
         quickSearch.style.display = 'block';
         tableContainer.classList.remove('show-table-only');
       }
@@ -1587,6 +1903,20 @@ function updateTable(data, reset) {
       clearBtn?.addEventListener('click', revealTableAndSearch);
     });
     </script>
+    <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;" title="Lịch sử tìm kiếm">🕘</button>
+    <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0;">📜 Lịch sử tìm kiếm</h4>
+            <button onclick="toggleHistoryPopup()" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">×</button>
+        </div>
+        <ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
+        <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">🗑️ Xóa lịch sử</button>
+    </div>
+
+    <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;" title="Tìm kiếm bằng giọng nói">
+      🎤
+    </a>
+
     <script>
       function saveSearchHistory(partNumber) {
         if (!partNumber) return;
@@ -1609,15 +1939,8 @@ function updateTable(data, reset) {
         list.innerHTML = "";
         history.forEach(item => {
           const li = document.createElement("li");
-          li.className = "mb-3";
-          li.innerHTML = `
-            <button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" 
-                    title="Click để tra cứu và sao chép" 
-                    class="bg-gray-100 hover:bg-gray-200 text-textDark py-2.5 px-4 rounded-lg w-full text-left whitespace-nowrap overflow-hidden text-ellipsis shadow-sm transition duration-300 text-base font-medium">
-                ${item.partNumber}
-            </button> 
-            <small class="text-textLight text-sm block mt-1">(${item.time.split(',')[0]})</small>
-          `;
+          li.style.marginBottom = "6px";
+          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
           list.appendChild(li);
         });
       }
