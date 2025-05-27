@@ -620,6 +620,26 @@
           height: calc(100vh - 60px); /* 60px là chiều cao của quick search và footer */
         }
 
+        /* Style cho thông báo sao chép */
+        .copy-feedback-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 10000;
+            font-size: 16px;
+            opacity: 0; /* Bắt đầu ẩn */
+            transition: opacity 0.5s ease-out; /* Hiệu ứng mờ dần */
+            pointer-events: none; /* Không chặn click chuột */
+        }
+        .copy-feedback-message.show {
+            opacity: 1; /* Hiển thị */
+        }
+
     </style>
 </head>
 <body>
@@ -1279,37 +1299,25 @@
                 }
             });
             
-            popupImg.off('click.zoom').on('click.zoom', function() {
-                const $thisImage = $(this);
-                if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
-                    imagePopup.toggleClass('zoomed');
-                    
-                    popupSpinner.show(); // Hiển thị spinner
-                    $thisImage.hide(); // Ẩn ảnh hiện tại trong khi tải ảnh mới
-                    popupText.hide(); // Ẩn text (nếu có)
-
-                    if (imagePopup.hasClass('zoomed')) {
-                        // Popup được phóng to: Tải ảnh chất lượng cao
-                        const highQualityUrl = imagePopup.data('high-quality-url');
-                        if (highQualityUrl) {
-                            $thisImage.attr('src', highQualityUrl);
-                        } else {
-                            console.warn("Không tìm thấy URL ảnh chất lượng cao.");
-                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
-                            popupSpinner.hide();
-                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
-                        }
-                    } else {
-                        // Popup bị thu nhỏ: Tải lại ảnh thumbnail
-                        const thumbnailUrl = imagePopup.data('thumbnail-url');
-                        if (thumbnailUrl) {
-                            $thisImage.attr('src', thumbnailUrl);
-                        } else {
-                            console.warn("Không tìm thấy URL ảnh thumbnail.");
-                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
-                            popupSpinner.hide();
-                            // $thisImage.show(); // Hiện lại ảnh cũ nếu có lỗi
-                        }
+            popupImg.off('load error').on('load', function() {
+                const expectedErp = imagePopup.data('current-erp');
+                if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
+                    popupSpinner.hide(); // Ẩn spinner khi ảnh tải xong
+                    $(this).show();
+                    popupText.hide().text('');
+                    if (imagePopup.is(':hidden')) {
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                    }
+                }
+            }).on('error', function() {
+                const expectedErp = imagePopup.data('current-erp');
+                const pn = imagePopup.data('current-part-number') || "N/A";
+                if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
+                    popupSpinner.hide(); // Ẩn spinner khi có lỗi
+                    $(this).hide();
+                    popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
+                    if (imagePopup.is(':hidden')) {
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                     }
                 }
             });
@@ -1480,9 +1488,31 @@ function updateTable(data, reset) {
             const currentErpCode = row['ERP-CODE']?.trim().toUpperCase();
             const currentPartNumberValueFromRow = row['Part Number'] || 'N/A'; // Lấy trực tiếp từ row
 
+            // 1. Copy Part Number to clipboard
+            const tempInput = document.createElement('textarea');
+            tempInput.value = currentPartNumberValueFromRow;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            // Provide visual feedback for copying
+            const copyMessage = $('<div class="copy-feedback-message">Đã sao chép: ' + currentPartNumberValueFromRow + '</div>');
+            $('body').append(copyMessage);
+            // Trigger reflow to ensure transition plays
+            copyMessage[0].offsetHeight; 
+            copyMessage.addClass('show');
+            setTimeout(() => {
+                copyMessage.removeClass('show');
+                copyMessage.fadeOut(500, function() {
+                    $(this).remove();
+                });
+            }, 1500); // Message disappears after 1.5 seconds
+
+            // 2. Display Image (existing logic, ensure it's robust)
             // Reset trạng thái popup
             imagePopup.removeClass('zoomed');
-            popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in');
+            popupImg.attr('src', '').hide().css('cursor', 'zoom-in');
             popupText.text('').hide();
             popupSpinner.hide(); // Đảm bảo spinner ẩn ban đầu
 
@@ -1499,32 +1529,6 @@ function updateTable(data, reset) {
 
                 popupSpinner.show(); // Hiển thị spinner trước khi tải
                 popupImg.attr('src', thumbnailUrl); // Bắt đầu tải ảnh thumbnail
-
-                // Gắn lại sự kiện load và error
-                popupImg.on('load', function() {
-                    const expectedErp = imagePopup.data('current-erp');
-                    if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
-                        popupSpinner.hide(); // Ẩn spinner khi ảnh tải xong
-                        $(this).show();
-                        popupText.hide().text('');
-                        if (imagePopup.is(':hidden')) {
-                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                        }
-                    }
-                });
-
-                popupImg.on('error', function() {
-                    const expectedErp = imagePopup.data('current-erp');
-                    const pn = imagePopup.data('current-part-number') || "N/A";
-                    if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
-                        popupSpinner.hide(); // Ẩn spinner khi có lỗi
-                        $(this).hide();
-                        popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
-                        if (imagePopup.is(':hidden')) {
-                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                        }
-                    }
-                });
                 
                 if (imagePopup.is(':hidden')) {
                      imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
