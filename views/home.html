@@ -70,14 +70,16 @@
             border-radius: 4px;
             text-decoration: none;
             font-weight: bold;
-            transition: background 0.4s ease-in-out, transform 0.4s ease-in-out; /* Mượt hơn */
+            transition: all 0.3s ease-out; /* Mượt hơn */
         }
         .tasks-link:hover {
             background: #0056b3;
-            transform: scale(1.02); /* Thêm hiệu ứng hover */
+            transform: translateY(-2px) scale(1.01); /* Thêm hiệu ứng hover */
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
         .tasks-link:active {
-            transform: scale(0.98); /* Thêm hiệu ứng active */
+            transform: translateY(1px) scale(0.99); /* Thêm hiệu ứng active */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .header h1 { margin: 0; font-size: 28px; color: white; }
         .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
@@ -96,14 +98,16 @@
           border-radius: 3px;
           background: #ff8c00;
           color: white;
-          transition: background 0.4s ease-in-out, transform 0.4s ease-in-out; /* Mượt hơn */
+          transition: all 0.3s ease-out; /* Mượt hơn */
         }
         .language-switcher button:hover {
           background: #ff6500;
-          transform: scale(1.02); /* Thêm hiệu ứng hover */
+          transform: translateY(-2px) scale(1.01); /* Thêm hiệu ứng hover */
+          box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
         .language-switcher button:active {
-            transform: scale(0.98); /* Thêm hiệu ứng active */
+            transform: translateY(1px) scale(0.99); /* Thêm hiệu ứng active */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         /* Khối chứa các tiêu chí lọc */
         .filter-bar {
@@ -172,14 +176,16 @@
           border: none;
           border-radius: 4px;
           cursor: pointer;
-          transition: background 0.4s ease-in-out, transform 0.4s ease-in-out; /* Mượt hơn */
+          transition: all 0.3s ease-out; /* Mượt hơn */
           margin: 3px;
         }
         .action-bar button:hover {
-            transform: scale(1.02); /* Thêm hiệu ứng hover */
+            transform: translateY(-2px) scale(1.01); /* Thêm hiệu ứng hover */
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
         .action-bar button:active {
-            transform: scale(0.98); /* Thêm hiệu ứng active */
+            transform: translateY(1px) scale(0.99); /* Thêm hiệu ứng active */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .filter-actions button {
           background: linear-gradient(45deg, #ff8c00, #ff4500);
@@ -770,7 +776,7 @@
                 </div>
             </div>
             <div class="scan-camera" style="text-align:center; margin-top:10px;">
-                <button id="btnScanCamera">📷 Quét Camera</button>
+                <button id="btnScanCamera" style="transition: all 0.3s ease-out;">📷 Quét Camera</button>
             </div>
             <div class="results-count" id="results-count">Total rows: 0</div>
         </div>
@@ -1664,9 +1670,9 @@ function updateTable(data, reset) {
             </div>
             <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
             <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
-                <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">📸 Chụp &amp; Quét</button>
-                <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">✅ Lọc</button>
-                <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">❌ Đóng</button>
+                <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: all 0.3s ease-out;">📸 Chụp &amp; Quét</button>
+                <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: all 0.3s ease-out;">✅ Lọc</button>
+                <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: all 0.3s ease-out;">❌ Đóng</button>
             </div>
             <input id="ocrInput" type="text" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;"/>
             <p id="ocrStatus" style="font-size:14px; margin-top:10px; margin-bottom: 20px; display: block;">Đang chờ thao tác...</p>
@@ -1903,17 +1909,17 @@ function updateTable(data, reset) {
       clearBtn?.addEventListener('click', revealTableAndSearch);
     });
     </script>
-    <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;" title="Lịch sử tìm kiếm">🕘</button>
+    <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999; transition: all 0.3s ease-out;" title="Lịch sử tìm kiếm">🕘</button>
     <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h4 style="margin: 0;">📜 Lịch sử tìm kiếm</h4>
-            <button onclick="toggleHistoryPopup()" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">×</button>
+            <button onclick="toggleHistoryPopup()" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer; transition: all 0.3s ease-out;">×</button>
         </div>
         <ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
-        <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">🗑️ Xóa lịch sử</button>
+        <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%; transition: all 0.3s ease-out;">🗑️ Xóa lịch sử</button>
     </div>
 
-    <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;" title="Tìm kiếm bằng giọng nói">
+    <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999; transition: all 0.3s ease-out;" title="Tìm kiếm bằng giọng nói">
       🎤
     </a>
 
@@ -1940,7 +1946,7 @@ function updateTable(data, reset) {
         history.forEach(item => {
           const li = document.createElement("li");
           li.style.marginBottom = "6px";
-          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background 0.4s ease-in-out, transform 0.4s ease-in-out;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
+          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.3s ease-out;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
           list.appendChild(li);
         });
       }
