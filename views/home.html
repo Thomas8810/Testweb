@@ -544,6 +544,23 @@
           user-select: text; /* Cho phép chọn văn bản trong bảng */
         }
 
+        /* Hiệu ứng nổi bật hàng khi di chuột */
+        #results-table tbody tr {
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        #results-table tbody tr:hover {
+            background-color: #e0e0e0; /* Màu nền khi hover */
+            transform: scale(1.005); /* Hơi phóng to nhẹ */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Thêm bóng đổ nhẹ */
+            z-index: 10; /* Đảm bảo hàng nổi lên trên các hàng khác */
+        }
+        /* Đảm bảo các cột sticky vẫn có màu nền phù hợp khi hover */
+        #results-table tbody tr:hover td.sticky-col-1,
+        #results-table tbody tr:hover td.sticky-col-2,
+        #results-table tbody tr:hover td.sticky-col-3 {
+            background-color: #d0d0d0; /* Màu nền cho sticky cells khi hover */
+        }
+
 
         @media (max-width: 768px) {
             .top-container {
@@ -1411,7 +1428,7 @@
                 
                 if (selectedOptionDataType === 'date') {
                     const dateStart = $(`#filter-date-start-${i}`).val();
-                    const dateEnd = $(`#filter-date-end-${i}`).val();
+                    const dateEnd = $(`##filter-date-end-${i}`).val();
                     if (dateStart) queryParams[`${col}_start`] = dateStart;
                     if (dateEnd) queryParams[`${col}_end`] = dateEnd;    
                 } else {
