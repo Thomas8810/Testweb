@@ -724,7 +724,7 @@
                         <option value="ERP-CODE">ERP-CODE</option>
                         <option value="REV">REV</option>
                         <option value="Description">Description</option>
-                        <option value="Note Number">Note Number</option>
+                        <option value="Note Number">Note Number</sCRIPT>
                         <option value="PO received date" data-type="date">PO received date</option>
                         <option value="Customer need date" data-type="date">Customer need date</option>
                         <option value="Requirements">Requirements</option>
@@ -833,14 +833,14 @@
                     <th data-column="Part Pictures">Part Pictures</th>
                     <th data-column="Packaging Pictures">Packaging Pictures</th>
                     <th data-column="Critical">Critical</th>
-                    <th data-column="CE">CE</th>
-                    <th data-column="PO Number">PO Number</th>
-                    <th data-column="Description">Description</th>
-                    <th data-column="ERP-CODE">ERP-CODE</th>
-                    <th data-column="Note Number">Note Number</th>
-                    <th data-column="PO received date">PO received date</th>
-                    <th data-column="Customer need date">Customer need date</th>
-                    <th data-column="Requirements">Requirements</th>
+                    <th data-column="CE">CE</option>
+                    <th data-column="PO Number">PO Number</option>
+                    <th data-column="Description">Description</option>
+                    <th data-column="ERP-CODE">ERP-CODE</option>
+                    <th data-column="Note Number">Note Number</option>
+                    <th data-column="PO received date">PO received date</option>
+                    <th data-column="Customer need date">Customer need date</option>
+                    <th data-column="Requirements">Requirements</option>
                     <th data-column="FAIR Cover sheet">FAIR Cover sheet</option>
                     <th data-column="Bubble Drawings">Bubble Drawings</option>
                     <th data-column="Datasheet form">Datasheet form</option>
@@ -1551,9 +1551,8 @@ function updateTable(data, reset) {
                         popupSpinner.hide();
                         $(this).show();
                         popupText.hide().text('');
-                        if (imagePopup.is(':hidden')) {
-                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                        }
+                        // Removed the `if (imagePopup.is(':hidden'))` check here
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                     }
                 }).on('error', function() {
                     const expectedErp = imagePopup.data('current-erp');
@@ -1563,15 +1562,13 @@ function updateTable(data, reset) {
                         popupSpinner.hide();
                         $(this).hide();
                         popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
-                        if (imagePopup.is(':hidden')) {
-                            imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                        }
+                        // Removed the `if (imagePopup.is(':hidden'))` check here
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
                     }
                 });
                 
-                if (imagePopup.is(':hidden')) {
-                     imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
-                }
+                // Ensure the popup is shown when an image is expected to load
+                imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
 
             } else { // Không có ERP-CODE
                 popupSpinner.hide();
@@ -1584,7 +1581,7 @@ function updateTable(data, reset) {
         
         tr.append(partNumberCell);
 
-        tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`);
+        tr.append(`<td class="sticky-col-col-3">${row['REV'] || ''}</td>`);
         tr.append(`<td>${row['Approval Status'] || ''}</td>`);
         tr.append(`<td>${row['Customer'] || ''}</td>`);
         tr.append(`<td>${row['Commodity'] || ''}</td>`);
