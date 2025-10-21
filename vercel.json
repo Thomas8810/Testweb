@@ -4,7 +4,6 @@
     { "src": "public/**", "use": "@vercel/static" },
     { "src": "server.js", "use": "@vercel/node" }
   ],
-  "includeFiles": ["data.json", "users.json"],
   "routes": [
     { "src": "/static/(.*)", "dest": "/public/$1" },
     { "src": "/(.*\\.(css|js|jpg|png|gif|ico|svg))$", "dest": "/public/$1" },
