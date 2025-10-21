@@ -1,167 +1,125 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const XLSX = require('xlsx');
-const cookieSession = require('cookie-session');
-const { createClient } = require('@supabase/supabase-js');
-const multer = require('multer');
-const compression = require('compression'); // ✅ nén gzip
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const XLSX = require("xlsx");
+const cookieSession = require("cookie-session");
+const { createClient } = require("@supabase/supabase-js");
+const multer = require("multer");
+const compression = require("compression");
 
 const app = express();
 const port = process.env.PORT || 3000;
-const activeUsers = new Map();
 
 // ---------------- SESSION ----------------
 app.use(cookieSession({
-  name: 'session',
-  keys: ['your-very-secret-key-CHANGE-THIS-PLEASE'],
-  maxAge: 24 * 60 * 60 * 1000 // 24h
+  name: "session",
+  keys: ["secret-key-change-me"],
+  maxAge: 24 * 60 * 60 * 1000,
 }));
-
-app.use((req, res, next) => {
-  if (req.session?.user) activeUsers.set(req.session.user.name, Date.now());
-  next();
-});
 
 // ---------------- MIDDLEWARE ----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(compression()); // ✅ bật nén toàn site
+app.use(compression());
 
 // ---------------- STATIC FILES ----------------
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '30d', // ✅ cache 30 ngày
+app.use(express.static(path.join(__dirname, "public"), {
+  maxAge: "30d",
   etag: true
 }));
 
-// ---------------- SUPABASE ----------------
+// ---------------- SUPABASE (tùy chọn) ----------------
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-let supabase;
-
+let supabase = null;
 if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey);
-  console.log('✅ Supabase initialized');
+  console.log("✅ Supabase connected");
 } else {
-  console.warn('⚠️ Supabase not configured — skipping DB features.');
-  supabase = {
-    from: () => ({
-      select: async () => ({ data: [], error: null }),
-      insert: async () => ({ data: [], error: null }),
-      update: async () => ({ data: [], error: null }),
-      delete: async () => ({ data: [], error: null }),
-      eq: () => {}, order: () => {}, single: async () => ({ data: null, error: null })
-    }),
-    storage: { from: () => ({ upload: async () => ({}), remove: async () => ({}), getPublicUrl: () => ({ data: { publicUrl: '' } }) }) }
-  };
+  console.warn("⚠️ Supabase not configured");
 }
 
-// ---------------- MULTER ----------------
-const upload = multer({ storage: multer.memoryStorage() });
-
 // ---------------- LOAD JSON ----------------
-let cachedData = [];
-let usersData = [];
-let headerOrder = [];
-
-function safeRequire(filePath) {
+function loadJSON(filePath) {
   try {
-    delete require.cache[require.resolve(filePath)];
-    return require(filePath);
-  } catch {
+    if (!fs.existsSync(filePath)) return [];
+    const data = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(data || "[]");
+  } catch (err) {
+    console.error(`❌ Error loading ${filePath}:`, err.message);
     return [];
   }
 }
 
-async function loadData() {
-  cachedData = safeRequire('./data.json');
-  if (cachedData.length) {
-    const headerSet = new Set();
-    cachedData.forEach(row => Object.keys(row).forEach(k => headerSet.add(k)));
-    headerOrder = [...headerSet];
-    console.log(`✅ Loaded ${cachedData.length} records from data.json`);
-  }
-}
-async function loadUsers() {
-  usersData = safeRequire('./users.json');
-  console.log(`✅ Loaded ${usersData.length} users`);
-}
-loadData();
-loadUsers();
+const dataPath = path.join(__dirname, "data.json");
+const usersPath = path.join(__dirname, "users.json");
 
-// ---------------- AUTH MIDDLEWARE ----------------
+let cachedData = loadJSON(dataPath);
+let usersData = loadJSON(usersPath);
+
+console.log(`✅ Loaded ${cachedData.length} records from data.json`);
+console.log(`✅ Loaded ${usersData.length} users from users.json`);
+
+// ---------------- AUTH ----------------
 function isAuthenticated(req, res, next) {
   if (req.session?.user) return next();
-  res.redirect('/login.html');
+  res.redirect("/login.html");
 }
 function isAdmin(req, res, next) {
-  if (req.session?.user?.role === 'admin') return next();
-  res.status(403).json({ success: false, message: 'Admin privileges required' });
+  if (req.session?.user?.role === "admin") return next();
+  res.status(403).json({ success: false, message: "Admin privileges required" });
 }
 
 // ---------------- LOGIN ----------------
-app.post('/login', (req, res) => {
+app.post("/login", (req, res) => {
   const { identifier, password } = req.body;
   const user = usersData.find(u =>
     [u.email, u.name].some(id => id?.toLowerCase() === identifier?.toLowerCase())
   );
-  if (!user) return res.json({ success: false, message: 'User not found' });
-  if (user.password !== password) return res.json({ success: false, message: 'Incorrect password' });
+  if (!user) return res.json({ success: false, message: "User not found" });
+  if (user.password !== password) return res.json({ success: false, message: "Incorrect password" });
+
   req.session.user = { name: user.name, email: user.email, role: user.role };
   res.json({ success: true, user: req.session.user });
 });
 
-app.get('/logout', (req, res) => {
+app.get("/logout", (req, res) => {
   req.session = null;
-  res.redirect('/login.html');
+  res.redirect("/login.html");
 });
 
-app.get('/api/me', (req, res) => {
-  res.json(req.session?.user ? { success: true, user: req.session.user } : { success: false });
-});
-
-// ---------------- ACTIVE USERS ----------------
-app.get('/api/active-users', isAdmin, (req, res) => {
-  const now = Date.now();
-  const online = [...activeUsers.entries()]
-    .filter(([_, lastSeen]) => now - lastSeen < 2 * 60 * 1000)
-    .map(([name]) => name);
-  res.json({ success: true, users: online });
+app.get("/api/me", (req, res) => {
+  if (req.session?.user) res.json({ success: true, user: req.session.user });
+  else res.json({ success: false });
 });
 
 // ---------------- ROUTES ----------------
-app.get('/login.html', (_, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
-app.get('/', isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, 'views', 'home.html')));
-app.get(['/home', '/home.html'], isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, 'views', 'home.html')));
-app.get(['/tasks', '/tasks.html'], isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, 'views', 'tasks.html')));
-app.get(['/voice_search', '/voice_search.html'], isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, 'views', 'voice_search.html')));
+app.get("/login.html", (_, res) => res.sendFile(path.join(__dirname, "public", "login.html")));
+app.get("/", isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, "views", "home.html")));
+app.get(["/home", "/home.html"], isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, "views", "home.html")));
+app.get(["/tasks", "/tasks.html"], isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, "views", "tasks.html")));
+app.get(["/voice_search", "/voice_search.html"], isAuthenticated, (_, res) => res.sendFile(path.join(__dirname, "views", "voice_search.html")));
 
-// ---------------- DATA SEARCH ----------------
+// ---------------- SEARCH ----------------
 function convertYYYYMMDDToExcelSerial(yyyymmdd) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(yyyymmdd)) return null;
-  const [y, m, d] = yyyymmdd.split('-').map(Number);
+  const [y, m, d] = yyyymmdd.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
   return Math.floor((date - new Date(Date.UTC(1899, 11, 30))) / 86400000);
 }
 
-app.get('/api/data', isAuthenticated, (_, res) => res.json(cachedData));
+app.get("/api/data", isAuthenticated, (_, res) => res.json(cachedData));
 
-app.get('/filters', isAuthenticated, (_, res) => {
-  if (!cachedData.length) return res.json({});
-  const values = new Set(cachedData.map(i => i.Customer).filter(Boolean));
-  res.json({ Customer: [...values].sort((a, b) => a.localeCompare(b, 'vi')) });
-});
-
-app.get('/search', isAuthenticated, (req, res) => {
+app.get("/search", isAuthenticated, (req, res) => {
   let results = [...cachedData];
   const params = req.query;
-  const dateCols = ['PO received date', 'Customer need date', 'Submit date'];
+  const dateCols = ["PO received date", "Customer need date", "Submit date"];
 
   for (const key in params) {
     const val = params[key];
     if (!val) continue;
 
-    const baseKey = key.replace(/_start|_end$/, '');
+    const baseKey = key.replace(/_start|_end$/, "");
     if (dateCols.includes(baseKey)) {
       const start = convertYYYYMMDDToExcelSerial(params[`${baseKey}_start`]);
       const end = convertYYYYMMDDToExcelSerial(params[`${baseKey}_end`]);
@@ -170,8 +128,8 @@ app.get('/search', isAuthenticated, (req, res) => {
         if (serial == null) return false;
         return (!start || serial >= start) && (!end || serial <= end);
       });
-    } else if (!key.endsWith('_start') && !key.endsWith('_end')) {
-      const queryVals = val.split(',');
+    } else if (!key.endsWith("_start") && !key.endsWith("_end")) {
+      const queryVals = val.split(",");
       results = results.filter(item =>
         queryVals.some(q => item[key]?.toString().toLowerCase().includes(q.toLowerCase()))
       );
@@ -183,20 +141,20 @@ app.get('/search', isAuthenticated, (req, res) => {
   res.json({ data: results.slice(offset, offset + limit), total: results.length });
 });
 
-app.get('/export', isAuthenticated, (req, res) => {
-  const XLSX = require('xlsx');
-  const worksheet = XLSX.utils.json_to_sheet(cachedData, { header: headerOrder });
+app.get("/export", isAuthenticated, (req, res) => {
+  const worksheet = XLSX.utils.json_to_sheet(cachedData);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Results');
-  const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
-  res.setHeader('Content-Disposition', 'attachment; filename="exported_data.xlsx"');
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
+  const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+  res.setHeader("Content-Disposition", "attachment; filename=\"export.xlsx\"");
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   res.send(buffer);
 });
 
 // ---------------- START ----------------
-app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
-});
+if (process.env.VERCEL !== "1") {
+  app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+}
 
 module.exports = app;
