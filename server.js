@@ -40,22 +40,43 @@ if (supabaseUrl && supabaseKey) {
 }
 
 // ---------------- LOAD JSON ----------------
-function loadJSON(filePath) {
-  try {
-    if (!fs.existsSync(filePath)) return [];
-    const data = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(data || "[]");
-  } catch (err) {
-    console.error(`❌ Error loading ${filePath}:`, err.message);
-    return [];
+// ---------------- LOAD JSON (auto bundle trên Vercel) ----------------
+let cachedData = [];
+let usersData = [];
+
+try {
+  // Dùng require tĩnh để Vercel bundle file vào function
+  cachedData = require("./data.json");
+  console.log(`✅ Loaded ${cachedData.length} records from data.json`);
+} catch (err) {
+  console.warn("⚠️ Fallback: reading data.json via fs");
+  const fs = require("fs");
+  const path = require("path");
+  const dataPath = path.join(__dirname, "data.json");
+  if (fs.existsSync(dataPath)) {
+    cachedData = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+    console.log(`✅ Loaded ${cachedData.length} records from fallback data.json`);
+  } else {
+    console.error("❌ data.json not found");
   }
 }
 
-const dataPath = path.join(__dirname, "data.json");
-const usersPath = path.join(__dirname, "users.json");
+try {
+  usersData = require("./users.json");
+  console.log(`✅ Loaded ${usersData.length} users from users.json`);
+} catch (err) {
+  console.warn("⚠️ Fallback: reading users.json via fs");
+  const fs = require("fs");
+  const path = require("path");
+  const usersPath = path.join(__dirname, "users.json");
+  if (fs.existsSync(usersPath)) {
+    usersData = JSON.parse(fs.readFileSync(usersPath, "utf8"));
+    console.log(`✅ Loaded ${usersData.length} users from fallback users.json`);
+  } else {
+    console.error("❌ users.json not found");
+  }
+}
 
-let cachedData = loadJSON(dataPath);
-let usersData = loadJSON(usersPath);
 
 console.log(`✅ Loaded ${cachedData.length} records from data.json`);
 console.log(`✅ Loaded ${usersData.length} users from users.json`);
