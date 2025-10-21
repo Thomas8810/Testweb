@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "Web tra cứu có chức năng đăng nhập và phân quyền",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "scripts": { "start": "node server.js" },
   "dependencies": {
     "express": "^4.18.2",
     "express-session": "^1.17.3",
