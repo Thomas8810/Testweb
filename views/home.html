@@ -4,452 +4,625 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Web Tra Cứu - Nguyễn Văn Đạo</title>
-
-    <!-- keep Select2 and i18next -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
     <script src="https://unpkg.com/i18next@21.6.3/dist/umd/i18next.min.js"></script>
     <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.2/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
-
     <style>
-        /* ================================
-           FUTURISTIC GLASS (Pure Glass OS)
-           - ONLY visual changes (no JS/DOM change)
-           - Glass panels, soft blur, cold blue glow
-           ================================ */
+        /* Đoạn CSS responsive máy tính */
+        @media (min-width: 768px) {
+          html, body {
+            height: 100%;
+            overflow: hidden; /* Ngăn html/body cuộn chính */
+          }
 
-        :root{
-          --bg-1: #07080a;
-          --bg-2: #0f1113;
-          --glass-opaque: rgba(255,255,255,0.06);
-          --glass-opaque-2: rgba(255,255,255,0.03);
-          --glass-strong: rgba(255,255,255,0.09);
-          --accent: rgba(96,190,255,0.95); /* cool blue */
-          --accent-2: rgba(165,120,255,0.92); /* subtle violet */
-          --muted: rgba(255,255,255,0.7);
-          --text: #eaf6ff;
-          --soft-shadow: 0 8px 30px rgba(6,10,15,0.6);
-          --glass-border: rgba(255,255,255,0.08);
-          --glass-radius: 12px;
-          --transition: 240ms cubic-bezier(.2,.9,.3,1);
-        }
+          body {
+            overflow-y: auto; /* Cho phép body cuộn nếu nội dung page-container dài */
+          }
 
-        /* Base page */
-        html,body{
-          height:100%;
-          margin:0;
-          padding:0;
-          font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-          background: radial-gradient(1200px 600px at 10% 10%, #07101a 0%, #0b0f14 30%, var(--bg-2) 100%);
-          color:var(--text);
-          -webkit-font-smoothing:antialiased;
-          -moz-osx-font-smoothing:grayscale;
-        }
+          input, select, textarea {
+            touch-action: manipulation;
+            -webkit-user-select: text;
+            user-select: text;
+            caret-color: auto;
+          }
 
-        /* decorative background layers (pseudo) */
-        body::before{
-          content:"";
-          position:fixed;
-          inset:0;
-          z-index:0;
-          background:
-            linear-gradient(180deg, rgba(10,20,30,0.25), rgba(6,8,12,0.6) 40%),
-            radial-gradient(600px 300px at 15% 10%, rgba(80,160,255,0.06), transparent 20%),
-            radial-gradient(500px 260px at 85% 90%, rgba(160,110,255,0.04), transparent 22%);
-          pointer-events:none;
-          mix-blend-mode:screen;
-          filter: blur(18px) saturate(1.05);
+          input:focus,
+          select:focus,
+          textarea:focus {
+            outline: none;
+            box-shadow: none;
+          }
         }
-
-        /* subtle noise */
-        body::after{
-          content:"";
-          position:fixed;
-          inset:0;
-          z-index:0;
-          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><filter id="g"><feTurbulence baseFrequency="0.8" numOctaves="1" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23g)" opacity="0.02"/></svg>');
-          opacity:0.8;
-          pointer-events:none;
-          mix-blend-mode:overlay;
+        /* Cài đặt CSS cơ bản */
+        html, body { margin: 0; padding: 0; } /* Reset margin/padding cho html, body */
+        body {
+          font-family: Arial, sans-serif;
+          background: url('background.jpg') no-repeat center center/cover;
+          color: #333;
+          display: flex; /* Cần thiết cho page-container chiếm full height */
+          flex-direction: column; /* Cần thiết cho page-container chiếm full height */
         }
-
-        /* page container */
-        .page-container{
-          position:relative;
-          z-index:2;
-          display:flex;
-          flex-direction:column;
-          height:100vh;
-          gap:14px;
-          padding:20px;
+        .page-container {
+          display: flex;
+          flex-direction: column;
+          height: 100vh; /* Luôn chiếm toàn bộ chiều cao màn hình */
+          width: 100%; /* Luôn chiếm toàn bộ chiều rộng màn hình */
         }
-
-        /* Top container becomes a glass panel */
-        .top-container{
-          background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-          border: 1px solid var(--glass-border);
-          backdrop-filter: blur(14px) saturate(1.05);
-          -webkit-backdrop-filter: blur(14px) saturate(1.05);
-          border-radius: var(--glass-radius);
-          padding:18px;
-          max-height:40vh;
-          overflow:auto;
-          box-shadow: var(--soft-shadow);
-          transition: all var(--transition);
+        .top-container {
+          flex: 0 0 auto; /* Không co giãn, giữ kích thước nội dung */
+          background: rgba(0, 0, 0, 0.85);
+          padding: 15px;
+          max-height: 40vh; /* Giới hạn chiều cao tối đa */
+          overflow-y: auto; /* Cho phép cuộn nếu nội dung quá dài */
+          position: relative;
         }
-
-        .header{
-          position:relative;
-          text-align:center;
-          padding:6px 2px 12px;
+        .header {
+          text-align: center;
+          padding: 10px;
+          position: relative;
         }
-        .tasks-link{
-          position:absolute;
-          top:12px;
-          left:14px;
-          background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-          color:var(--text);
-          padding:6px 10px;
-          border-radius:8px;
-          border:1px solid rgba(255,255,255,0.04);
-          box-shadow: 0 6px 18px rgba(4,6,10,0.6);
-          text-decoration:none;
-          font-weight:600;
-          transition: transform 200ms ease, box-shadow 200ms ease;
+        .tasks-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            background: #007bff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease-out;
         }
-        .tasks-link:hover{
-          transform: translateY(-4px);
-          box-shadow: 0 14px 34px rgba(40,100,180,0.23);
+        .tasks-link:hover {
+            background: #0056b3;
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
-
-        .header h1{
-          margin:0;
-          font-size:22px;
-          font-weight:700;
-          color:var(--text);
-          letter-spacing:0.2px;
+        .tasks-link:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .header p{
-          margin:6px 0 0;
-          color: rgba(230,245,255,0.86);
-          font-size:13px;
+        .header h1 { margin: 0; font-size: 28px; color: white; }
+        .header p { margin: 5px 0 0; font-size: 16px; color: #ddd; }
+        .language-switcher {
+          position: absolute;
+          top: 10px;
+          right: 10px;
         }
-
-        .language-switcher{
-          position:absolute;
-          right:12px;
-          top:12px;
-          display:flex;
-          gap:6px;
+        .language-switcher button {
+          padding: 4px 8px;
+          margin-left: 5px;
+          font-size: 12px;
+          cursor: pointer;
+          border: none;
+          border-radius: 3px;
+          background: #ff8c00;
+          color: white;
+          transition: all 0.3s ease-out;
         }
-        .language-switcher button{
-          background:transparent;
-          color:var(--text);
-          border:1px solid rgba(255,255,255,0.04);
-          padding:6px 8px;
-          border-radius:8px;
-          cursor:pointer;
-          transition: all var(--transition);
+        .language-switcher button:hover {
+          background: #ff6500;
+          transform: translateY(-2px) scale(1.01);
+          box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
-        .language-switcher button:hover{
-          transform: translateY(-3px);
-          box-shadow: 0 10px 24px rgba(60,130,210,0.12);
-          background: linear-gradient(90deg, rgba(96,190,255,0.04), rgba(165,120,255,0.02));
+        .language-switcher button:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-
-        /* filter bar cards as micro glass panels */
-        .filter-bar{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:6px 2px; }
-        .filter-block{
-          min-width:200px;
-          background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-          border-radius:10px;
-          border: 1px solid rgba(255,255,255,0.04);
-          padding:10px;
-          box-shadow: 0 6px 18px rgba(3,6,12,0.5);
-          color:var(--text);
-          transition: transform var(--transition), box-shadow var(--transition);
+        .filter-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 5px;
         }
-        .filter-block:hover{
-          transform: translateY(-6px);
-          box-shadow: 0 22px 48px rgba(20,60,120,0.12);
+        .filter-block {
+          background: #444;
+          border-radius: 5px;
+          padding: 5px;
+          margin: 5px;
+          width: 220px;
+          font-size: 12px;
+          color: white;
+          box-sizing: border-box;
         }
-        .filter-block label{ display:block; font-size:12px; margin-bottom:6px; color:rgba(230,245,255,0.9); font-weight:600; }
-        .filter-block select, .filter-block input[type="date"]{
-          width:100%;
-          padding:8px;
-          border-radius:8px;
-          border:1px solid rgba(0,0,0,0.22);
-          background: rgba(255,255,255,0.02);
-          color:var(--text);
-          font-size:13px;
-          box-sizing:border-box;
+        .filter-block label {
+          display: block;
+          margin-bottom: 3px;
+          font-weight: bold;
         }
-
-        .action-bar{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
-        .action-bar > div{ background:transparent; border-radius:10px; padding:6px; }
-        .action-bar button{
-          background: linear-gradient(180deg, rgba(96,190,255,0.14), rgba(96,190,255,0.06));
-          border: 1px solid rgba(96,190,255,0.12);
-          color:var(--text);
-          padding:8px 12px;
-          border-radius:10px;
-          cursor:pointer;
-          font-weight:600;
-          transition: all var(--transition);
-          box-shadow: 0 6px 18px rgba(4,6,10,0.35);
+        .filter-block select, .filter-block input[type="date"] {
+          width: 100%;
+          padding: 3px;
+          margin-bottom: 3px;
+          font-size: 12px;
+          box-sizing: border-box;
+          border-radius: 3px;
+          border: 1px solid #666;
         }
-        .action-bar button:hover{
-          transform: translateY(-6px);
-          box-shadow: 0 22px 50px rgba(40,100,180,0.14);
-          background: linear-gradient(180deg, rgba(96,190,255,0.22), rgba(96,190,255,0.08));
+        .filter-block input[type="date"] {
+            background-color: #fff;
+            color: #333;
         }
-
-        /* scan camera button in glass style */
-        .scan-camera button{
-          background: linear-gradient(90deg, rgba(165,120,255,0.09), rgba(96,190,255,0.08));
-          border: 1px solid rgba(255,255,255,0.04);
-          color:var(--text);
-          padding:10px 14px;
-          border-radius:12px;
-          cursor:pointer;
-          font-weight:700;
-          transition: all var(--transition);
+        .date-range-inputs {
+            display: none;
         }
-        .scan-camera button:hover{ transform: translateY(-6px); box-shadow: 0 20px 40px rgba(60,120,200,0.12); }
-
-        .results-count{ text-align:center; color:rgba(220,240,255,0.9); margin-top:8px; }
-
-        #admin-online-users{
-          margin-top:10px;
-          font-size:12px;
-          color: #bff0ff;
-          background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-          padding:8px 12px;
-          border-radius:10px;
-          border:1px solid rgba(255,255,255,0.03);
+        .date-range-inputs label {
+            font-size: 10px;
+            margin-top: 5px;
+            margin-bottom: 1px;
         }
-
-        /* Quick search as glass input */
-        .quick-search-container{
-          display:flex;
-          justify-content:center;
-          z-index:2;
+        .action-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 5px;
         }
-        #quick-search{
-          width:60%;
-          max-width:480px;
-          padding:12px 14px;
-          border-radius:12px;
-          border:1px solid rgba(255,255,255,0.04);
-          background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-          color:var(--text);
-          font-size:15px;
-          box-shadow: 0 10px 30px rgba(3,6,15,0.45);
-          transition: box-shadow var(--transition), transform var(--transition);
+        .action-bar > div {
+          background: #444;
+          border-radius: 5px;
+          padding: 5px;
+          margin: 5px;
+          font-size: 12px;
+          color: white;
+          text-align: center;
         }
-        #quick-search:focus{
-          outline:none;
-          transform: translateY(-4px) scale(1.01);
-          box-shadow: 0 24px 60px rgba(24,90,160,0.18), 0 6px 18px rgba(0,0,0,0.4);
+        .action-bar button {
+          padding: 6px 12px;
+          font-size: 12px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.3s ease-out;
+          margin: 3px;
         }
-
-        /* Table container as large glass sheet */
-        .table-container{
-          flex:1 1 auto;
-          margin: 0 auto;
-          width:98%;
-          overflow:auto;
-          background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-          border-radius:14px;
-          border:1px solid rgba(255,255,255,0.03);
-          padding:10px;
-          box-shadow: 0 10px 40px rgba(2,6,14,0.6);
-          transition: all var(--transition);
+        .action-bar button:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
-
-        table{
-          width:100%;
-          border-collapse:collapse;
-          min-width:1000px;
+        .action-bar button:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        th, td{
-          padding:8px 10px;
-          font-size:13px;
-          color:var(--text);
-          border-bottom:1px solid rgba(255,255,255,0.03);
-          text-align:center;
-          white-space:nowrap;
+        .filter-actions button {
+          background: linear-gradient(45deg, #ff8c00, #ff4500);
+          color: white;
         }
-
-        thead th{
-          position:sticky;
-          top:0;
-          background: linear-gradient(180deg, rgba(10,20,30,0.22), rgba(10,20,30,0.12));
-          color:var(--text);
-          z-index:8;
-          border-bottom:1px solid rgba(255,255,255,0.04);
-          backdrop-filter: blur(6px);
+        .filter-actions button:hover {
+          background: linear-gradient(45deg, #ff6500, #ff0000);
         }
-
-        .sticky-col-1, .sticky-col-2, .sticky-col-3{
-          background: linear-gradient(180deg, rgba(10,18,28,0.18), rgba(10,18,28,0.12));
-          z-index:7;
+        .download-container button {
+          background: linear-gradient(45deg, #007bff, #0056b3);
+          color: white;
         }
-
-        /* row hover effects */
-        #results-table tbody tr{
-          transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+        .download-container button:hover {
+          background: linear-gradient(45deg, #3399ff, #007bff);
         }
-        #results-table tbody tr:hover{
-          background: linear-gradient(90deg, rgba(80,160,255,0.03), rgba(165,120,255,0.02));
-          transform: translateY(-4px);
-          box-shadow: 0 18px 40px rgba(24,90,140,0.06);
+        .zoom-controls button {
+          background: linear-gradient(45deg, #28a745, #218838);
+          color: white;
         }
-
-        /* sticky columns lighten on hover */
+        .zoom-controls button:hover {
+          background: linear-gradient(45deg, #34d058, #28a745);
+        }
+        .results-count {
+          text-align: center;
+          margin: 5px;
+          font-size: 14px;
+          color: white;
+        }
+        /* Quick Search bar styling */
+        .quick-search-container {
+            flex: 0 0 auto; /* Không co giãn */
+            text-align: center;
+            padding: 10px; /* Thay margin bằng padding */
+            background-color: rgba(0,0,0,0.7); /* Nền tối hơn để dễ thấy */
+        }
+        #quick-search {
+            padding: 8px; /* Tăng padding */
+            width: 60%;
+            max-width: 400px; /* Giới hạn chiều rộng tối đa */
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #fff;
+            color: #333;
+        }
+        /* Bảng dữ liệu */
+        .table-container {
+          flex: 1 1 auto; /* Cho phép co giãn để lấp đầy không gian còn lại */
+          margin: 0 auto; /* Bỏ margin trên dưới, căn giữa ngang */
+          width: 98%;
+          overflow: auto; /* Cho phép cuộn cả ngang và dọc */
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 5px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+          box-sizing: border-box; /* Quan trọng khi thêm padding */
+          padding-bottom: 75px; /* Khoảng trống cho bottom-sticky-wrapper, điều chỉnh nếu cần */
+        }
+        table {
+          width: auto;
+          min-width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
+        }
+        th, td {
+          padding: 6px 8px;
+          border: 1px solid #ccc;
+          font-size: 12px;
+          text-align: center;
+          white-space: nowrap;
+          user-select: text; /* Cho phép chọn văn bản */
+        }
+        th {
+          background: #4a76a8;
+          color: white;
+          position: sticky;
+          top: 0;
+          z-index: 2;
+        }
+        .sticky-col-1 {
+          position: sticky;
+          left: 0;
+          width: 40px;
+          min-width: 40px;
+          background: #4a76a8;
+          z-index: 3;
+        }
+        .sticky-col-2 {
+          position: sticky;
+          left: 40px;
+          width: 100px;
+          min-width: 100px;
+          background: #4a76a8;
+          z-index: 3;
+        }
+        .sticky-col-3 {
+          position: sticky;
+          left: 140px;
+          width: 50px;
+          min-width: 50px;
+          background: #4a76a8;
+          z-index: 3;
+        }
+        td.sticky-col-1, td.sticky-col-2, td.sticky-col-3 {
+          background: #e6e6e6;
+          color: #333;
+          z-index: 1;
+          transition: background-color 0.2s ease-in-out; /* THÊM CHO VẤN ĐỀ 1 */
+        }
+        #results-table tbody tr {
+            transition: background-color 0.2s ease-in-out;
+        }
+        #results-table tbody tr:hover {
+            background-color: #e0e0e0;
+        }
         #results-table tbody tr:hover td.sticky-col-1,
         #results-table tbody tr:hover td.sticky-col-2,
-        #results-table tbody tr:hover td.sticky-col-3{
-          background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        #results-table tbody tr:hover td.sticky-col-3 {
+            background-color: #d0d0d0; /* Màu nền đậm hơn một chút cho sticky cells khi hover */
         }
+        tr.selected { background-color: #ffeb99 !important; }
 
-        /* bottom sticky wrapper (controls) */
-        .bottom-sticky-wrapper{
-          position:sticky;
-          bottom:0;
-          left:0;
-          width:100%;
-          z-index:20;
-          display:flex;
-          flex-direction:column;
-          gap:6px;
-          align-items:center;
-          padding:10px;
-          background: linear-gradient(180deg, rgba(6,8,12,0.12), rgba(6,8,12,0.06));
-          border-top:1px solid rgba(255,255,255,0.02);
+        /* Wrapper cho các nút điều khiển dưới cùng */
+        .bottom-sticky-wrapper {
+            flex: 0 0 auto; /* Không co giãn */
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100; /* Đảm bảo luôn ở trên */
+            background-color: #333; /* Nền chung, có thể bị ghi đè bởi phần tử con */
         }
-
-        #load-more-container{
-          display:flex;
-          gap:10px;
-          align-items:center;
-          justify-content:center;
-          width:100%;
-        }
-        #load-more-container button{
-          padding:8px 14px;
-          border-radius:10px;
-          border:1px solid rgba(255,255,255,0.04);
-          background: linear-gradient(180deg, rgba(96,190,255,0.12), rgba(96,190,255,0.06));
-          color:var(--text);
-          cursor:pointer;
-          transition: all var(--transition);
-        }
-        #load-more-container button:hover{
-          transform: translateY(-6px);
-          box-shadow: 0 22px 48px rgba(40,100,180,0.12);
-        }
-
-        .footer{
-          font-size:13px;
-          color:rgba(200,230,255,0.8);
+        #load-more-container {
           text-align:center;
-          padding:6px 8px;
+          padding: 10px; /* Thêm padding thay vì margin */
+          background-color: #444; /* Nền để dễ phân biệt với footer nếu cần */
+        }
+        #load-more-container button { /* Style cho các nút trong load-more */
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease-out;
+            margin: 3px;
+            background: linear-gradient(45deg, #17a2b8, #138496); /* Màu xanh dương */
+            color: white;
+        }
+        #load-more-container button:hover {
+            background: linear-gradient(45deg, #1fbcd4, #17a2b8);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .footer {
+          /* flex: 0 0 auto; /* Không cần nữa vì wrapper đã xử lý */
+          text-align: center;
+          padding: 5px;
+          font-size: 14px;
+          background: #333;
+          color: white;
+          /* position: sticky và bottom: 0 đã được chuyển cho wrapper */
         }
 
-        /* Image popup -> glass modal */
-        #image-popup{
-          display:none;
-          position:fixed;
-          top:50%;
-          left:50%;
-          transform:translate(-50%,-50%) scale(0.98);
-          z-index:10050;
-          background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-          border:1px solid rgba(255,255,255,0.06);
-          border-radius:16px;
-          padding:12px;
-          box-shadow: 0 30px 80px rgba(4,8,20,0.7);
-          max-width:86vw;
-          max-height:86vh;
-          backdrop-filter: blur(18px) saturate(1.05);
-          transition: transform 300ms cubic-bezier(.2,.9,.3,1), opacity 220ms linear;
+        /* CSS cho popup ảnh */
+        #image-popup {
+            display: none;
+            position: fixed;
+            border: 1px solid #ccc;
+            background: white;
+            padding: 5px;
+            z-index: 10000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            max-width: 400px;
+            max-height: 400px;
+            cursor: default;
+            transition: all 0.3s ease-in-out;
+            overflow: auto;
         }
-        #image-popup.show{
-          display:block;
-          transform:translate(-50%,-50%) scale(1);
+        #image-popup img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            cursor: zoom-in;
+            object-fit: contain;
+            width: 100%; 
+            height: 100%;
         }
-        #image-popup img{
-          display:block;
-          max-width:720px;
-          max-height:68vh;
-          width:auto;
-          height:auto;
-          border-radius:10px;
-          box-shadow: 0 18px 50px rgba(6,14,30,0.6);
+        #image-popup .no-image-text {
+            padding: 10px;
+            text-align: center;
+            color: #555;
         }
-        .image-popup-close{
-          position:absolute;
-          top:8px;
-          right:10px;
-          background: rgba(255,255,255,0.06);
-          color:var(--text);
-          border-radius:50%;
-          padding:6px 10px;
-          cursor:pointer;
-          font-weight:700;
+        #image-popup.zoomed {
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            padding: 15px;
         }
-        .image-popup-spinner{
-          position:absolute;
-          top:50%;
-          left:50%;
-          transform:translate(-50%,-50%);
-          border:4px solid rgba(255,255,255,0.06);
-          border-top:4px solid var(--accent);
-          border-radius:50%;
-          width:34px;
-          height:34px;
-          animation: spin 1s linear infinite;
-          display:none;
+        #image-popup.zoomed img {
+            cursor: zoom-out;
         }
-
-        @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
-
-        /* small screens adjustments */
-        @media (max-width: 768px){
-          .filter-block{ min-width: 100%; width: calc(100% - 24px); }
-          #quick-search{ width:90%; max-width:720px; font-size:15px; }
-          .top-container{ max-height:46vh; padding:12px; }
-          table{ font-size:12px; min-width:900px; }
+        .image-popup-close {
+            position: absolute;
+            top: 0px; 
+            right: 8px;
+            font-size: 24px; 
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            z-index: 10001; 
+            padding: 2px 5px;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            line-height: 1;
         }
-        @media (max-width:480px){
-          .header h1{ font-size:18px; }
-          .header p{ font-size:12px; }
-          .filter-block{ padding:8px; }
-          table{ font-size:11px; min-width:800px; }
-          .tasks-link{ left:10px; top:8px; padding:5px 8px; }
+        .image-popup-close:hover {
+            color: #000;
+            background-color: rgba(255,255,255,0.9);
         }
-
-        /* focus outline override to match glass */
-        input:focus, select:focus, button:focus{
-          outline: none;
-          box-shadow: 0 0 0 4px rgba(96,190,255,0.08), 0 12px 30px rgba(24,90,160,0.08);
-          border-color: rgba(96,190,255,0.28);
+        .image-popup-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+            z-index: 10002;
         }
 
-        /* accessibility tweak for copy-feedback */
-        .copy-feedback-message{
-          background: linear-gradient(90deg, rgba(12,18,28,0.9), rgba(6,8,12,0.9));
-          color:var(--text);
-          padding:10px 14px;
-          border-radius:12px;
-          box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+        @media (max-width: 768px) {
+          .language-switcher {
+            position: static;
+            margin-top: 10px;
+            text-align: center;
+          }
+          .language-switcher button {
+            padding: 3px 6px;
+            margin: 0 3px;
+            font-size: 10px;
+          }
+          .filter-bar, .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .filter-block, .action-bar > div {
+            width: 90%;
+            margin: 5px auto;
+          }
+          .header h1 { font-size: 24px; }
+          .header p { font-size: 14px; }
+          table, th, td { font-size: 10px; }
+          .top-container {
+                max-height: 45vh !important;
+                padding: 8px !important;
+            }
+            .action-bar button,
+            .language-switcher button {
+                font-size: 16px;
+                padding: 10px 16px;
+            }
+             #quick-search {
+                font-size: 13px !important;
+            }
         }
+        @media (max-width: 480px) {
+          .tasks-link {
+            position: relative;
+            top: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 16px;
+          }
+          .header h1 { font-size: 20px; }
+          .header p { font-size: 12px; }
+          table, th, td { font-size: 9px; }
+        }
+
+        @media (max-width: 768px) {
+          body {
+            padding-bottom: 0; /* Loại bỏ padding-bottom cũ vì đã có sticky footer */
+          }
+        }
+
+        /* Tối ưu bảng cho điện thoại xoay ngang/dọc và khi mở bàn phím */
+        /* Các CSS @media screen and (orientation: landscape/portrait) giữ nguyên */
+         @media screen and (orientation: landscape), (orientation: portrait) {
+          .table-container {
+            /* max-height đã được điều chỉnh bởi flex, padding-bottom xử lý không gian cho sticky footer */
+            touch-action: pan-y pan-x; /* Cho phép cuộn cả ngang và dọc bằng cảm ứng */
+          }
+          table {
+            width: auto;
+            min-width: 100%;
+          }
+          td, th {
+            word-break: break-word;
+          }
+        }
+
+        table {
+          min-width: 800px;
+        }
+
+        th, td {
+          word-break: break-word;
+          white-space: nowrap;
+        }
+
+        .table-container {
+            width: 100%; /* Chiếm toàn bộ chiều rộng cha (.page-container) */
+            /* max-height đã được quản lý bởi flexbox và padding-bottom */
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+        th, td {
+            white-space: nowrap;
+            padding: 6px;
+            font-size: 12px;
+        }
+        /* Sticky column styles giữ nguyên */
+
+        input:focus, select:focus {
+          outline: 2px solid #ff8c00;
+          background-color: #fffce6;
+        }
+
+        @media (max-width: 768px) {
+          input, select {
+            font-size: 16px;
+          }
+        }
+
+        @media screen and (orientation: landscape) {
+            .top-container {
+                max-height: 30vh;
+                overflow-y: auto;
+            }
+            .table-container {
+                /* height: auto; */ /* flexbox sẽ quản lý chiều cao */
+                /* max-height: 90vh; */
+                /* min-height: 70vh; */
+            }
+            table {
+                min-width: 1200px;
+            }
+        }
+
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .top-container {
+                max-height: 40vh !important;
+                padding: 8px !important;
+            }
+            .header h1 { font-size: 20px; }
+            .header p { font-size: 12px; }
+            .filter-block,
+            .action-bar > div {
+                padding: 4px;
+                margin: 3px;
+                font-size: 11px;
+            }
+            .action-bar button,
+            .language-switcher button {
+                font-size: 16px;
+                padding: 10px 16px;
+            }
+            .filter-block select {
+                font-size: 12px;
+            }
+            .results-count {
+                font-size: 12px;
+            }
+            #quick-search {
+                font-size: 13px !important;
+            }
+        }
+
+        .top-container,
+        .table-container,
+        #quick-search {
+          transition: all 0.3s ease-in-out;
+        }
+        .full-top-container {
+          height: 100vh !important;
+          max-height: 100vh !important;
+          overflow-y: auto;
+        }
+        .hide-top-container {
+          height: 0 !important;
+          max-height: 0 !important;
+          overflow: hidden;
+          padding: 0 !important;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .show-table-only {
+          /* height: calc(100vh - 60px); /* Điều chỉnh nếu quick search và footer thay đổi chiều cao */
+          /* flexbox sẽ quản lý chiều cao này */
+        }
+
+        .copy-feedback-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 10000;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+            pointer-events: none;
+        }
+        .copy-feedback-message.show {
+            opacity: 1;
+        }
+
     </style>
 </head>
 <body>
-    <!-- loading spinner (kept) -->
     <div id="loading-spinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
-        <div style="border: 6px solid rgba(255,255,255,0.06); border-top: 6px solid rgba(96,190,255,0.9); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
+        <div style="border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
     </div>
 
     <div class="page-container">
@@ -473,7 +646,6 @@
                 <div class="filter-block" id="filter-block-1">
                     <label for="filter-column-1" id="label-criteria-1">Chọn tiêu chí số 1:</label>
                     <select id="filter-column-1">
-                        <!-- keep options identical to original -->
                         <option value="Part Number" selected>Part Number</option>
                         <option value="Approval Status">Approval Status</option>
                         <option value="Production Status">Production Status</option>
@@ -485,7 +657,7 @@
                         <option value="CE">CE</option>
                         <option value="PO Number">PO Number</option>
                         <option value="ERP-CODE">ERP-CODE</option>
-                        <option value="REV">REV</option>
+                        <option value="REV">REV</sCRIPT>
                         <option value="Description">Description</option>
                         <option value="Note Number">Note Number</option>
                         <option value="PO received date" data-type="date">PO received date</option>
@@ -514,8 +686,6 @@
                         <input type="date" class="date-select-end" id="filter-date-end-1">
                     </div>
                 </div>
-
-                <!-- keep other filter blocks intact -->
                 <div class="filter-block" id="filter-block-2">
                     <label for="filter-column-2" id="label-criteria-2">Chọn tiêu chí số 2 (paste ex):</label>
                     <select id="filter-column-2">
@@ -532,7 +702,7 @@
                         <option value="ERP-CODE">ERP-CODE</option>
                         <option value="REV">REV</option>
                         <option value="Description">Description</option>
-                        <option value="Note Number">Note Number</option>
+                        <option value="Note Number">Note Number</sCRIPT>
                         <option value="PO received date" data-type="date">PO received date</option>
                         <option value="Customer need date" data-type="date">Customer need date</option>
                         <option value="Requirements">Requirements</option>
@@ -559,7 +729,6 @@
                         <input type="date" class="date-select-end" id="filter-date-end-2">
                     </div>
                 </div>
-
                 <div class="filter-block" id="filter-block-3">
                     <label for="filter-column-3" id="label-criteria-3">Chọn tiêu chí số 3:</label>
                     <select id="filter-column-3">
@@ -654,27 +823,27 @@
                     <th data-column="Part Pictures">Part Pictures</th>
                     <th data-column="Packaging Pictures">Packaging Pictures</th>
                     <th data-column="Critical">Critical</th>
-                    <th data-column="CE">CE</th>
-                    <th data-column="PO Number">PO Number</th>
-                    <th data-column="Description">Description</th>
-                    <th data-column="ERP-CODE">ERP-CODE</th>
-                    <th data-column="Note Number">Note Number</th>
-                    <th data-column="PO received date">PO received date</th>
-                    <th data-column="Customer need date">Customer need date</th>
-                    <th data-column="Requirements">Requirements</th>
-                    <th data-column="FAIR Cover sheet">FAIR Cover sheet</th>
-                    <th data-column="Bubble Drawings">Bubble Drawings</th>
-                    <th data-column="Datasheet form">Datasheet form</th>
-                    <th data-column="LAIR Data">LAIR Data</th>
-                    <th data-column="FAIR Data">FAIR Data</th>
-                    <th data-column="COC">COC</th>
-                    <th data-column="BOM">BOM</th>
-                    <th data-column="Mill">Mill</th>
-                    <th data-column="Test reports / evidences">Test reports / evidences</th>
-                    <th data-column="Remark 1">Remark 1</th>
-                    <th data-column="PIC">PIC</th>
-                    <th data-column="Submit date">Submit date</th>
-                    <th data-column="Reject comments">Reject comments</th>
+                    <th data-column="CE">CE</option>
+                    <th data-column="PO Number">PO Number</option>
+                    <th data-column="Description">Description</option>
+                    <th data-column="ERP-CODE">ERP-CODE</option>
+                    <th data-column="Note Number">Note Number</option>
+                    <th data-column="PO received date">PO received date</option>
+                    <th data-column="Customer need date">Customer need date</option>
+                    <th data-column="Requirements">Requirements</option>
+                    <th data-column="FAIR Cover sheet">FAIR Cover sheet</option>
+                    <th data-column="Bubble Drawings">Bubble Drawings</option>
+                    <th data-column="Datasheet form">Datasheet form</option>
+                    <th data-column="LAIR Data">LAIR Data</option>
+                    <th data-column="FAIR Data">FAIR Data</option>
+                    <th data-column="COC">COC</option>
+                    <th data-column="BOM">BOM</option>
+                    <th data-column="Mill">Mill</option>
+                    <th data-column="Test reports / evidences">Test reports / evidences</option>
+                    <th data-column="Remark 1">Remark 1</option>
+                    <th data-column="PIC">PIC</option>
+                    <th data-column="Submit date">Submit date</option>
+                    <th data-column="Reject comments">Reject comments</option>
                 </tr></thead>
                 <tbody>
                     </tbody>
@@ -689,20 +858,14 @@
         </div>
     </div>
 
-    <div id="image-popup" role="dialog" aria-hidden="true">
-        <span class="image-popup-close" aria-label="Close">&times;</span>
-        <div class="image-popup-spinner" aria-hidden="true"></div>
-        <img src="" alt="Part Image" style="display:none;">
-        <span class="no-image-text" style="display:none;"></span>
+    <div id="image-popup"> <span class="image-popup-close">&times;</span> <div class="image-popup-spinner"></div> <img src="" alt="Part Image" style="display:none;"> <span class="no-image-text" style="display:none;"></span>
     </div>
     
-    <!-- scripts kept intact -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6/colResizable-1.6.min.js"></script>
 
-    <!-- Keep all original JS logic untouched. Paste original scripts below (exact content preserved). -->
     <script>
         // Khởi tạo i18next (giữ nguyên)
         i18next.use(i18nextBrowserLanguageDetector).init({
@@ -747,6 +910,10 @@
                 "clear_filter": "필터 지우기",
                 "download_excel": "엑셀 내보내기 (현재 보기)",
                 "export_all": "엑셀 내보내기 (전체)",
+                "zoom_in": "확대",
+                "zoom_out": "축소",
+                "load_more": "더 불러오기",
+                "load_all": "전체 불러오기",
                 "total_rows": "총 행: {{count}} / {{total}}",
                 "developer": "개발자: Nguyễn Văn Đạo",
                 "date_from": "시작 날짜:",
@@ -784,12 +951,6 @@
         }, function(err, t) {
           updateStaticContent();
         });
-
-        /* ---------------------------
-           Original functions & event handlers preserved below unchanged.
-           (Due to length, only the key JS blocks are kept here exactly as in original file.
-           The rest of the script from your original home.html is preserved verbatim.)
-           --------------------------- */
 
         function reinitializeSelect2(selector, placeholder, extraOptions) {
           var $el = $(selector);
@@ -845,32 +1006,1035 @@
           document.getElementById("footer-text").innerText = i18next.t("developer");
         }
 
-        /* --------------------------
-           All remaining JS from original home.html (filters, applyFilters, updateTable, popup handlers, camera, search history...)
-           is included below unchanged to guarantee functionality.
-           -------------------------- */
-
-        // ---------- (Due to response size constraints, I'm embedding the rest of your original JS exactly as-is)
-        // Please ensure when pasting this file you include ALL remaining JS from your source home.html after this point.
-    </script>
-
-    <!-- Additional lightweight UI JS for interactions (parallax + small shimmer) -->
-    <script>
-      (function(){
-        // tiny parallax for glass panels (non-intrusive)
-        const container = document.querySelector('.page-container');
-        if (!container) return;
-        let w = window.innerWidth, h = window.innerHeight;
-        window.addEventListener('pointermove', (e) => {
-          const x = (e.clientX / w - 0.5) * 8; // px
-          const y = (e.clientY / h - 0.5) * 6;
-          document.querySelectorAll('.filter-block, .top-container, .table-container').forEach(el => {
-            el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            el.style.transition = 'transform 300ms cubic-bezier(.2,.9,.3,1)';
+        function changeLanguage(lng) {
+          i18next.changeLanguage(lng, function() {
+            updateStaticContent();
+            $('.value-select').each(function() {
+                const placeholderText = $(this).attr('id') === 'filter-project' ? i18next.t("choose_project") : i18next.t("choose_value");
+                $(this).data('select2').$container.find('.select2-selection__placeholder').text(placeholderText);
+            });
           });
-        }, {passive:true});
-      })();
+        }
     </script>
+    <script>
+        // Các hàm JavaScript khác giữ nguyên
+        function formatExcelDate(val) {
+            if (!val) return '';
+            if (typeof val === 'number') {
+                let date = new Date(Date.UTC(1899, 11, 30 + val)); 
+                if (!isNaN(date)) {
+                    const year = date.getUTCFullYear();
+                    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                    const day = String(date.getUTCDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+            } else if (typeof val === 'string') {
+                const parsed = new Date(val);
+                if (!isNaN(parsed)) {
+                    const year = parsed.getFullYear(); 
+                    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+                    const day = String(parsed.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            return val; 
+        }
+
+        let currentFilters = {};
+        let currentOffset = 0;
+        const pageSize = 50;
+        let totalData = 0;
+        let currentZoom = 1;
+        let allData = null;
+
+        const imagePopup = $('#image-popup');
+        const popupImg = imagePopup.find('img');
+        const popupText = imagePopup.find('span.no-image-text');
+        const popupCloseButton = imagePopup.find('.image-popup-close');
+        const popupSpinner = imagePopup.find('.image-popup-spinner');
+
+
+        function loadAllData() {
+          $.getJSON('/search?limit=1000000', function(response) { 
+            allData = response.data;
+            totalData = response.total;
+            updateFilterValuesForBlock(1);
+            updateCascade(2); 
+          });
+        }
+
+        function loadDistinctValuesForProject() {
+          const selectElem = $('#filter-project');
+          selectElem.empty();
+          $.getJSON('/filters', function(data) {
+            if (data['Customer']) {
+              data['Customer'].forEach(function(val) {
+                const option = new Option(val, val, false, false);
+                selectElem.append(option);
+              });
+            }
+            selectElem.trigger('change');
+          });
+        }
+
+        function handleFilterTypeChange(blockIndex) {
+            const columnSelect = $('#filter-column-' + blockIndex);
+            const valueSelectContainer = $('#filter-value-' + blockIndex).next('.select2-container');
+            const valueSelect = $('#filter-value-' + blockIndex);
+            const dateRangeInputs = $(`#date-range-${blockIndex}`);
+            const labelValue = $(`label[for="filter-value-${blockIndex}"]`);
+
+            const selectedOptionDataType = columnSelect.find('option:selected').data('type');
+
+            if (selectedOptionDataType === 'date') {
+                valueSelectContainer.hide();
+                valueSelect.hide();
+                dateRangeInputs.show();
+                labelValue.hide(); 
+            } else {
+                dateRangeInputs.hide();
+                valueSelectContainer.show();
+                valueSelect.show();
+                labelValue.show().text(i18next.t("choose_value"));
+            }
+        }
+
+
+        $(document).ready(function() {
+            loadAllData();
+            loadDistinctValuesForProject();
+
+            $('.value-select').not('#filter-value-2').select2({
+                placeholder: i18next.t("choose_value"),
+                allowClear: true,
+                width: '100%',
+                closeOnSelect: false
+            });
+            $('#filter-project').select2({
+                placeholder: i18next.t("choose_project"),
+                allowClear: true,
+                width: '100%',
+                closeOnSelect: false
+            });
+            $('#filter-value-2').select2({
+                placeholder: i18next.t("choose_value"),
+                allowClear: true,
+                width: '100%'
+            });
+
+            handleFilterTypeChange(1);
+            handleFilterTypeChange(2);
+            handleFilterTypeChange(3);
+
+
+            $(document).on('paste', '#filter-value-2 ~ .select2 .select2-search__field', function(e) {
+                e.preventDefault();
+                var clipboardData = e.originalEvent.clipboardData.getData('text/plain');
+                var values = clipboardData.split(/\r?\n/).reduce(function(acc, line) {
+                  return acc.concat(line.split('\t'));
+                }, []).filter(function(val) {
+                  return val.trim() !== '';
+                });
+                var $select = $('#filter-value-2');
+                var currentValues = $select.val() || [];
+                var newValues = currentValues.concat(values);
+                newValues = Array.from(new Set(newValues));
+                $select.val(newValues).trigger('change');
+            });
+
+            $('#filter-project').on('change', function(){
+                updateFilterValuesForBlock(1);
+                updateCascade(2);
+            });
+
+            $('#filter-column-1').on('change', function() {
+                handleFilterTypeChange(1);
+                updateFilterValuesForBlock(1);
+                updateCascade(2);
+            });
+            $('#filter-value-1, #filter-date-start-1, #filter-date-end-1').on('change', function() {
+                updateCascade(2);
+            });
+            $('#filter-column-2').on('change', function() {
+                handleFilterTypeChange(2);
+                updateFilterValuesForBlock(2);
+                updateCascade(3);
+            });
+            $('#filter-value-2, #filter-date-start-2, #filter-date-end-2').on('change', function() {
+                updateCascade(3);
+            });
+            $('#filter-column-3').on('change', function() {
+                handleFilterTypeChange(3);
+                updateFilterValuesForBlock(3);
+            });
+
+            $('#apply-filters').on('click', function() {
+                const col1 = $('#filter-column-1').val();
+                const val1 = $('#filter-value-1').val();
+                if (col1 === 'Part Number' && val1 && val1.length > 0) {
+                  val1.forEach(p => saveSearchHistory(p));
+                }
+                applyFilters(true);
+            });
+            $('#clear-filters').on('click', function() {
+                $('.value-select').val(null).trigger('change');
+                $('#filter-value-2').val(null).trigger('change');
+                $('.date-select-start').val(''); 
+                $('.date-select-end').val(''); 
+                handleFilterTypeChange(1);
+                handleFilterTypeChange(2);
+                handleFilterTypeChange(3);
+                applyFilters(true);
+            });
+            $('#load-more').on('click', function() {
+                let loadMoreFilters = { ...currentFilters, offset: currentOffset, limit: pageSize };
+                delete loadMoreFilters.limit; 
+                
+                if (currentOffset < totalData) {
+                    showSpinner();
+                    $.getJSON(`/search?${$.param(loadMoreFilters)}`, function(response) {
+                        currentOffset += response.data.length; 
+                        updateTable(response.data, false); 
+                    }).always(function() {
+                        hideSpinner();
+                    });
+                } else {
+                    alert("Đã tải hết dữ liệu!");
+                }
+            });
+            $('#load-all').on('click', function() {
+                let queryParams = {};
+                const sheetValues = $('#filter-project').val();
+                if (sheetValues && sheetValues.length > 0) {
+                  queryParams["Customer"] = sheetValues.join(',');
+                }
+                for (let i = 1; i <= 3; i++) {
+                  const colSelect = $(`#filter-column-${i}`);
+                  const col = colSelect.val();
+                  const selectedOptionDataType = colSelect.find('option:selected').data('type');
+                  
+                  if (selectedOptionDataType === 'date') {
+                    const dateStart = $(`#filter-date-start-${i}`).val();
+                    const dateEnd = $(`#filter-date-end-${i}`).val();
+                    if (dateStart) queryParams[`${col}_start`] = dateStart;
+                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;
+                  } else {
+                    const values = $(`#filter-value-${i}`).val();
+                    if (values && values.length > 0) {
+                      queryParams[col] = values.join(',');
+                    }
+                  }
+                }
+                queryParams.limit = 1000000; 
+                queryParams.offset = 0;
+                showSpinner();
+                $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
+                  currentOffset = response.total; 
+                  updateTable(response.data, true); 
+                }).always(function() {
+                    hideSpinner();
+                });
+            });
+            $('#download-excel').on('click', function() { downloadExcel(); });
+            $('#export-all').on('click', function() {
+                let queryParams = {};
+                const sheetValues = $('#filter-project').val();
+                if (sheetValues && sheetValues.length > 0) {
+                  queryParams["Customer"] = sheetValues.join(',');
+                }
+                for (let i = 1; i <= 3; i++) {
+                  const colSelect = $(`#filter-column-${i}`);
+                  const col = colSelect.val();
+                  const selectedOptionDataType = colSelect.find('option:selected').data('type');
+                  
+                  if (selectedOptionDataType === 'date') {
+                    const dateStart = $(`#filter-date-start-${i}`).val();
+                    const dateEnd = $(`#filter-date-end-${i}`).val();
+                    if (dateStart) queryParams[`${col}_start`] = dateStart;
+                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;
+                  } else {
+                    const values = $(`#filter-value-${i}`).val();
+                    if (values && values.length > 0) {
+                      queryParams[col] = values.join(',');
+                    }
+                  }
+                }
+                const queryString = $.param(queryParams);
+                window.location.href = `/export?${queryString}`;
+            });
+            $('#zoom-in').on('click', function() {
+                currentZoom += 0.1;
+                $('#results-table').css('zoom', currentZoom);
+            });
+            $('#zoom-out').on('click', function() {
+                if (currentZoom > 0.5) {
+                  currentZoom -= 0.1;
+                  $('#results-table').css('zoom', currentZoom);
+                }
+            });
+            try {
+                if (typeof $.fn.colResizable === 'function') {
+                  $('#results-table').colResizable({ liveDrag: true });
+                }
+            } catch(e) {
+                console.log("colResizable not available:", e);
+            }
+
+            popupCloseButton.off('click.closepopup').on('click.closepopup', function() {
+                closeImagePopup();
+            });
+
+            $(document).off('mouseup.imagePopupOutside').on('mouseup.imagePopupOutside', function(e) {
+                if (imagePopup.is(':visible') && !imagePopup.is(e.target) && imagePopup.has(e.target).length === 0) {
+                    closeImagePopup();
+                }
+            });
+            
+            popupImg.off('click.zoom').on('click.zoom', function() {
+                const $thisImage = $(this);
+                if (imagePopup.is(':visible') && $thisImage.is(':visible')) {
+                    imagePopup.toggleClass('zoomed');
+                    
+                    popupSpinner.show(); 
+                    $thisImage.hide(); 
+
+                    if (imagePopup.hasClass('zoomed')) {
+                        const highQualityUrl = imagePopup.data('high-quality-url');
+                        if (highQualityUrl) {
+                            $thisImage.attr('src', highQualityUrl);
+                            $thisImage.css('cursor', 'zoom-out');
+                        } else {
+                            console.warn("High-quality image URL not found.");
+                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
+                            popupSpinner.hide();
+                            $thisImage.show(); 
+                        }
+                    } else {
+                        const thumbnailUrl = imagePopup.data('thumbnail-url');
+                        if (thumbnailUrl) {
+                            $thisImage.attr('src', thumbnailUrl);
+                            $thisImage.css('cursor', 'zoom-in');
+                        } else {
+                            console.warn("Thumbnail image URL not found.");
+                            popupText.text(i18next.t('no_image_found', { partNumber: imagePopup.data('current-part-number') || 'N/A', erpCode: imagePopup.data('current-erp') || 'N/A' })).show();
+                            popupSpinner.hide();
+                            $thisImage.show(); 
+                        }
+                    }
+                }
+            });
+
+            applyFilters(true); 
+        });
+
+        function updateFilterValuesForBlock(blockIndex) {
+            const columnSelect = $('#filter-column-' + blockIndex);
+            const selectedOptionDataType = columnSelect.find('option:selected').data('type');
+
+            if (selectedOptionDataType === 'date') {
+                return;
+            }
+            
+            if (!allData) {
+                setTimeout(function(){ updateFilterValuesForBlock(blockIndex); }, 100);
+                return;
+            }
+            let filteredData = allData.slice();
+
+            const projectValues = $('#filter-project').val();
+            if (projectValues && projectValues.length > 0) {
+                filteredData = filteredData.filter(row => 
+                    projectValues.some(s => row['Customer'] && row['Customer'].toString().toLowerCase().includes(s.toLowerCase()))
+                );
+            }
+
+            for (let i = 1; i < blockIndex; i++) {
+                const colSelectPrev = $(`#filter-column-${i}`);
+                const colPrev = colSelectPrev.val();
+                const prevOptionType = colSelectPrev.find('option:selected').data('type');
+                
+                if (prevOptionType === 'date') {
+                    const dateStartPrev = $(`#filter-date-start-${i}`).val();
+                    const dateEndPrev = $(`#filter-date-end-${i}`).val();
+                    if (colPrev && (dateStartPrev || dateEndPrev)) {
+                        filteredData = filteredData.filter(row => {
+                            const itemDateStr = formatExcelDate(row[colPrev]);
+                            if (!itemDateStr) return false;
+                            const itemDate = new Date(itemDateStr);
+                            let match = true;
+                            if (dateStartPrev) {
+                                match = match && itemDate >= new Date(dateStartPrev);
+                            }
+                            if (dateEndPrev) {
+                                match = match && itemDate <= new Date(dateEndPrev);
+                            }
+                            return match;
+                        });
+                    }
+                } else {
+                    const valuesPrev = $('#filter-value-' + i).val();
+                    if (colPrev && valuesPrev && valuesPrev.length > 0) {
+                        filteredData = filteredData.filter(row =>
+                            valuesPrev.some(v => row[colPrev] && row[colPrev].toString().toLowerCase().includes(v.toLowerCase()))
+                        );
+                    }
+                }
+            }
+            
+            let dependentColumn = $('#filter-column-' + blockIndex).val();
+            let valuesInColumn = filteredData.map(function(row) {
+                let cellVal = row[dependentColumn];
+                if (columnSelect.find('option[value="' + dependentColumn + '"]').data('type') === 'date') {
+                    cellVal = formatExcelDate(cellVal);
+                }
+                if (cellVal == null || cellVal.toString().trim() === "") return null;
+                if (typeof cellVal === 'string') {
+                    return cellVal.trim().toUpperCase();
+                }
+                return cellVal.toString().toUpperCase();
+            }).filter(function(v) { return v !== null; });
+
+            let distinctValues = Array.from(new Set(valuesInColumn));
+            distinctValues.sort((a, b) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'}));
+
+            const selectElem = $('#filter-value-' + blockIndex);
+            const currentValue = selectElem.val();
+            selectElem.empty();
+            distinctValues.forEach(function(val) {
+                const option = new Option(val, val, false, false);
+                selectElem.append(option);
+            });
+            
+            if (currentValue) {
+                const validCurrentValues = currentValue.filter(v => distinctValues.includes(v));
+                selectElem.val(validCurrentValues);
+            }
+            selectElem.trigger('change.select2');
+        }
+
+        function updateCascade(startBlock) {
+          for (let i = startBlock; i <= 3; i++) {
+            updateFilterValuesForBlock(i);
+          }
+        }
+
+        function applyFilters(reset = true) {
+            if (reset) {
+                currentOffset = 0;
+            }
+            let queryParams = { limit: pageSize, offset: currentOffset };
+            const projectFilterValues = $('#filter-project').val();
+            if (projectFilterValues && projectFilterValues.length > 0) {
+                queryParams["Customer"] = projectFilterValues.join(',');
+            }
+
+            for (let i = 1; i <= 3; i++) {
+                const colSelect = $(`#filter-column-${i}`);
+                const col = colSelect.val();
+                const selectedOptionDataType = colSelect.find('option:selected').data('type');
+                
+                if (selectedOptionDataType === 'date') {
+                    const dateStart = $(`#filter-date-start-${i}`).val();
+                    const dateEnd = $(`#filter-date-end-${i}`).val();
+                    if (dateStart) queryParams[`${col}_start`] = dateStart;
+                    if (dateEnd) queryParams[`${col}_end`] = dateEnd;    
+                } else {
+                    const values = $(`#filter-value-${i}`).val();
+                    if (values && values.length > 0) {
+                        queryParams[col] = values.join(',');
+                    }
+                }
+            }
+            
+            currentFilters = {...queryParams}; 
+            
+            showSpinner();
+            $.getJSON(`/search?${$.param(queryParams)}`, function(response) {
+                totalData = response.total;
+                currentOffset = reset ? response.data.length : currentOffset + response.data.length;
+                updateTable(response.data, reset);
+            }).always(function() {
+                hideSpinner();
+            });
+        }
+
+        function closeImagePopup() {
+            imagePopup.hide().removeClass('zoomed');
+            popupImg.off('load error').attr('src', '').hide().css('cursor', 'zoom-in');
+            popupText.text('').hide();
+            popupSpinner.hide();
+            imagePopup.removeData('current-erp');
+            imagePopup.removeData('current-part-number');
+            imagePopup.removeData('thumbnail-url');
+            imagePopup.removeData('high-quality-url');
+        }
+
+        function updateTable(data, reset) {
+            const tbody = $('#results-table tbody');
+            if (reset) tbody.empty();
+
+            data.forEach(function(row) {
+                const serial = reset ? tbody.children().length + 1 : currentOffset - data.length + tbody.children().length + 1;
+                const tr = $('<tr>');
+                const partNumberValue = row['Part Number'] || 'N/A'; 
+
+                tr.append(`<td class="sticky-col-1">${serial}</td>`);
+                
+                const partNumberCell = $(`<td>${partNumberValue}</td>`).addClass('sticky-col-2');
+                partNumberCell.css('cursor', 'pointer');
+
+                partNumberCell.on('click', function(e) {
+                    const currentErpCode = row['ERP-CODE']?.trim().toUpperCase();
+                    const currentPartNumberValueFromRow = row['Part Number'] || 'N/A'; 
+
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = currentPartNumberValueFromRow;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+
+                    const copyMessage = $('<div class="copy-feedback-message">Đã sao chép: ' + currentPartNumberValueFromRow + '</div>');
+                    $('body').append(copyMessage);
+                    copyMessage[0].offsetHeight; 
+                    copyMessage.addClass('show');
+                    setTimeout(() => {
+                        copyMessage.removeClass('show');
+                        copyMessage.fadeOut(500, function() {
+                            $(this).remove();
+                        });
+                    }, 1500); 
+
+                    imagePopup.removeClass('zoomed');
+                    popupImg.attr('src', '').hide().css('cursor', 'zoom-in');
+                    popupText.text('').hide();
+                    popupSpinner.hide(); 
+
+                    imagePopup.data('current-erp', currentErpCode);
+                    imagePopup.data('current-part-number', currentPartNumberValueFromRow);
+
+                    if (currentErpCode) {
+                        const thumbnailUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/w_250,h_250,c_limit,f_auto,q_auto:good/ERP-CODE/${currentErpCode}.jpg`;
+                        const highQualityUrl = `https://res.cloudinary.com/dyjcw9mlz/image/upload/f_auto,q_auto:good/ERP-CODE/${currentErpCode}.jpg`;
+
+                        imagePopup.data('thumbnail-url', thumbnailUrl);
+                        imagePopup.data('high-quality-url', highQualityUrl);
+
+                        popupSpinner.show(); 
+                        popupImg.attr('src', thumbnailUrl); 
+
+                        popupImg.off('load error').on('load', function() {
+                            const expectedErp = imagePopup.data('current-erp');
+                            if (expectedErp && $(this).attr('src') && $(this).attr('src').includes(expectedErp)) {
+                                popupSpinner.hide();
+                                $(this).show();
+                                popupText.hide().text('');
+                                imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                            }
+                        }).on('error', function() {
+                            const expectedErp = imagePopup.data('current-erp');
+                            const pn = imagePopup.data('current-part-number') || "N/A";
+                            if (expectedErp && ($(this).attr('src') === '' || ($(this).attr('src') && $(this).attr('src').includes(expectedErp)))) {
+                                popupSpinner.hide();
+                                $(this).hide();
+                                popupText.text(i18next.t('no_image_found', { partNumber: pn, erpCode: expectedErp })).show();
+                                imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                            }
+                        });
+                        
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+
+                    } else { 
+                        popupSpinner.hide();
+                        popupImg.hide();
+                        popupText.text(i18next.t('no_erp_code', { partNumber: currentPartNumberValueFromRow })).show();
+                        imagePopup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }).show();
+                    }
+                });
+                
+                tr.append(partNumberCell);
+
+                tr.append(`<td class="sticky-col-3">${row['REV'] || ''}</td>`); // Sửa class sticky-col-col-3 thành sticky-col-3
+                tr.append(`<td>${row['Approval Status'] || ''}</td>`);
+                tr.append(`<td>${row['Customer'] || ''}</td>`);
+                tr.append(`<td>${row['Commodity'] || ''}</td>`);
+                tr.append(`<td>${row['Production Status'] || ''}</td>`);
+                tr.append(`<td>${row['Part Pictures'] || ''}</td>`);
+                tr.append(`<td>${row['Packaging Pictures'] || ''}</td>`);
+
+                tr.append(`<td>${row['Critical'] || ''}</td>`);
+                tr.append(`<td>${row['CE'] || ''}</td>`);
+                tr.append(`<td>${row['PO Number'] || ''}</td>`);
+                tr.append(`<td>${row['Description'] || ''}</td>`);
+                tr.append(`<td>${row['ERP-CODE'] || ''}</td>`); 
+                tr.append(`<td>${row['Note Number'] || ''}</td>`);
+                tr.append(`<td>${formatExcelDate(row['PO received date'])}</td>`);
+                tr.append(`<td>${formatExcelDate(row['Customer need date'])}</td>`);
+                tr.append(`<td>${row['Requirements'] || ''}</td>`);
+                tr.append(`<td>${row['FAIR Cover sheet'] || ''}</td>`);
+                tr.append(`<td>${row['Bubble Drawings'] || ''}</td>`);
+                tr.append(`<td>${row['Datasheet form'] || ''}</td>`);
+                tr.append(`<td>${row['LAIR Data'] || row['LAIR data'] || ''}</td>`);
+                tr.append(`<td>${row['FAIR Data'] || ''}</td>`);
+                tr.append(`<td>${row['COC'] || ''}</td>`);
+                tr.append(`<td>${row['BOM'] || ''}</td>`);
+                tr.append(`<td>${row['Mill'] || ''}</td>`);
+                tr.append(`<td>${row['Test reports / evidences'] || ''}</td>`);
+                tr.append(`<td>${row['Remark 1'] || ''}</td>`);
+                tr.append(`<td>${row['PIC'] || ''}</td>`);
+                tr.append(`<td>${formatExcelDate(row['Submit date'])}</td>`);
+                tr.append(`<td>${row['Reject comments'] || ''}</td>`);
+
+                tbody.append(tr);
+            });
+
+            var totalText = i18next.t("total_rows", { count: tbody.children().length, total: totalData });
+            $('#results-count').text(totalText);
+
+            try {
+                if ($.fn.colResizable) {
+                  $('#results-table').colResizable({ liveDrag: true, partialRefresh: true });
+                }
+            } catch (e) {
+                console.log("colResizable not available in updateTable:", e);
+            }
+        }
+
+
+        function downloadExcel() {
+            const table = document.getElementById('results-table');
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const dateColumns = ['PO received date', 'Customer need date', 'Submit date'];
+
+            const data = rows.map(tr => {
+                const cells = Array.from(tr.querySelectorAll('td'));
+                const rowObj = {};
+                cells.forEach((td, index) => {
+                    let val = td.textContent.trim();
+                    const header = headers[index];
+                    rowObj[header] = val;
+                });
+                return rowObj;
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            XLSX.writeFile(wb, 'ketqua.xlsx');
+        }
+
+        function getColumnIndex(columnName) {
+          let index = -1;
+          $('#results-table th').each(function(i) {
+            if ($(this).data('column') === columnName) {
+              index = i;
+              return false;
+            }
+          });
+          return index;
+        }
+        function sortTable(column, order) {
+          let rows = $('#results-table tbody tr').get();
+          let colIndex = getColumnIndex(column);
+          if (colIndex === -1) return;
+
+          const isDateColumn = ['PO received date', 'Customer need date', 'Submit date'].includes(column);
+
+          rows.sort(function(a, b) {
+            let valA = $(a).children('td').eq(colIndex).text().toUpperCase();
+            let valB = $(b).children('td').eq(colIndex).text().toUpperCase();
+
+            if (isDateColumn) {
+                const dateA = new Date(valA);
+                const dateB = new Date(valB);
+                if (!isNaN(dateA) && !isNaN(dateB)) {
+                    return order === 'asc' ? dateA - dateB : dateB - dateA;
+                }
+            }
+            return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          });
+          $.each(rows, function(index, row) {
+            $('#results-table tbody').append(row);
+          });
+
+          $('#results-table tbody tr').each(function(index) {
+            $(this).find('td:first-child').text(index + 1);
+          });
+        }
+        $(document).on('click', '#results-table th', function () {
+            const col = $(this).data('column');
+            if (!col || col === "No") return; 
+
+            const currentOrder = $(this).data('order') || 'asc';
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+
+            $('#results-table th').each(function () {
+                if ($(this).data('column') !== "No") { 
+                    $(this).data('order', null);
+                    const text = $(this).text().replace(/[▲▼]/g, '').trim();
+                    $(this).text(text);
+                }
+            });
+
+            const arrow = newOrder === 'asc' ? ' ▲' : ' ▼';
+            $(this).text($(this).text().replace(/[▲▼]/g, '').trim() + arrow);
+            $(this).data('order', newOrder);
+
+            sortTable(col, newOrder);
+        });
+    </script>
+    <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999; overflow-y:auto; transition: all 0.3s ease;">
+        <div style="background:#fff; padding:16px; border-radius:8px; width:95%; max-width:400px; text-align:center; margin-bottom: 10vh;">
+            <h3>📷 Quét Part Number</h3>
+            <div style="position: relative; width: 100%; max-height:240px;">
+                <video id="camera" playsinline autoplay style="width:100%; max-height:240px; object-fit:cover; border-radius:6px;"></video>
+                <div id="ocrGuideBox" style="position: absolute; border: 2px solid red; top: 35%; left: 10%; width: 80%; height: 20%; box-sizing: border-box; pointer-events: none;"></div>
+            </div>
+            <div id="zoomContainer" style="display:none; margin:10px auto; text-align:center;">
+              🔍 Zoom:
+              <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1" style="width:80%;"/>
+            </div>
+            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;">
+                <button id="btnCapture" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: all 0.3s ease-out;">📸 Chụp &amp; Quét</button>
+                <button id="btnApplyOcrFilter" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: all 0.3s ease-out;">✅ Lọc</button>
+                <button id="btnCloseCamera" style="padding:10px 14px; font-size:14px; flex:1 0 40%; transition: all 0.3s ease-out;">❌ Đóng</button>
+            </div>
+            <input id="ocrInput" type="text" placeholder="Kết quả OCR..." style="margin-top:10px; width:100%; padding:8px; font-size:14px;"/>
+            <p id="ocrStatus" style="font-size:14px; margin-top:10px; margin-bottom: 20px; display: block;">Đang chờ thao tác...</p>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnScan = document.getElementById('btnScanCamera');
+      const modal = document.getElementById('cameraModal');
+      const video = document.getElementById('camera');
+      const canvas = document.getElementById('canvas');
+      const statusP = document.getElementById('ocrStatus');
+      let inputOCR = document.getElementById('ocrInput');
+      const btnCapture = document.getElementById('btnCapture');
+      const btnClose = document.getElementById('btnCloseCamera');
+      const btnApply = document.getElementById('btnApplyOcrFilter');
+      const zoomSlider = document.getElementById("zoomSlider");
+      const zoomContainer = document.getElementById("zoomContainer");
+      let stream, intervalId;
+
+      function stopStream() {
+        if (stream) {
+          stream.getTracks().forEach(t => t.stop());
+          video.srcObject = null;
+        }
+        clearInterval(intervalId);
+      }
+
+      function cropCenterAndOCR(callback) {
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const cropWidth = canvas.width * 0.8;
+        const cropHeight = canvas.height * 0.2;
+        const offsetX = canvas.width * 0.1;
+        const offsetY = canvas.height * 0.35;
+        const imageData = ctx.getImageData(offsetX, offsetY, cropWidth, cropHeight);
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = cropWidth;
+        tempCanvas.height = cropHeight;
+        tempCanvas.getContext("2d").putImageData(imageData, 0, 0);
+
+        Tesseract.recognize(tempCanvas.toDataURL(), 'eng')
+          .then(({ data: { text } }) => callback(text))
+          .catch(() => statusP.textContent = '❌ Lỗi khi nhận diện.');
+      }
+
+      btnScan.addEventListener('click', async () => {
+        modal.style.display = 'flex';
+        statusP.textContent = '🔄 Đang khởi động camera...';
+        inputOCR.value = '';
+        document.getElementById("ocrInput").style.display = 'block';
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          video.srcObject = stream;
+          video.play();
+
+          const track = stream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities();
+          if (capabilities.zoom) {
+            zoomContainer.style.display = 'block';
+            zoomSlider.min = capabilities.zoom.min;
+            zoomSlider.max = capabilities.zoom.max;
+            zoomSlider.step = capabilities.zoom.step || 0.1;
+            zoomSlider.value = capabilities.zoom.min;
+            zoomSlider.addEventListener("input", () => {
+              track.applyConstraints({ advanced: [{ zoom: zoomSlider.value }] });
+            });
+          }
+          statusP.textContent = '✅ Đã kết nối camera. Nhấn "Chụp & Quét" hoặc giữ chế độ tự động';
+        } catch (err) {
+          statusP.textContent = '❌ Không thể truy cập camera.';
+        }
+      });
+
+      btnCapture.addEventListener('click', () => {
+        statusP.textContent = '🔍 Đang quét...';
+        cropCenterAndOCR((text) => {
+          const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+          if (lines.length === 0) return statusP.textContent = '❌ Không nhận được dòng nào.';
+
+          if (lines.length === 1) {
+            inputOCR.value = lines[0];
+            statusP.textContent = '✅ Đã nhận 1 dòng.';
+          } else {
+            const selectHTML = `
+              <select id="ocrLineSelector" style="width:100%; padding:8px; font-size:14px; margin-top:10px;">
+                ${lines.map(l => `<option>${l}</option>`).join('')}
+              </select>
+            `;
+            inputOCR.insertAdjacentHTML('beforebegin', selectHTML);
+            const selector = document.getElementById('ocrLineSelector');
+            selector.addEventListener('change', () => {
+              inputOCR.value = selector.value;
+            });
+            inputOCR.value = lines[0];
+            statusP.textContent = `✅ Đã nhận ${lines.length} dòng. Đã chọn dòng đầu tiên, có thể chỉnh sửa.`;
+          }
+        });
+      });
+
+      btnApply.addEventListener('click', () => {
+        const part = inputOCR.value.trim();
+        if (!part) return alert('Bạn chưa nhập Part Number!');
+        $('#filter-column-1').val('Part Number').trigger('change'); 
+        setTimeout(() => { 
+            $('#filter-value-1').val([part]).trigger('change'); 
+            if (typeof applyFilters === 'function') applyFilters(true);
+            statusP.textContent = `✅ Đã lọc với Part Number: ${part}`;
+            saveSearchHistory(part);
+            setTimeout(() => btnClose.click(), 1500);
+        }, 50); 
+      });
+
+      btnClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+        zoomContainer.style.display = 'none';
+        stopStream();
+        document.getElementById("ocrLineSelector")?.remove();
+        inputOCR.value = '';
+      });
+    });
+    </script>
+    <script>
+    window.addEventListener('resize', () => {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        setTimeout(() => {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+    });
+    </script><script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ocrInput = document.getElementById('ocrInput');
+      if (ocrInput) {
+        ocrInput.addEventListener('focus', () => {
+          setTimeout(() => {
+            ocrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      }
+    });
+    </script><script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('ocrInput');
+      if (input) {
+        input.addEventListener('focus', () => {
+          setTimeout(() => {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      }
+    });
+    </script><script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const inputs = document.querySelectorAll('.filter-bar input, .filter-bar select');
+      inputs.forEach((input) => {
+        input.addEventListener('focus', () => {
+          setTimeout(() => {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      });
+    });
+    </script>
+    <script>
+    function showSpinner() {
+      $('#loading-spinner').show();
+    }
+    function hideSpinner() {
+      $('#loading-spinner').hide();
+    }
+
+    $('#quick-search').on('input', function () {
+      const keyword = $(this).val().toLowerCase();
+      $('#results-table tbody tr').each(function () {
+        const partNumber = $(this).find('td:nth-child(2)').text().toLowerCase(); 
+        $(this).toggle(partNumber.includes(keyword));
+      });
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const topContainer = document.querySelector('.top-container');
+      const tableContainer = document.querySelector('.table-container');
+      const quickSearchContainer = document.querySelector('.quick-search-container'); // Sửa lại selector
+      const quickSearchInput = document.getElementById('quick-search');
+      const applyBtn = document.getElementById('apply-filters');
+      const clearBtn = document.getElementById('clear-filters');
+
+      let wasEditingTop = false;
+
+      document.addEventListener('focusin', (e) => {
+          if (window.innerWidth >= 768) return;
+        const target = e.target;
+        if (topContainer.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
+          wasEditingTop = true;
+          topContainer.classList.add('full-top-container');
+          topContainer.classList.remove('hide-top-container');
+          tableContainer.classList.remove('show-table-only');
+          if(quickSearchContainer) quickSearchContainer.style.display = 'none'; // Ẩn quick search container
+        } else if (target === quickSearchInput) { // Sửa lại target
+          topContainer.classList.add('hide-top-container');
+          tableContainer.classList.add('show-table-only');
+        }
+      });
+
+      document.addEventListener('focusout', () => {
+            if (window.innerWidth >= 768) return;
+        setTimeout(() => {
+          const active = document.activeElement;
+          if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+            if (wasEditingTop) {
+              tableContainer.classList.remove('show-table-only');
+              if(quickSearchContainer) quickSearchContainer.style.display = 'none'; // Giữ ẩn quick search
+            } else {
+              topContainer.classList.remove('full-top-container', 'hide-top-container');
+              tableContainer.classList.remove('show-table-only');
+              if(quickSearchContainer) quickSearchContainer.style.display = 'block'; // Hiện lại quick search
+            }
+          }
+        }, 300);
+      });
+
+      function revealTableAndSearch() {
+        wasEditingTop = false;
+        topContainer.classList.remove('full-top-container', 'hide-top-container');
+        if(quickSearchContainer) quickSearchContainer.style.display = 'block'; // Hiện lại quick search
+        tableContainer.classList.remove('show-table-only');
+      }
+
+      applyBtn?.addEventListener('click', revealTableAndSearch);
+      clearBtn?.addEventListener('click', revealTableAndSearch);
+    });
+    </script>
+    <button onclick="toggleHistoryPopup()" style="position: fixed; bottom: 20px; left: 20px; background: #00cc99; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; z-index: 9999; transition: all 0.3s ease-out;" title="Lịch sử tìm kiếm">🕘</button>
+    <div id="floating-history-popup" style="display: none; position: fixed; bottom: 80px; left: 20px; background: rgba(30,30,30,0.95); color: white; padding: 16px; border-radius: 12px; width: 300px; max-height: 360px; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 9999;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0;">📜 Lịch sử tìm kiếm</h4>
+            <button onclick="toggleHistoryPopup()" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer; transition: all 0.3s ease-out;">×</button>
+        </div>
+        <ul id="searchHistory" style="list-style: none; padding-left: 0; margin: 12px 0;"></ul>
+        <button onclick="clearSearchHistory()" style="margin-top: 8px; background:#cc4444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width:100%; transition: all 0.3s ease-out;">🗑️ Xóa lịch sử</button>
+    </div>
+
+    <a href="/voice_search" style="position: fixed; bottom: 20px; right: 20px; background: #0066ff; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; z-index: 9999; transition: all 0.3s ease-out;" title="Tìm kiếm bằng giọng nói">
+      🎤
+    </a>
+
+    <script>
+      function saveSearchHistory(partNumber) {
+        if (!partNumber) return;
+        const history = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
+        const now = new Date().toLocaleString("vi-VN");
+        const existingIndex = history.findIndex(item => item.partNumber === partNumber);
+        if (existingIndex > -1) {
+            history.splice(existingIndex, 1);
+        }
+        history.unshift({ partNumber, time: now });
+        if (history.length > 30) history.pop();
+        localStorage.setItem("partSearchHistory", JSON.stringify(history));
+        renderSearchHistory();
+      }
+
+      function renderSearchHistory() {
+        const history = JSON.parse(localStorage.getItem("partSearchHistory") || "[]");
+        const list = document.getElementById("searchHistory");
+        if (!list) return;
+        list.innerHTML = "";
+        history.forEach(item => {
+          const li = document.createElement("li");
+          li.style.marginBottom = "6px";
+          li.innerHTML = `<button onclick="quickSearchFromHistory('${item.partNumber.replace(/'/g, "\\'")}'); navigator.clipboard.writeText('${item.partNumber.replace(/'/g, "\\'")}')" title="Click để tra cứu và sao chép" style="background:#444; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; width: calc(100% - 70px); text-align:left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.3s ease-out;">${item.partNumber}</button> <small style="color:#ccc; font-size: 10px;">(${item.time.split(',')[0]})</small>`;
+          list.appendChild(li);
+        });
+      }
+
+      function quickSearchFromHistory(partNumber) {
+        $('#filter-column-1').val('Part Number').trigger('change'); 
+        setTimeout(() => {
+            $('#filter-value-1').val([partNumber]).trigger('change');
+            applyFilters(true);
+            toggleHistoryPopup(); 
+        }, 50);
+      }
+
+      function clearSearchHistory() {
+        localStorage.removeItem("partSearchHistory");
+        renderSearchHistory();
+      }
+      
+      function toggleHistoryPopup() {
+          const popup = document.getElementById("floating-history-popup");
+          if (popup) {
+            const isOpen = popup.style.display === "block";
+            popup.style.display = isOpen ? "none" : "block";
+            if (!isOpen) {
+              renderSearchHistory();
+            }
+          }
+      }
+      window.addEventListener("DOMContentLoaded", renderSearchHistory);
+    </script>
+    <script>
+function fetchCurrentUserAndShowOnlineList() {
+  fetch('/api/me')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.user.role === 'admin') {
+        document.getElementById('admin-online-users').style.display = 'block';
+        fetchOnlineUsers();
+        setInterval(fetchOnlineUsers, 30000);
+      }
+    });
+}
+
+function fetchOnlineUsers() {
+  fetch('/api/active-users')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const container = document.getElementById('admin-online-users');
+        if (data.users.length > 0) {
+          container.innerHTML = "👥 <b>Đang hoạt động:</b> " + data.users.join(', ');
+        } else {
+          container.innerHTML = "Không có ai đang online.";
+        }
+      }
+    });
+}
+
+fetchCurrentUserAndShowOnlineList();
+</script>
 
 </body>
 </html>

@@ -8,31 +8,25 @@
     {
     "name": "Thiet",
     "email": "thiet@gmail.com",
-    "password": "thiet123",
+    "password": "Thiet2025@",
     "role": "user"
   },
     {
     "name": "Son",
     "email": "Son@gmail.com",
-    "password": "son123",
+    "password": "Son2025@",
     "role": "user"
   },
   {
     "name": "Hai",
     "email": "Hai@gmail.com",
-    "password": "hai123",
-    "role": "user"
-  },
-  {
-    "name": "Duc",
-    "email": "Duc@gmail.com",
-    "password": "duc123",
+    "password": "Hai2025@",
     "role": "user"
   },
     {
     "name": "Long",
     "email": "Long@gmail.com",
-    "password": "long123",
+    "password": "Long2025@",
     "role": "user"
   },
       {
@@ -44,25 +38,25 @@
   {
     "name": "Tam",
     "email": "Tam@gmail.com",
-    "password": "Tam123",
-    "role": "user"
-  },
-    {
-    "name": "Thang",
-    "email": "Thang@gmail.com",
-    "password": "Thang123",
+    "password": "Tam2025@",
     "role": "user"
   },
     {
     "name": "Phuoc",
     "email": "Phuoc@gmail.com",
-    "password": "Phuoc123",
+    "password": "Phuoc2025@",
     "role": "user"
   },
     {
     "name": "Hoang",
     "email": "Hoang@gmail.com",
-    "password": "Hoang123",
+    "password": "Hoang2025@",
+    "role": "user"
+  },
+    {
+    "name": "Hanh",
+    "email": "Hanh@gmail.com",
+    "password": "Hanh2025@",
     "role": "user"
   }
 ]
